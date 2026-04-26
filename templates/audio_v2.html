@@ -1,0 +1,36 @@
+{% extends "base_shell_v2.html" %}
+{% set active_page = "audio" %}
+
+{% block title %}Audio Workspace — KAMOD AI{% endblock %}
+
+{% block head_extra %}
+<style>
+  .audio-embed{min-height:5000px}
+  @media(max-width:900px){.audio-embed{min-height:6200px}}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="shell-topbar">
+  <div>
+    <h1 class="shell-page-title">Audio Workspace</h1>
+    <p class="shell-page-sub">
+      Generate music, voiceover, sound effects, voice clones, and lip-sync assets for KAMOD media workflows.
+    </p>
+  </div>
+  <div class="shell-status"><span class="shell-status-dot"></span>Audio workspace</div>
+</section>
+
+<section class="shell-stage">
+  <div class="shell-stage-head">
+    <div>
+      <h2 class="shell-stage-title">Sound and speech tools</h2>
+      <p class="shell-stage-meta">The current music, voiceover, lip-sync, SFX, and voice clone flows remain wired to their existing endpoints.</p>
+    </div>
+    <span class="shell-pill">Enhance</span>
+  </div>
+  <div class="shell-content">
+    <iframe class="shell-embed audio-embed" src="/audio-legacy?embed=1" title="Audio Workspace"></iframe>
+  </div>
+</section>
+{% endblock %}

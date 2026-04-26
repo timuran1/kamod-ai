@@ -1,0 +1,36 @@
+{% extends "base_shell_v2.html" %}
+{% set active_page = "ugc-studio" %}
+
+{% block title %}UGC Studio — KAMOD AI{% endblock %}
+
+{% block head_extra %}
+<style>
+  .ugc-embed{min-height:3600px}
+  @media(max-width:900px){.ugc-embed{min-height:4400px}}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="shell-topbar">
+  <div>
+    <h1 class="shell-page-title">UGC Studio</h1>
+    <p class="shell-page-sub">
+      Turn product images, creator references, and campaign direction into ready-to-render creator video prompts.
+    </p>
+  </div>
+  <div class="shell-status"><span class="shell-status-dot"></span>Creator workflow</div>
+</section>
+
+<section class="shell-stage">
+  <div class="shell-stage-head">
+    <div>
+      <h2 class="shell-stage-title">Creator prompt workflow</h2>
+      <p class="shell-stage-meta">Product review, lifestyle ad, unboxing, testimonial, and before/after flows stay on the existing production logic.</p>
+    </div>
+    <span class="shell-pill">Create</span>
+  </div>
+  <div class="shell-content">
+    <iframe class="shell-embed ugc-embed" src="/ugc-studio-legacy?embed=1" title="UGC Studio"></iframe>
+  </div>
+</section>
+{% endblock %}

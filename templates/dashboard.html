@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard — KAMOD AI</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0a0a0f;
+      color: #e0e0e0;
+      min-height: 100vh;
+      padding: 40px 24px;
+    }
+
+    nav{width:100%;max-width:1100px;display:flex;flex-direction:column;align-items:center;gap:12px;margin:0 auto 36px}
+    nav .logo{font-size:1.15rem;font-weight:700;background:linear-gradient(135deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.01em}
+    .nav-grouped{display:flex;align-items:flex-end;gap:0;background:#0d0d16;border:1px solid #1c1c2e;border-radius:13px;padding:5px 8px;overflow-x:auto;max-width:100%;scrollbar-width:none}
+    .nav-grouped::-webkit-scrollbar{display:none}
+    .nav-group{display:flex;flex-direction:column;align-items:center;gap:2px;padding:0 2px}
+    .nav-group-label{font-size:.58rem;font-weight:800;letter-spacing:.1em;color:#252535;text-transform:uppercase;transition:color .2s;padding:0 4px;user-select:none}
+    .nav-group.has-active .nav-group-label{color:#6060a0}
+    .nav-group-items{display:flex;gap:1px}
+    .nav-grouped a{color:#555;text-decoration:none;font-size:.77rem;font-weight:500;padding:6px 11px;border-radius:8px;transition:all .15s;white-space:nowrap;letter-spacing:.01em}
+    .nav-grouped a:hover{color:#bbb;background:rgba(255,255,255,0.05)}
+    .nav-grouped a.active{background:linear-gradient(135deg,#6d5fd6,#3b7dd8);color:#fff;font-weight:600;box-shadow:0 0 14px rgba(109,95,214,.45)}
+    .nav-sep{width:1px;height:28px;background:#1c1c2e;margin:0 5px 3px;flex-shrink:0;align-self:flex-end}
+
+    h2 { font-size: 1.6rem; font-weight: 700; margin-bottom: 24px; }
+    .subtitle { color: #888; font-size: 0.9rem; margin-top: 4px; margin-bottom: 32px; }
+
+    .wrapper { max-width: 1100px; margin: 0 auto; }
+
+    /* Stat cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .stat-card {
+      background: #13131a; border: 1px solid #222233;
+      border-radius: 14px; padding: 20px 22px;
+    }
+    .stat-card .label { font-size: 0.78rem; color: #888; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .stat-card .value { font-size: 1.9rem; font-weight: 700; }
+    .stat-card .value.green  { color: #4ade80; }
+    .stat-card .value.blue   { color: #60a5fa; }
+    .stat-card .value.purple { color: #a78bfa; }
+    .stat-card .value.yellow { color: #facc15; }
+    .stat-card .value.red    { color: #f87171; }
+
+    /* Section cards */
+    .section-card {
+      background: #13131a; border: 1px solid #222233;
+      border-radius: 14px; padding: 24px;
+      margin-bottom: 24px;
+    }
+    .section-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 18px; color: #ccc; }
+
+    /* Model breakdown */
+    .model-row {
+      display: flex; align-items: center; gap: 14px;
+      padding: 10px 0; border-bottom: 1px solid #1a1a28;
+    }
+    .model-row:last-child { border-bottom: none; }
+    .model-name { flex: 1; font-size: 0.88rem; color: #ccc; }
+    .model-bar-wrap { flex: 2; background: #0e0e18; border-radius: 6px; height: 8px; overflow: hidden; }
+    .model-bar { height: 100%; border-radius: 6px; background: linear-gradient(90deg, #6d5fd6, #3b7dd8); }
+    .model-count { font-size: 0.82rem; color: #888; width: 60px; text-align: right; }
+    .model-cost  { font-size: 0.82rem; color: #4ade80; width: 70px; text-align: right; }
+
+    /* History table */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th {
+      text-align: left; color: #666; font-size: 0.75rem;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      padding: 8px 12px; border-bottom: 1px solid #1e1e2e;
+    }
+    td {
+      padding: 10px 12px; border-bottom: 1px solid #141420;
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr.history-row { cursor: pointer; }
+    tr.history-row:hover td { background: #18182a; }
+    tr.history-row:hover .prompt-cell { color: #fff; }
+
+    .badge {
+      display: inline-block; padding: 2px 9px; border-radius: 20px;
+      font-size: 0.75rem; font-weight: 600;
+    }
+    .badge.completed  { background: #1a1e2a; color: #60a5fa; }
+    .badge.processing { background: #1a2a1a; color: #4ade80; }
+    .badge.failed     { background: #2a1a1a; color: #f87171; }
+    .badge.t2v        { background: #1e1a2a; color: #a78bfa; }
+    .badge.i2v        { background: #1a201e; color: #34d399; }
+
+    .prompt-cell { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #ccc; transition: color .15s; }
+    .cost-cell   { color: #4ade80; font-variant-numeric: tabular-nums; }
+    .link-cell a { color: #60a5fa; text-decoration: none; font-size: 0.8rem; }
+    .link-cell a:hover { text-decoration: underline; }
+
+    .empty { color: #666; text-align: center; padding: 40px; font-size: 0.9rem; }
+    .refresh-btn {
+      float: right; background: none; border: 1px solid #2a2a3a;
+      color: #888; border-radius: 8px; padding: 5px 12px;
+      font-size: 0.82rem; cursor: pointer; transition: all 0.2s;
+    }
+    .refresh-btn:hover { color: #a78bfa; border-color: #a78bfa44; }
+
+    .spinner {
+      display: inline-block; width: 10px; height: 10px;
+      border: 2px solid #4ade8055; border-top-color: #4ade80;
+      border-radius: 50%; animation: spin 0.7s linear infinite;
+      margin-right: 4px; vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .last-updated { color: #555; font-size: 0.78rem; margin-top: 4px; }
+
+    /* ── Video Preview Modal ─────────────────────────────────────────────── */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(6px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: #13131a;
+      border: 1px solid #2a2a3e;
+      border-radius: 18px;
+      width: 100%;
+      max-width: 860px;
+      max-height: calc(100vh - 40px);
+      overflow-y: auto;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(109,95,214,0.12);
+      scrollbar-width: thin;
+      scrollbar-color: #2a2a3e transparent;
+    }
+    .modal::-webkit-scrollbar { width: 6px; }
+    .modal::-webkit-scrollbar-thumb { background: #2a2a3e; border-radius: 3px; }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px 0;
+    }
+    .modal-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      color: #666;
+      font-size: 1.4rem;
+      cursor: pointer;
+      line-height: 1;
+      padding: 4px 8px;
+      border-radius: 8px;
+      transition: all 0.15s;
+    }
+    .modal-close:hover { background: #1e1e2e; color: #ccc; }
+
+    /* Video section */
+    .modal-video-wrap {
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0a0a0f;
+      margin: 16px 24px;
+      border-radius: 12px;
+      min-height: 200px;
+    }
+    .modal-video-wrap video {
+      max-width: 100%;
+      max-height: 60vh;
+      border-radius: 8px;
+      display: block;
+    }
+    .modal-no-video {
+      color: #555;
+      font-size: 0.9rem;
+      text-align: center;
+      padding: 40px;
+    }
+
+    /* Action buttons */
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      padding: 0 24px 20px;
+      flex-wrap: wrap;
+    }
+    .btn-download {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: linear-gradient(135deg, #6d5fd6, #3b7dd8);
+      color: #fff;
+      border: none;
+      border-radius: 9px;
+      padding: 9px 18px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+    .btn-download:hover { opacity: 0.85; }
+    .btn-open {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: #1e1e2e;
+      color: #aaa;
+      border: 1px solid #2a2a3e;
+      border-radius: 9px;
+      padding: 9px 18px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .btn-open:hover { color: #fff; border-color: #444; }
+
+    /* Prompt block */
+    .modal-section {
+      padding: 0 24px 20px;
+    }
+    .modal-section-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #555;
+      margin-bottom: 8px;
+    }
+    .prompt-block {
+      background: #0e0e18;
+      border: 1px solid #1e1e2e;
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 0.87rem;
+      color: #ccc;
+      line-height: 1.6;
+      position: relative;
+    }
+    .prompt-text { padding-right: 70px; white-space: pre-wrap; word-break: break-word; }
+    .btn-copy {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #1e1e2e;
+      border: 1px solid #2a2a3e;
+      color: #888;
+      border-radius: 7px;
+      padding: 5px 11px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .btn-copy:hover { color: #a78bfa; border-color: #a78bfa55; }
+    .btn-copy.copied { color: #4ade80; border-color: #4ade8055; }
+
+    /* Metadata grid */
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 10px;
+    }
+    .meta-item {
+      background: #0e0e18;
+      border: 1px solid #1a1a28;
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+    .meta-key {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: #555;
+      margin-bottom: 5px;
+    }
+    .meta-val {
+      font-size: 0.85rem;
+      color: #ccc;
+      font-weight: 500;
+      word-break: break-all;
+    }
+    .meta-val.green  { color: #4ade80; }
+    .meta-val.blue   { color: #60a5fa; }
+    .meta-val.purple { color: #a78bfa; }
+    .meta-val.red    { color: #f87171; }
+
+    .modal-divider {
+      height: 1px;
+      background: #1a1a28;
+      margin: 0 24px 20px;
+    }
+
+    @media (max-width: 600px) {
+      .modal { border-radius: 14px; }
+      .modal-video-wrap { margin: 12px; padding: 16px 12px; }
+      .modal-section { padding: 0 16px 16px; }
+      .modal-actions { padding: 0 16px 16px; }
+      .meta-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <span class="logo">KAMOD AI</span>
+  <div class="nav-grouped">
+    <div class="nav-group">
+      <span class="nav-group-label">CREATE</span>
+      <div class="nav-group-items">
+        <a href="/">Seedance 2.0</a>
+        <a href="/ai-videos">AI Video Tools</a>
+        <a href="/ai-director">Director</a>
+        <a href="/images">AI Images</a>
+        <a href="/storyboard">Storyboard</a>
+        <a href="/ugc-studio">UGC Studio</a>
+      </div>
+    </div>
+    <div class="nav-sep"></div>
+    <div class="nav-group">
+      <span class="nav-group-label">ENHANCE</span>
+      <div class="nav-group-items">
+        <a href="/audio">Audio</a>
+        <a href="/avatars">Avatars</a>
+      </div>
+    </div>
+    <div class="nav-sep"></div>
+    <div class="nav-group has-active">
+      <span class="nav-group-label">DELIVER</span>
+      <div class="nav-group-items">
+        <a href="/analytics">Analytics</a>
+        <a href="/dashboard" class="active">Dashboard</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="wrapper">
+  <h2>Dashboard</h2>
+  <p class="subtitle">Usage overview and generation history</p>
+
+  <!-- Stat Cards -->
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card"><div class="label">API Balance</div><div class="value green" id="statBalance">—</div></div>
+    <div class="stat-card"><div class="label">Total Requests</div><div class="value blue" id="statTotal">—</div></div>
+    <div class="stat-card"><div class="label">Credits Spent</div><div class="value yellow" id="statCost">—</div></div>
+    <div class="stat-card"><div class="label">Avg Cost / Request</div><div class="value yellow" id="statAvg">—</div></div>
+    <div class="stat-card"><div class="label">Completed</div><div class="value purple" id="statCompleted">—</div></div>
+    <div class="stat-card"><div class="label">Failed</div><div class="value red" id="statFailed">—</div></div>
+  </div>
+
+  <!-- Model Breakdown -->
+  <div class="section-card">
+    <h3>Usage by Model <button class="refresh-btn" id="refreshBtn">↻ Refresh</button></h3>
+    <div id="modelBreakdown"><div class="empty">Loading…</div></div>
+  </div>
+
+  <!-- History -->
+  <div class="section-card">
+    <h3>Generation History (last 50)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Prompt</th>
+            <th>Mode</th>
+            <th>Quality</th>
+            <th>Duration</th>
+            <th>Status</th>
+            <th>Cost</th>
+            <th>Created</th>
+            <th>Video</th>
+          </tr>
+        </thead>
+        <tbody id="historyBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <p class="last-updated" id="lastUpdated"></p>
+</div>
+
+<!-- ── Video Preview Modal ───────────────────────────────────────────────── -->
+<div class="modal-overlay" id="videoModal" role="dialog" aria-modal="true">
+  <div class="modal" id="modalContent">
+    <div class="modal-header">
+      <span class="modal-title">Video Preview</span>
+      <button class="modal-close" id="modalClose" aria-label="Close">✕</button>
+    </div>
+
+    <!-- Video -->
+    <div class="modal-video-wrap" id="modalVideoWrap">
+      <div class="modal-no-video">No video available</div>
+    </div>
+
+    <!-- Download / Open buttons -->
+    <div class="modal-actions" id="modalActions"></div>
+
+    <div class="modal-divider"></div>
+
+    <!-- Prompt -->
+    <div class="modal-section">
+      <div class="modal-section-label">Prompt</div>
+      <div class="prompt-block">
+        <div class="prompt-text" id="modalPrompt">—</div>
+        <button class="btn-copy" id="copyPromptBtn">Copy</button>
+      </div>
+    </div>
+
+    <div class="modal-divider"></div>
+
+    <!-- Technical metadata -->
+    <div class="modal-section">
+      <div class="modal-section-label">Details</div>
+      <div class="meta-grid" id="modalMeta"></div>
+    </div>
+
+    <div style="height:8px"></div>
+  </div>
+</div>
+
+<script>
+  /* ── Escape helper ────────────────────────────────────────────────────── */
+  function esc(str) {
+    return (str || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+
+  /* ── Modal logic ──────────────────────────────────────────────────────── */
+  const overlay  = document.getElementById("videoModal");
+  const modalBox = document.getElementById("modalContent");
+
+  function openModal(r) {
+    // Video
+    const wrap = document.getElementById("modalVideoWrap");
+    if (r.video_url) {
+      wrap.innerHTML = `<video src="${esc(r.video_url)}" controls playsinline preload="metadata"></video>`;
+    } else {
+      wrap.innerHTML = `<div class="modal-no-video">No video available for this generation.</div>`;
+    }
+
+    // Action buttons
+    const actions = document.getElementById("modalActions");
+    if (r.video_url) {
+      actions.innerHTML = `
+        <a class="btn-download" href="${esc(r.video_url)}" download target="_blank">
+          ↓ Download
+        </a>
+        <a class="btn-open" href="${esc(r.video_url)}" target="_blank" rel="noopener">
+          ↗ Open in new tab
+        </a>`;
+    } else {
+      actions.innerHTML = "";
+    }
+
+    // Prompt
+    document.getElementById("modalPrompt").textContent = r.prompt || "—";
+
+    // Copy button
+    const copyBtn = document.getElementById("copyPromptBtn");
+    copyBtn.textContent = "Copy";
+    copyBtn.classList.remove("copied");
+    copyBtn.onclick = () => {
+      navigator.clipboard.writeText(r.prompt || "").then(() => {
+        copyBtn.textContent = "Copied!";
+        copyBtn.classList.add("copied");
+        setTimeout(() => { copyBtn.textContent = "Copy"; copyBtn.classList.remove("copied"); }, 2000);
+      });
+    };
+
+    // Metadata
+    const statusColor = { completed: "blue", processing: "green", failed: "red" }[r.status] || "";
+    const modeLabel   = r.mode === "image" ? "Image → Video" : "Text → Video";
+    const dateStr     = r.created_at ? r.created_at.replace("T"," ").substring(0,16) + " UTC" : "—";
+    const costStr     = r.cost != null ? "$" + Number(r.cost).toFixed(4) : "—";
+
+    const items = [
+      { key: "Status",      val: r.status || "—",           cls: statusColor },
+      { key: "Mode",        val: modeLabel                                    },
+      { key: "Model",       val: r.model || "—",            cls: "purple"    },
+      { key: "Quality",     val: r.quality || "—"                             },
+      { key: "Duration",    val: r.duration ? r.duration + "s" : "—"         },
+      { key: "Aspect Ratio",val: r.aspect_ratio || "—"                        },
+      { key: "Cost",        val: costStr,                   cls: "green"     },
+      { key: "Created",     val: dateStr                                       },
+      { key: "Job ID",      val: r.request_id || "—"                          },
+    ];
+
+    document.getElementById("modalMeta").innerHTML = items.map(item => `
+      <div class="meta-item">
+        <div class="meta-key">${item.key}</div>
+        <div class="meta-val${item.cls ? " " + item.cls : ""}">${esc(String(item.val))}</div>
+      </div>`).join("");
+
+    overlay.classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeModal() {
+    overlay.classList.remove("open");
+    document.body.style.overflow = "";
+    // Stop video playback
+    const vid = overlay.querySelector("video");
+    if (vid) { vid.pause(); vid.src = ""; }
+  }
+
+  document.getElementById("modalClose").addEventListener("click", closeModal);
+  overlay.addEventListener("click", e => { if (e.target === overlay) closeModal(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+
+  /* ── Stats / History loader ───────────────────────────────────────────── */
+  async function loadStats() {
+    try {
+      const [statsRes, balRes] = await Promise.all([
+        fetch("/api/stats",   { headers: {} }),
+        fetch("/api/balance", { headers: {} }),
+      ]);
+      const data    = await statsRes.json();
+      const balData = await balRes.json();
+
+      const balEl = document.getElementById("statBalance");
+      if (balData.balance != null) {
+        balEl.textContent = "$" + Number(balData.balance).toFixed(3);
+        balEl.style.color = balData.balance < 1 ? "#f87171" : "#4ade80";
+      } else {
+        balEl.textContent = "N/A";
+      }
+
+      document.getElementById("statTotal").textContent     = data.total_requests;
+      document.getElementById("statCost").textContent      = "$" + data.total_cost.toFixed(4);
+      document.getElementById("statAvg").textContent       = "$" + data.avg_cost.toFixed(4);
+      document.getElementById("statCompleted").textContent = data.completed;
+      document.getElementById("statFailed").textContent    = data.failed;
+
+      // Model breakdown
+      const maxReqs = Math.max(...(data.by_model.map(m => m.requests) || [1]), 1);
+      const modelHtml = data.by_model.length === 0
+        ? '<div class="empty">No data yet — generate a video first.</div>'
+        : data.by_model.map(m => `
+            <div class="model-row">
+              <div class="model-name">${m.model}</div>
+              <div class="model-bar-wrap"><div class="model-bar" style="width:${Math.round(m.requests/maxReqs*100)}%"></div></div>
+              <div class="model-count">${m.requests} req</div>
+              <div class="model-cost">$${(m.total_cost||0).toFixed(4)}</div>
+            </div>`).join("");
+      document.getElementById("modelBreakdown").innerHTML = modelHtml;
+
+      // Store history for click handlers, then render rows by index
+      window._historyData = data.history;
+
+      const historyHtml = data.history.length === 0
+        ? '<tr><td colspan="8" class="empty">No generations yet.</td></tr>'
+        : data.history.map((r, i) => {
+            const statusBadge = `<span class="badge ${r.status}">${r.status}</span>`;
+            const modeBadge   = `<span class="badge ${r.mode === 'image' ? 'i2v' : 't2v'}">${r.mode === 'image' ? 'Image→Video' : 'Text→Video'}</span>`;
+            const cost  = r.cost != null ? `$${Number(r.cost).toFixed(4)}` : "<span style='color:#555'>—</span>";
+            const video = r.video_url
+              ? `<a href="${esc(r.video_url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">▶ Watch</a>`
+              : "—";
+            const date  = r.created_at ? r.created_at.replace("T"," ").substring(0,16) + " UTC" : "—";
+            return `<tr class="history-row" data-idx="${i}" title="Click to preview">
+              <td class="prompt-cell" title="${esc(r.prompt)}">${esc(r.prompt)}</td>
+              <td>${modeBadge}</td>
+              <td>${r.quality || "—"}</td>
+              <td>${r.duration ? r.duration + "s" : "—"}</td>
+              <td>${statusBadge}</td>
+              <td class="cost-cell">${cost}</td>
+              <td style="color:#666;font-size:0.8rem;white-space:nowrap">${date}</td>
+              <td class="link-cell">${video}</td>
+            </tr>`;
+          }).join("");
+      document.getElementById("historyBody").innerHTML = historyHtml;
+
+      // Attach click listeners using index lookup
+      document.querySelectorAll(".history-row").forEach(row => {
+        row.addEventListener("click", () => {
+          const r = window._historyData[parseInt(row.dataset.idx, 10)];
+          if (r) openModal(r);
+        });
+      });
+
+      document.getElementById("lastUpdated").textContent = "Last updated: " + new Date().toLocaleTimeString();
+    } catch (e) {
+      console.error("Failed to load stats:", e);
+    }
+  }
+
+  document.getElementById("refreshBtn").addEventListener("click", loadStats);
+
+  loadStats();
+  // Auto-refresh every 15s if there are processing jobs
+  setInterval(loadStats, 15000);
+</script>
+
+{% include 'legal_footer.html' %}
+</body>
+</html>

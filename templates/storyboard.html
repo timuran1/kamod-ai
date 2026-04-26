@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Storyboard — KAMOD AI</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0a0a0f;color:#e0e0e0;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:36px 20px 80px}
+
+    nav{width:100%;max-width:1100px;display:flex;flex-direction:column;align-items:center;gap:12px;margin:0 auto 36px}
+    nav .logo{font-size:1.15rem;font-weight:700;background:linear-gradient(135deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.01em}
+    .nav-grouped{display:flex;align-items:flex-end;gap:0;background:#0d0d16;border:1px solid #1c1c2e;border-radius:13px;padding:5px 8px;overflow-x:auto;max-width:100%;scrollbar-width:none}
+    .nav-grouped::-webkit-scrollbar{display:none}
+    .nav-group{display:flex;flex-direction:column;align-items:center;gap:2px;padding:0 2px}
+    .nav-group-label{font-size:.58rem;font-weight:800;letter-spacing:.1em;color:#252535;text-transform:uppercase;transition:color .2s;padding:0 4px;user-select:none}
+    .nav-group.has-active .nav-group-label{color:#6060a0}
+    .nav-group-items{display:flex;gap:1px}
+    .nav-grouped a{color:#555;text-decoration:none;font-size:.77rem;font-weight:500;padding:6px 11px;border-radius:8px;transition:all .15s;white-space:nowrap;letter-spacing:.01em}
+    .nav-grouped a:hover{color:#bbb;background:rgba(255,255,255,0.05)}
+    .nav-grouped a.active{background:linear-gradient(135deg,#6d5fd6,#3b7dd8);color:#fff;font-weight:600;box-shadow:0 0 14px rgba(109,95,214,.45)}
+    .nav-sep{width:1px;height:28px;background:#1c1c2e;margin:0 5px 3px;flex-shrink:0;align-self:flex-end}
+
+    header{text-align:center;margin-bottom:32px}
+    header h1{font-size:2.2rem;font-weight:700;background:linear-gradient(135deg,#a78bfa,#60a5fa,#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    header .sub{color:#888;margin-top:8px;font-size:.92rem}
+    header .powered{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:4px 12px;border-radius:20px;background:linear-gradient(135deg,rgba(167,139,250,.12),rgba(96,165,250,.12));border:1px solid rgba(167,139,250,.25);font-size:.72rem;font-weight:600;color:#a78bfa;letter-spacing:.04em}
+
+    .wrapper{width:100%;max-width:900px}
+
+    .card{background:#13131a;border:1px solid #222233;border-radius:14px;padding:22px;margin-bottom:16px}
+    .card h3{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#555;margin-bottom:14px}
+
+    label{display:block;font-size:.78rem;color:#999;margin-bottom:5px;margin-top:14px}
+    label:first-of-type{margin-top:0}
+    textarea{width:100%;background:#0e0e18;border:1px solid #2a2a3a;border-radius:8px;color:#e0e0e0;font-size:.85rem;padding:10px 12px;outline:none;transition:border-color .2s;font-family:inherit;resize:vertical;min-height:110px}
+    textarea:focus{border-color:#a78bfa}
+
+    /* Reference image slots — compact */
+    .ref-slots{display:flex;gap:10px;margin-top:4px}
+    .ref-slot{position:relative;width:96px;height:64px;flex-shrink:0;border:1px solid #1e1e2e;border-radius:8px;background:#0e0e18;cursor:pointer;overflow:hidden;transition:border-color .2s;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:3px}
+    .ref-slot:hover{border-color:#a78bfa88}
+    .ref-slot.has-image{border-style:solid;border-color:#a78bfa55}
+    .ref-slot input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+    .ref-slot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:6px}
+    .ref-slot .slot-label{font-size:.6rem;color:#555;z-index:1;pointer-events:none;text-align:center;line-height:1.3}
+    .ref-slot .slot-icon{font-size:1.1rem;z-index:1;pointer-events:none}
+    .ref-slot .remove-btn{position:absolute;top:3px;right:3px;z-index:10;background:rgba(0,0,0,.75);border:none;color:#f87171;border-radius:50%;width:16px;height:16px;font-size:.65rem;cursor:pointer;display:none;align-items:center;justify-content:center;line-height:1;padding:0}
+    .ref-slot.has-image .remove-btn{display:flex}
+
+    .generate-btn{width:100%;padding:14px;border:none;border-radius:10px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;font-size:.95rem;font-weight:600;cursor:pointer;transition:all .2s;letter-spacing:.02em;margin-top:6px;display:flex;align-items:center;justify-content:center;gap:8px}
+    .generate-btn:hover:not(:disabled){background:linear-gradient(135deg,#8b45f5,#5b50f5);transform:translateY(-1px);box-shadow:0 4px 20px rgba(124,58,237,.4)}
+    .generate-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+    .btn-spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
+    .generate-btn.loading .btn-spinner{display:inline-block}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* Progress steps */
+    .progress-box{background:#0e0e18;border:1px solid #1e1e2e;border-radius:10px;padding:14px 16px;margin-top:14px;display:none}
+    .progress-box.visible{display:block}
+    .progress-steps{display:flex;flex-direction:column;gap:8px}
+    .progress-step{display:flex;align-items:center;gap:9px;font-size:.79rem;color:#444;transition:color .3s}
+    .progress-step.active{color:#a78bfa}
+    .progress-step.done{color:#4ade80}
+    .step-dot{width:7px;height:7px;border-radius:50%;background:#2a2a3a;flex-shrink:0;transition:background .3s}
+    .progress-step.active .step-dot{background:#a78bfa;animation:pulse 1.4s ease-in-out infinite}
+    .progress-step.done .step-dot{background:#4ade80}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+    /* Result */
+    .result-section{display:none;margin-top:24px}
+    .result-section.visible{display:block}
+
+    .storyboard-img-wrap{border-radius:12px;overflow:hidden;border:1px solid #2a2a3a;background:#0e0e18;margin-bottom:20px;position:relative}
+    .storyboard-img-wrap img{width:100%;display:block;border-radius:11px}
+    .img-actions{display:flex;gap:8px;padding:10px 12px;background:#0d0d16;border-top:1px solid #1e1e2e}
+
+    .shot-list-card{background:#13131a;border:1px solid #222233;border-radius:14px;padding:22px}
+    .shot-list-card h3{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#555;margin-bottom:16px}
+    .shot-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .shot-item{background:#0e0e18;border:1px solid #1e1e2e;border-radius:10px;padding:12px}
+    .shot-num{font-size:.63rem;font-weight:700;color:#a78bfa;letter-spacing:.06em;margin-bottom:4px;text-transform:uppercase}
+    .shot-arc{font-size:.59rem;font-weight:600;padding:1px 7px;border-radius:8px;margin-bottom:6px;display:inline-block}
+    .shot-arc.setup{background:rgba(96,165,250,.12);color:#60a5fa}
+    .shot-arc.rising{background:rgba(251,191,36,.12);color:#fbbf24}
+    .shot-arc.climax{background:rgba(248,113,113,.12);color:#f87171}
+    .shot-arc.resolution{background:rgba(74,222,128,.12);color:#4ade80}
+    .shot-text{font-size:.75rem;color:#ccc;line-height:1.55}
+
+    .dl-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:7px;background:#1e1e35;border:1px solid #2a2a4a;color:#a78bfa;font-size:.77rem;font-weight:500;cursor:pointer;text-decoration:none;transition:all .15s}
+    .dl-btn:hover{background:#252540;border-color:#a78bfa55}
+
+    .error-box{background:#1a0a0a;border:1px solid #3a1515;border-radius:8px;padding:11px 13px;color:#f87171;font-size:.79rem;margin-top:12px;display:none;line-height:1.5}
+    .error-box.visible{display:block}
+
+    /* ── Frame Extractor ── */
+    .extractor-card{background:#13131a;border:1px solid #222233;border-radius:14px;padding:22px;margin-top:24px}
+    .extractor-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:6px}
+    .extractor-header h3{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#555}
+    .extractor-badge{font-size:.65rem;font-weight:600;padding:2px 9px;border-radius:12px;background:linear-gradient(135deg,rgba(251,146,60,.12),rgba(248,113,113,.12));border:1px solid rgba(251,146,60,.25);color:#fb923c;letter-spacing:.04em}
+    .extractor-sub{font-size:.78rem;color:#555;margin-bottom:16px;line-height:1.55}
+
+    /* Storyboard upload slot */
+    .sb-upload-slot{border:1px solid #1e1e2e;border-radius:10px;background:#0e0e18;cursor:pointer;overflow:hidden;transition:border-color .2s;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;height:120px;position:relative;margin-bottom:16px}
+    .sb-upload-slot:hover{border-color:#fb923c88}
+    .sb-upload-slot.has-image{border-style:solid;border-color:#fb923c55}
+    .sb-upload-slot input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+    .sb-upload-slot img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;border-radius:8px;background:#0a0a0f}
+    .sb-upload-slot .up-icon{font-size:1.6rem;z-index:1;pointer-events:none}
+    .sb-upload-slot .up-label{font-size:.72rem;color:#555;z-index:1;pointer-events:none}
+    .sb-upload-slot .up-rm{position:absolute;top:6px;right:6px;z-index:10;background:rgba(0,0,0,.75);border:none;color:#f87171;border-radius:50%;width:20px;height:20px;font-size:.7rem;cursor:pointer;display:none;align-items:center;justify-content:center;padding:0}
+    .sb-upload-slot.has-image .up-rm{display:flex}
+
+    /* 3x3 frame selector */
+    .frame-selector-label{font-size:.75rem;color:#888;margin-bottom:8px}
+    .frame-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-width:240px;margin-bottom:16px}
+    .frame-btn{aspect-ratio:16/9;border:1px solid #2a2a3a;border-radius:7px;background:#0e0e18;color:#555;font-size:.85rem;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center}
+    .frame-btn:hover{border-color:#fb923c88;color:#ccc;background:#160e08}
+    .frame-btn.selected{border-color:#fb923c;background:rgba(251,146,60,.12);color:#fb923c;box-shadow:0 0 8px rgba(251,146,60,.2)}
+
+    /* Controls row */
+    .extractor-controls{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+    .res-group{display:flex;flex-direction:column;gap:5px}
+    .res-group label{font-size:.72rem;color:#888}
+    .res-btns{display:flex;gap:5px}
+    .res-btn{padding:6px 13px;border-radius:7px;border:1px solid #2a2a3a;background:#0e0e18;color:#777;font-size:.75rem;font-weight:600;cursor:pointer;transition:all .15s}
+    .res-btn:hover{border-color:#fb923c88;color:#ccc}
+    .res-btn.selected{border-color:#fb923c;color:#fb923c;background:rgba(251,146,60,.1)}
+
+    .extract-btn{padding:10px 22px;border:none;border-radius:9px;background:linear-gradient(135deg,#ea580c,#dc2626);color:#fff;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap;display:flex;align-items:center;gap:7px}
+    .extract-btn:hover:not(:disabled){background:linear-gradient(135deg,#f97316,#ef4444);transform:translateY(-1px);box-shadow:0 4px 16px rgba(234,88,12,.35)}
+    .extract-btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+    .extract-spin{width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
+    .extract-btn.loading .extract-spin{display:inline-block}
+
+    .extractor-error{background:#1a0a0a;border:1px solid #3a1515;border-radius:8px;padding:10px 13px;color:#f87171;font-size:.78rem;margin-bottom:12px;display:none}
+    .extractor-error.visible{display:block}
+
+    /* Extracted frames results */
+    .extracted-results{display:none;margin-top:12px}
+    .extracted-results.visible{display:block}
+    .extracted-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+    .extracted-card{background:#0e0e18;border:1px solid #1e1e2e;border-radius:10px;overflow:hidden}
+    .extracted-card img{width:100%;display:block;aspect-ratio:16/9;object-fit:cover}
+    .extracted-card-info{padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .extracted-label{font-size:.75rem;color:#aaa;font-weight:600}
+    .extracted-res{font-size:.65rem;color:#555}
+
+    /* History */
+    .history-section{width:100%;margin-top:36px}
+    .history-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+    .history-header h2{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#555}
+    .refresh-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#888;padding:5px 12px;border-radius:7px;cursor:pointer;font-size:.75rem;transition:all .15s}
+    .refresh-btn:hover{color:#ccc;background:rgba(255,255,255,.1)}
+    .history-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+    .hist-card{background:#13131a;border:1px solid #222233;border-radius:12px;overflow:hidden;transition:border-color .2s;cursor:pointer}
+    .hist-card:hover{border-color:#a78bfa44}
+    .hist-thumb{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:#0e0e18}
+    .hist-thumb-placeholder{width:100%;aspect-ratio:16/9;background:#0e0e18;display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:#2a2a3a}
+    .hist-info{padding:8px 10px}
+    .hist-prompt{font-size:.71rem;color:#aaa;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.45;margin-bottom:4px}
+    .hist-meta{font-size:.65rem;color:#444}
+    .history-empty{color:#444;font-size:.82rem;padding:10px 0}
+    .hist-card{cursor:pointer}
+    .hist-card:hover{border-color:#60a5fa;box-shadow:0 0 0 1px #60a5fa33}
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);z-index:1000;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+    .modal-overlay.open{display:flex}
+    .modal-box{background:#13131a;border:1px solid #2a2a3e;border-radius:18px;width:100%;max-width:900px;max-height:calc(100vh - 40px);overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.7);scrollbar-width:thin;scrollbar-color:#2a2a3e transparent}
+    .modal-box::-webkit-scrollbar{width:6px}.modal-box::-webkit-scrollbar-thumb{background:#2a2a3e;border-radius:3px}
+    .modal-head{display:flex;align-items:center;justify-content:space-between;padding:20px 24px 0}
+    .modal-head-title{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#555}
+    .modal-close-btn{background:none;border:none;color:#666;font-size:1.4rem;cursor:pointer;padding:4px 8px;border-radius:8px;transition:all .15s;line-height:1}
+    .modal-close-btn:hover{background:#1e1e2e;color:#ccc}
+    .modal-img-wrap{margin:16px 24px;background:#0a0a0f;border-radius:12px;display:flex;align-items:center;justify-content:center;min-height:180px;padding:16px}
+    .modal-img-wrap img{max-width:100%;max-height:75vh;border-radius:8px;display:block;object-fit:contain}
+    .modal-no-vid{color:#555;font-size:.9rem;text-align:center;padding:40px}
+    .modal-actions{display:flex;gap:10px;padding:0 24px 20px;flex-wrap:wrap}
+    .btn-dl{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#3b7dd8,#60a5fa);color:#fff;border:none;border-radius:9px;padding:9px 18px;font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;transition:opacity .2s}
+    .btn-dl:hover{opacity:.85}
+    .btn-ext{display:inline-flex;align-items:center;gap:6px;background:#1e1e2e;color:#aaa;border:1px solid #2a2a3e;border-radius:9px;padding:9px 18px;font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;transition:all .2s}
+    .btn-ext:hover{color:#fff;border-color:#444}
+    .modal-divider{height:1px;background:#1a1a28;margin:0 24px 20px}
+    .modal-sect{padding:0 24px 20px}
+    .modal-sect-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#555;margin-bottom:8px}
+    .prompt-blk{background:#0e0e18;border:1px solid #1e1e2e;border-radius:10px;padding:14px 16px;position:relative}
+    .prompt-txt{font-size:.87rem;color:#ccc;line-height:1.6;padding-right:68px;white-space:pre-wrap;word-break:break-word}
+    .btn-copy{position:absolute;top:10px;right:10px;background:#1e1e2e;border:1px solid #2a2a3e;color:#888;border-radius:7px;padding:5px 11px;font-size:.75rem;font-weight:600;cursor:pointer;transition:all .15s}
+    .btn-copy:hover{color:#a78bfa;border-color:#a78bfa55}
+    .btn-copy.copied{color:#4ade80;border-color:#4ade8055}
+    .meta-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+    .meta-item{background:#0e0e18;border:1px solid #1a1a28;border-radius:10px;padding:12px 14px}
+    .meta-key{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#555;margin-bottom:5px}
+    .meta-val{font-size:.85rem;color:#ccc;font-weight:500;word-break:break-all}
+    .meta-val.green{color:#4ade80}.meta-val.blue{color:#60a5fa}.meta-val.purple{color:#a78bfa}.meta-val.red{color:#f87171}
+  </style>
+</head>
+<body>
+
+<nav>
+  <span class="logo">KAMOD AI</span>
+  <div class="nav-grouped">
+    <div class="nav-group has-active">
+      <span class="nav-group-label">CREATE</span>
+      <div class="nav-group-items">
+        <a href="/">Seedance 2.0</a>
+        <a href="/ai-videos">AI Video Tools</a>
+        <a href="/ai-director">Director</a>
+        <a href="/images">AI Images</a>
+        <a href="/storyboard" class="active">Storyboard</a>
+        <a href="/ugc-studio">UGC Studio</a>
+      </div>
+    </div>
+    <div class="nav-sep"></div>
+    <div class="nav-group">
+      <span class="nav-group-label">ENHANCE</span>
+      <div class="nav-group-items">
+        <a href="/audio">Audio</a>
+        <a href="/avatars">Avatars</a>
+      </div>
+    </div>
+    <div class="nav-sep"></div>
+    <div class="nav-group">
+      <span class="nav-group-label">DELIVER</span>
+      <div class="nav-group-items">
+        <a href="/analytics">Analytics</a>
+        <a href="/dashboard">Dashboard</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <h1>Storyboard</h1>
+  <p class="sub">Upload reference images + describe your story → AI generates a cinematic 9-frame storyboard grid</p>
+  <span class="powered">✦ Powered by KAMOD AI</span>
+</header>
+
+<div class="wrapper">
+
+  <!-- Reference images -->
+  <div class="card">
+    <h3>Reference Images <span style="color:#444;font-weight:400;text-transform:none;letter-spacing:0">(optional · max 3)</span></h3>
+    <div class="ref-slots">
+      <div class="ref-slot" id="slot-0">
+        <input type="file" accept="image/*" onchange="handleSlotFile(0,this)"/>
+        <span class="slot-label">Ref 1</span>
+        <button class="remove-btn" onclick="removeSlot(event,0)">✕</button>
+      </div>
+      <div class="ref-slot" id="slot-1">
+        <input type="file" accept="image/*" onchange="handleSlotFile(1,this)"/>
+        <span class="slot-label">Ref 2</span>
+        <button class="remove-btn" onclick="removeSlot(event,1)">✕</button>
+      </div>
+      <div class="ref-slot" id="slot-2">
+        <input type="file" accept="image/*" onchange="handleSlotFile(2,this)"/>
+        <span class="slot-label">Ref 3</span>
+        <button class="remove-btn" onclick="removeSlot(event,2)">✕</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Story input -->
+  <div class="card">
+    <h3>Your Story</h3>
+    <label>Describe your scene or story concept</label>
+    <textarea id="story-input" placeholder="e.g. A lone astronaut discovers an ancient alien artifact on Mars. As she examines it, the device activates, revealing a holographic star map pointing to a distant galaxy…"></textarea>
+
+    <button class="generate-btn" id="gen-btn" onclick="generate()">
+      <div class="btn-spinner"></div>
+      <span id="gen-label">✦ Generate Storyboard</span>
+    </button>
+    <div class="error-box" id="error-box"></div>
+  </div>
+
+  <!-- Progress indicator -->
+  <div class="progress-box" id="progress-box">
+    <div class="progress-steps">
+      <div class="progress-step" id="step-think">
+        <div class="step-dot"></div>
+        <span>Analyzing story and reference images…</span>
+      </div>
+      <div class="progress-step" id="step-img">
+        <div class="step-dot"></div>
+        <span>Generating storyboard grid (16:9 · 2K)…</span>
+      </div>
+      <div class="progress-step" id="step-done">
+        <div class="step-dot"></div>
+        <span>Building Motion Shot List…</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Result -->
+  <div class="result-section" id="result-section">
+    <div class="storyboard-img-wrap" id="img-wrap">
+      <img id="storyboard-img" src="" alt="Storyboard"/>
+      <div class="img-actions">
+        <a id="dl-btn" class="dl-btn" href="#" download="storyboard.png">⬇ Download Storyboard</a>
+      </div>
+    </div>
+
+    <div class="shot-list-card">
+      <h3>Motion Shot List</h3>
+      <div class="shot-grid" id="shot-grid"></div>
+    </div>
+  </div>
+
+  <!-- Frame Extractor -->
+  <div class="extractor-card">
+    <div class="extractor-header">
+      <h3>Frame Extractor</h3>
+      <span class="extractor-badge">✦ Powered by KAMOD AI</span>
+    </div>
+    <p class="extractor-sub">Upload a storyboard, select which frames to regenerate at higher resolution, and download individual cinematic shots.</p>
+
+    <div class="extractor-error" id="ext-error"></div>
+
+    <!-- Storyboard upload -->
+    <div class="sb-upload-slot" id="sb-upload-slot">
+      <input type="file" accept="image/*" onchange="handleSbUpload(this)"/>
+      <span class="up-icon">⬆</span>
+      <span class="up-label">Upload storyboard grid image</span>
+      <button class="up-rm" onclick="clearSbUpload(event)">✕</button>
+    </div>
+
+    <!-- Frame number selector (3×3 grid) -->
+    <div class="frame-selector-label">Select frame(s) to extract:</div>
+    <div class="frame-grid" id="frame-grid">
+      <button class="frame-btn" data-frame="1" onclick="toggleFrame(1)">1</button>
+      <button class="frame-btn" data-frame="2" onclick="toggleFrame(2)">2</button>
+      <button class="frame-btn" data-frame="3" onclick="toggleFrame(3)">3</button>
+      <button class="frame-btn" data-frame="4" onclick="toggleFrame(4)">4</button>
+      <button class="frame-btn" data-frame="5" onclick="toggleFrame(5)">5</button>
+      <button class="frame-btn" data-frame="6" onclick="toggleFrame(6)">6</button>
+      <button class="frame-btn" data-frame="7" onclick="toggleFrame(7)">7</button>
+      <button class="frame-btn" data-frame="8" onclick="toggleFrame(8)">8</button>
+      <button class="frame-btn" data-frame="9" onclick="toggleFrame(9)">9</button>
+    </div>
+
+    <!-- Resolution + Generate -->
+    <div class="extractor-controls">
+      <div class="res-group">
+        <label>Output resolution</label>
+        <div class="res-btns">
+          <button class="res-btn" data-res="1K" onclick="selectRes('1K')">1K</button>
+          <button class="res-btn selected" data-res="2K" onclick="selectRes('2K')">2K</button>
+          <button class="res-btn" data-res="4K" onclick="selectRes('4K')">4K</button>
+        </div>
+      </div>
+      <button class="extract-btn" id="extract-btn" onclick="extractFrames()">
+        <div class="extract-spin"></div>
+        <span id="extract-label">⬡ Extract Frames</span>
+      </button>
+    </div>
+
+    <!-- Results -->
+    <div class="extracted-results" id="extracted-results">
+      <div class="extracted-grid" id="extracted-grid"></div>
+    </div>
+  </div>
+
+  <!-- Storyboard History -->
+  <div class="history-section" id="history-section">
+    <div class="history-header">
+      <h2>Storyboard History</h2>
+      <button class="refresh-btn" onclick="loadHistory()">↻ Refresh</button>
+    </div>
+    <div class="history-grid" id="history-grid">
+      <div class="history-empty">No storyboards yet.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Storyboard preview modal -->
+<div class="modal-overlay" id="sbModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <span class="modal-head-title">Storyboard Preview</span>
+      <button class="modal-close-btn" id="sbModalClose">✕</button>
+    </div>
+    <div class="modal-img-wrap" id="sbModalImgWrap">
+      <div class="modal-no-vid">No image available</div>
+    </div>
+    <div class="modal-actions" id="sbModalActions"></div>
+    <div class="modal-divider"></div>
+    <div class="modal-sect">
+      <div class="modal-sect-label">Prompt</div>
+      <div class="prompt-blk">
+        <div class="prompt-txt" id="sbModalPrompt">—</div>
+        <button class="btn-copy" id="sbModalCopy">Copy</button>
+      </div>
+    </div>
+    <div class="modal-divider"></div>
+    <div class="modal-sect">
+      <div class="modal-sect-label">Details</div>
+      <div class="meta-grid" id="sbModalMeta"></div>
+    </div>
+    <div style="height:8px"></div>
+  </div>
+</div>
+
+<script>
+  const refImages = [null, null, null];
+
+  const arcLabel = [
+    {text:'Setup',cls:'setup'},{text:'Setup',cls:'setup'},
+    {text:'Rising',cls:'rising'},{text:'Rising',cls:'rising'},{text:'Rising',cls:'rising'},
+    {text:'Climax',cls:'climax'},{text:'Climax',cls:'climax'},
+    {text:'Resolution',cls:'resolution'},{text:'Resolution',cls:'resolution'},
+  ];
+
+  function handleSlotFile(idx, input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      refImages[idx] = e.target.result;
+      const slot = document.getElementById('slot-' + idx);
+      slot.classList.add('has-image');
+      const old = slot.querySelector('img.preview');
+      if (old) old.remove();
+      const img = document.createElement('img');
+      img.className = 'preview';
+      img.src = e.target.result;
+      slot.appendChild(img);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function removeSlot(e, idx) {
+    e.stopPropagation();
+    refImages[idx] = null;
+    const slot = document.getElementById('slot-' + idx);
+    slot.classList.remove('has-image');
+    const img = slot.querySelector('img.preview');
+    if (img) img.remove();
+    const fi = slot.querySelector('input[type=file]');
+    if (fi) fi.value = '';
+  }
+
+  function setStep(n) {
+    const ids = ['step-think','step-img','step-done'];
+    ids.forEach((id, i) => {
+      const el = document.getElementById(id);
+      el.classList.remove('active','done');
+      if (i < n) el.classList.add('done');
+      else if (i === n) el.classList.add('active');
+    });
+  }
+
+  function showError(msg) {
+    const b = document.getElementById('error-box');
+    b.textContent = msg;
+    b.classList.add('visible');
+  }
+
+  function renderShotList(shots) {
+    const grid = document.getElementById('shot-grid');
+    grid.innerHTML = '';
+    shots.forEach((text, i) => {
+      const arc = arcLabel[i] || {text:'',cls:''};
+      const div = document.createElement('div');
+      div.className = 'shot-item';
+
+      // arc.cls and arc.text come from a static JS array — safe to use as-is.
+      // `text` is AI-generated content — must use textContent, not innerHTML.
+      const numEl = document.createElement('div');
+      numEl.className = 'shot-num';
+      numEl.textContent = 'Frame ' + (i + 1);
+
+      const arcEl = document.createElement('span');
+      arcEl.className = 'shot-arc ' + arc.cls;
+      arcEl.textContent = arc.text;
+
+      const textEl = document.createElement('div');
+      textEl.className = 'shot-text';
+      textEl.textContent = (text + '').replace(/^Frame \d+:\s*/i, '');
+
+      div.appendChild(numEl);
+      div.appendChild(arcEl);
+      div.appendChild(textEl);
+      grid.appendChild(div);
+    });
+  }
+
+  async function generate() {
+    const story = document.getElementById('story-input').value.trim();
+    if (!story) { showError('Please describe your story first.'); return; }
+
+    document.getElementById('error-box').classList.remove('visible');
+    const btn = document.getElementById('gen-btn');
+    const label = document.getElementById('gen-label');
+    btn.disabled = true;
+    btn.classList.add('loading');
+    label.textContent = 'Generating…';
+
+    const progress = document.getElementById('progress-box');
+    progress.classList.add('visible');
+    setStep(0);
+
+    document.getElementById('result-section').classList.remove('visible');
+
+    // Step 1 progress update after short delay (thinking phase)
+    const t1 = setTimeout(() => setStep(1), 8000);
+    // Step 2 progress update
+    const t2 = setTimeout(() => setStep(2), 20000);
+
+    try {
+      const res = await fetch('/api/storyboard/generate', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          story,
+          images: refImages.filter(Boolean),
+        }),
+      });
+      clearTimeout(t1); clearTimeout(t2);
+
+      const data = await res.json();
+
+      if (data.error) {
+        showError(data.error);
+        progress.classList.remove('visible');
+        btn.disabled = false;
+        btn.classList.remove('loading');
+        label.textContent = '✦ Generate Storyboard';
+        return;
+      }
+
+      // Mark all steps done
+      setStep(3);
+
+      // Display storyboard image from inline base64
+      const dataUri = `data:${data.image_mime};base64,${data.image_b64}`;
+      const imgEl = document.getElementById('storyboard-img');
+      imgEl.src = dataUri;
+
+      const dlBtn = document.getElementById('dl-btn');
+      dlBtn.href = dataUri;
+
+      renderShotList(data.shot_list || []);
+      document.getElementById('result-section').classList.add('visible');
+
+    } catch(e) {
+      clearTimeout(t1); clearTimeout(t2);
+      showError('Network error: ' + e.message);
+      progress.classList.remove('visible');
+    }
+
+    btn.disabled = false;
+    btn.classList.remove('loading');
+    label.textContent = '✦ Generate Storyboard';
+    loadHistory();
+  }
+
+  async function loadHistory() {
+    const grid = document.getElementById('history-grid');
+    try {
+      const res = await fetch('/api/history/storyboard', {headers: {}});
+      const data = await res.json();
+      const items = (data.history || []).filter(h => h.status === 'completed' && h.output_url);
+      if (!items.length) {
+        grid.innerHTML = '<div class="history-empty">No storyboards yet.</div>';
+        return;
+      }
+      grid.innerHTML = '';
+      window._sbHistory = [];
+      items.forEach((h, index) => {
+        const card = document.createElement('div');
+        card.className = 'hist-card';
+        card.dataset.idx = String(index);
+        window._sbHistory.push(h);
+        const date = new Date(h.created_at).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+
+        // Build card with DOM APIs so h.prompt (user text) never touches innerHTML.
+        const img = document.createElement('img');
+        img.className = 'hist-thumb';
+        img.setAttribute('src', h.output_url || '');
+        img.setAttribute('alt', 'Storyboard');
+        img.setAttribute('loading', 'lazy');
+        img.addEventListener('error', function() {
+          this.style.display = 'none';
+          placeholder.style.display = 'flex';
+        });
+
+        const placeholder = document.createElement('div');
+        placeholder.className = 'hist-thumb-placeholder';
+        placeholder.style.display = 'none';
+        placeholder.textContent = '';
+
+        const info = document.createElement('div');
+        info.className = 'hist-info';
+
+        const promptEl = document.createElement('div');
+        promptEl.className = 'hist-prompt';
+        promptEl.textContent = h.prompt || '—';
+
+        const metaEl = document.createElement('div');
+        metaEl.className = 'hist-meta';
+        metaEl.textContent = date;
+
+        info.appendChild(promptEl);
+        info.appendChild(metaEl);
+        card.appendChild(img);
+        card.appendChild(placeholder);
+        card.appendChild(info);
+
+        card.addEventListener('click', () => openSbModal(window._sbHistory[parseInt(card.dataset.idx, 10)]));
+        grid.appendChild(card);
+      });
+    } catch(e) {
+      grid.innerHTML = '<div class="history-empty" style="color:#f87171">Failed to load history.</div>';
+    }
+  }
+
+  loadHistory();
+
+  // ── Frame Extractor ──────────────────────────────────────────────────────
+  let sbImageUri  = null;
+  let selFrames   = new Set();
+  let selRes      = '2K';
+
+  function handleSbUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      sbImageUri = e.target.result;
+      const slot = document.getElementById('sb-upload-slot');
+      slot.classList.add('has-image');
+      const old = slot.querySelector('img');
+      if (old) old.remove();
+      const img = document.createElement('img');
+      img.src = sbImageUri;
+      slot.appendChild(img);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function clearSbUpload(e) {
+    e.stopPropagation();
+    sbImageUri = null;
+    const slot = document.getElementById('sb-upload-slot');
+    slot.classList.remove('has-image');
+    const img = slot.querySelector('img');
+    if (img) img.remove();
+    const fi = slot.querySelector('input[type=file]');
+    if (fi) fi.value = '';
+  }
+
+  function toggleFrame(n) {
+    const btn = document.querySelector(`.frame-btn[data-frame="${n}"]`);
+    if (selFrames.has(n)) { selFrames.delete(n); btn.classList.remove('selected'); }
+    else                  { selFrames.add(n);    btn.classList.add('selected'); }
+  }
+
+  function selectRes(r) {
+    selRes = r;
+    document.querySelectorAll('.res-btn').forEach(b => {
+      b.classList.toggle('selected', b.dataset.res === r);
+    });
+  }
+
+  async function extractFrames() {
+    const errBox = document.getElementById('ext-error');
+    errBox.classList.remove('visible');
+
+    if (!sbImageUri)      { errBox.textContent = 'Please upload a storyboard image first.'; errBox.classList.add('visible'); return; }
+    if (!selFrames.size)  { errBox.textContent = 'Select at least one frame to extract.';    errBox.classList.add('visible'); return; }
+
+    const btn   = document.getElementById('extract-btn');
+    const label = document.getElementById('extract-label');
+    btn.disabled = true;
+    btn.classList.add('loading');
+    label.textContent = `Extracting frame${selFrames.size > 1 ? 's' : ''} ${[...selFrames].sort((a,b)=>a-b).join(', ')}…`;
+
+    try {
+      const res = await fetch('/api/storyboard/extract-frames', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          storyboard_image: sbImageUri,
+          frames: [...selFrames],
+          resolution: selRes,
+        }),
+      });
+      const data = await res.json();
+      if (data.error) { errBox.textContent = data.error; errBox.classList.add('visible'); return; }
+
+      renderExtracted(data.results || []);
+    } catch(e) {
+      errBox.textContent = 'Network error: ' + e.message;
+      errBox.classList.add('visible');
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove('loading');
+      label.textContent = '⬡ Extract Frames';
+    }
+  }
+
+  function renderExtracted(results) {
+    const wrap = document.getElementById('extracted-results');
+    const grid = document.getElementById('extracted-grid');
+    grid.innerHTML = '';
+
+    results.forEach(r => {
+      const card = document.createElement('div');
+      card.className = 'extracted-card';
+      if (r.error) {
+        // r.error and r.frame come from the API — use textContent, not innerHTML.
+        const errEl = document.createElement('div');
+        errEl.style.cssText = 'padding:16px;color:#f87171;font-size:.78rem';
+        errEl.textContent = 'Frame ' + r.frame + ': ' + r.error;
+        card.appendChild(errEl);
+      } else {
+        const src = r.image_url || ('data:' + r.image_mime + ';base64,' + r.image_b64);
+
+        const imgEl = document.createElement('img');
+        imgEl.setAttribute('src', src);
+        imgEl.setAttribute('alt', 'Frame ' + r.frame);
+        imgEl.setAttribute('loading', 'lazy');
+
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'extracted-card-info';
+
+        const labelWrap = document.createElement('div');
+
+        const labelEl = document.createElement('span');
+        labelEl.className = 'extracted-label';
+        labelEl.textContent = 'Frame ' + r.frame;
+
+        const resEl = document.createElement('span');
+        resEl.className = 'extracted-res';
+        resEl.textContent = ' · ' + r.resolution;
+
+        labelWrap.appendChild(labelEl);
+        labelWrap.appendChild(resEl);
+
+        const dlA = document.createElement('a');
+        dlA.setAttribute('href', src);
+        dlA.setAttribute('download', 'frame_' + r.frame + '_' + r.resolution + '.png');
+        dlA.className = 'dl-btn';
+        dlA.style.cssText = 'padding:5px 11px;font-size:.7rem';
+        dlA.textContent = '⬇ Save';
+
+        infoDiv.appendChild(labelWrap);
+        infoDiv.appendChild(dlA);
+        card.appendChild(imgEl);
+        card.appendChild(infoDiv);
+      }
+      grid.appendChild(card);
+    });
+
+    wrap.classList.add('visible');
+    wrap.scrollIntoView({behavior:'smooth', block:'nearest'});
+  }
+
+  function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+  function openSbModal(item) {
+    if (!item) return;
+    const url = item.output_url || '';
+    const imgWrap = document.getElementById('sbModalImgWrap');
+    imgWrap.innerHTML = url
+      ? `<img src="${escHtml(url)}" alt="Storyboard"/>`
+      : `<div class="modal-no-vid">No image available.</div>`;
+    const actions = document.getElementById('sbModalActions');
+    actions.innerHTML = url
+      ? `<a class="btn-dl" href="${escHtml(url)}" download target="_blank">↓ Download</a>
+         <a class="btn-ext" href="${escHtml(url)}" target="_blank" rel="noopener">↗ Open in new tab</a>`
+      : '';
+    document.getElementById('sbModalPrompt').textContent = item.prompt || '—';
+    const copyBtn = document.getElementById('sbModalCopy');
+    copyBtn.textContent = 'Copy'; copyBtn.classList.remove('copied');
+    copyBtn.onclick = () => {
+      navigator.clipboard.writeText(item.prompt || '').then(() => {
+        copyBtn.textContent = 'Copied!'; copyBtn.classList.add('copied');
+        setTimeout(() => { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('copied'); }, 2000);
+      });
+    };
+    const dateStr = item.created_at ? item.created_at.replace('T',' ').substring(0,16)+' UTC' : '—';
+    document.getElementById('sbModalMeta').innerHTML = [
+      {k:'Status', v:item.status||'—', c:{completed:'blue',processing:'green',failed:'red'}[item.status]||''},
+      {k:'Created', v:dateStr},
+    ].map(m =>
+      `<div class="meta-item"><div class="meta-key">${m.k}</div><div class="meta-val${m.c?' '+m.c:''}">${escHtml(String(m.v))}</div></div>`
+    ).join('');
+    document.getElementById('sbModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeSbModal() {
+    document.getElementById('sbModal').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  document.getElementById('sbModalClose').addEventListener('click', closeSbModal);
+  document.getElementById('sbModal').addEventListener('click', e => { if (e.target.id === 'sbModal') closeSbModal(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      if (document.getElementById('sbModal').classList.contains('open')) closeSbModal();
+    }
+  });
+</script>
+
+{% include 'legal_footer.html' %}
+</body>
+</html>

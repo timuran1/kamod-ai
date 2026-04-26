@@ -1,0 +1,63 @@
+{% extends "base_shell_v2.html" %}
+
+{% set active_page = "images" %}
+
+{% block title %}AI Images — KAMOD AI{% endblock %}
+
+{% block head_extra %}
+<style>
+  .images-iframe-wrap{
+    border-radius:18px;
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,.06);
+    background:#090d18;
+  }
+
+  .images-embed{
+    width:100%;
+    min-height:2820px;
+    border:none;
+    display:block;
+    background:#090d18;
+  }
+
+  @media (max-width: 640px){
+    .images-embed{
+      min-height:3400px;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="shell-topbar">
+  <div>
+    <h1 class="shell-page-title">AI Images</h1>
+    <p class="shell-page-sub">Create images, edit references, and build character sheets inside the KAMOD workspace.</p>
+  </div>
+  <div class="shell-status">
+    <span class="shell-status-dot"></span>
+    KAMOD pipeline
+  </div>
+</div>
+
+<section class="shell-stage">
+  <div class="shell-stage-head">
+    <div>
+      <div class="shell-stage-title">Image Creation Workspace</div>
+      <div class="shell-stage-meta">Text to image, image editing, character sheets, results, and history.</div>
+    </div>
+    <div class="shell-pill">Create</div>
+  </div>
+
+  <div class="shell-content">
+    <div class="images-iframe-wrap">
+      <iframe
+        class="images-embed"
+        src="/images-legacy?embed=1"
+        title="AI Images Workspace"
+      ></iframe>
+    </div>
+  </div>
+</section>
+{% endblock %}

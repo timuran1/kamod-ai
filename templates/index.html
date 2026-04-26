@@ -1,0 +1,2378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Seedance 2.0 — KAMOD AI</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0a0a0f;
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+    nav{width:100%;max-width:1100px;display:flex;flex-direction:column;align-items:center;gap:12px;margin:0 auto 36px}
+    nav .logo{font-size:1.15rem;font-weight:700;background:linear-gradient(135deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.01em}
+    .nav-grouped{display:flex;align-items:flex-end;gap:0;background:#0d0d16;border:1px solid #1c1c2e;border-radius:13px;padding:5px 8px;overflow-x:auto;max-width:100%;scrollbar-width:none}
+    .nav-grouped::-webkit-scrollbar{display:none}
+    .nav-group{display:flex;flex-direction:column;align-items:center;gap:2px;padding:0 2px}
+    .nav-group-label{font-size:.58rem;font-weight:800;letter-spacing:.1em;color:#252535;text-transform:uppercase;transition:color .2s;padding:0 4px;user-select:none}
+    .nav-group.has-active .nav-group-label{color:#6060a0}
+    .nav-group-items{display:flex;gap:1px}
+    .nav-grouped a{color:#555;text-decoration:none;font-size:.77rem;font-weight:500;padding:6px 11px;border-radius:8px;transition:all .15s;white-space:nowrap;letter-spacing:.01em}
+    .nav-grouped a:hover{color:#bbb;background:rgba(255,255,255,0.05)}
+    .nav-grouped a.active{background:linear-gradient(135deg,#6d5fd6,#3b7dd8);color:#fff;font-weight:600;box-shadow:0 0 14px rgba(109,95,214,.45)}
+    .nav-sep{width:1px;height:28px;background:#1c1c2e;margin:0 5px 3px;flex-shrink:0;align-self:flex-end}
+
+    header { text-align: center; margin-bottom: 36px; }
+    header h1 {
+      font-size: 2.4rem; font-weight: 700;
+      background: linear-gradient(135deg, #a78bfa, #60a5fa, #34d399);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    header p { color: #888; margin-top: 8px; font-size: 1rem; }
+
+    .card {
+      background: #13131a;
+      border: 1px solid #222233;
+      border-radius: 16px;
+      padding: 32px;
+      width: 100%;
+      max-width: 720px;
+      margin-bottom: 32px;
+    }
+
+    .tabs { display: flex; gap: 8px; margin-bottom: 24px; }
+    .tab {
+      flex: 1; padding: 10px; border-radius: 8px;
+      border: 1px solid #2a2a3a; background: #0e0e18;
+      color: #888; cursor: pointer; font-size: 0.9rem;
+      text-align: center; transition: all 0.2s;
+    }
+    .tab.active { background: #1e1e35; border-color: #6d5fd6; color: #a78bfa; font-weight: 600; }
+
+    label { display: block; font-size: 0.85rem; color: #aaa; margin-bottom: 6px; margin-top: 18px; }
+    label:first-of-type { margin-top: 0; }
+
+    textarea, input[type="text"], select {
+      width: 100%;
+      background: #0e0e18;
+      border: 1px solid #2a2a3a;
+      border-radius: 10px;
+      color: #e0e0e0;
+      font-size: 0.95rem;
+      padding: 12px 14px;
+      outline: none;
+      transition: border-color 0.2s;
+      font-family: inherit;
+    }
+    textarea { resize: vertical; min-height: 110px; }
+    textarea:focus, input[type="text"]:focus, select:focus { border-color: #6d5fd6; }
+
+    .row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+
+    /* Image upload area */
+    .image-section { display: none; }
+    .image-section.visible { display: block; }
+
+    .upload-area {
+      border: 1px solid #1e1e2e;
+      border-radius: 8px;
+      padding: 10px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      position: relative;
+      background: #0c0c18;
+    }
+    .upload-area:hover, .upload-area.drag-over {
+      border-color: #6d5fd655;
+      background: #1a1a2e;
+    }
+    .upload-area input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .upload-area .upload-icon { display: none; }
+    .upload-area p { color: #555; font-size: 0.78rem; margin: 0; }
+    .upload-area p span { color: #a78bfa; }
+
+    .upload-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+    .upload-tab {
+      padding: 6px 14px; border-radius: 6px; border: 1px solid #2a2a3a;
+      background: #0e0e18; color: #888; cursor: pointer; font-size: 0.82rem; transition: all 0.2s;
+    }
+    .upload-tab.active { background: #1a1a2e; border-color: #6d5fd6; color: #a78bfa; }
+
+    .image-preview {
+      margin-top: 12px; display: none;
+      position: relative;
+    }
+    .image-preview img {
+      width: 100%; max-height: 200px; object-fit: cover;
+      border-radius: 10px; border: 1px solid #2a2a3a;
+    }
+    .image-preview .remove-btn {
+      position: absolute; top: 8px; right: 8px;
+      background: #1a1a1a; border: 1px solid #333; color: #aaa;
+      border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 0.8rem;
+    }
+    .image-preview .remove-btn:hover { color: #f87171; border-color: #f87171; }
+
+    /* Multi-image I2V rows */
+    .i2v-img-row { background:#0e0e18; border:1px solid #2a2a3a; border-radius:10px; padding:12px 14px; }
+    .i2v-img-row-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+    .i2v-img-label { font-size:0.75rem; font-weight:600; color:#6d5fd6; letter-spacing:0.04em; }
+    .i2v-img-rm { background:none; border:none; color:#555; font-size:0.78rem; cursor:pointer; padding:2px 6px; border-radius:4px; transition:color 0.15s; }
+    .i2v-img-rm:hover { color:#f87171; }
+    .i2v-src-tabs { display:flex; gap:6px; margin-bottom:8px; }
+    .i2v-src-tab { padding:3px 10px; border-radius:5px; border:1px solid #2a2a3a; background:#0e0e18; color:#666; cursor:pointer; font-size:0.73rem; transition:all 0.15s; }
+    .i2v-src-tab.active { border-color:#6d5fd6; color:#a78bfa; background:#13112a; }
+    .i2v-dropzone { border:1px solid #1e1e2e; border-radius:8px; padding:10px 16px; text-align:center; cursor:pointer; position:relative; transition:all 0.2s; background:#0c0c18; }
+    .i2v-dropzone:hover, .i2v-dropzone.drag-over { border-color:#6d5fd655; background:#1a1a2e; }
+    .i2v-dropzone input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+    .i2v-dropzone p { color:#555; font-size:0.78rem; margin:0; }
+    .i2v-dropzone p span { color:#a78bfa; }
+    .i2v-uploading { font-size:0.78rem; color:#a78bfa; padding:6px 0; display:none; }
+    .i2v-preview { display:none; align-items:center; gap:10px; background:#13131a; border-radius:7px; padding:7px 10px; }
+    .i2v-preview.show { display:flex; }
+    .i2v-preview img { width:48px; height:48px; object-fit:cover; border-radius:5px; border:1px solid #2a2a3a; }
+    .i2v-preview .i2v-fname { flex:1; font-size:0.75rem; color:#888; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .i2v-preview .i2v-rm-file { background:none; border:none; color:#555; cursor:pointer; font-size:0.78rem; transition:color 0.15s; }
+    .i2v-preview .i2v-rm-file:hover { color:#f87171; }
+
+    .uploading-indicator {
+      margin-top: 10px; color: #a78bfa; font-size: 0.85rem; display: none;
+    }
+
+    button#generateBtn {
+      margin-top: 24px; width: 100%; padding: 14px; border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #6d5fd6, #3b7dd8);
+      color: #fff; font-size: 1rem; font-weight: 600;
+      cursor: pointer; transition: opacity 0.2s, transform 0.1s;
+    }
+    button#generateBtn:hover { opacity: 0.9; }
+    button#generateBtn:active { transform: scale(0.98); }
+    button#generateBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Quick Start Templates */
+    .qs-label { font-size: 0.72rem; color: #555; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px; }
+    .qs-chips { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 18px; }
+    .qs-chip {
+      padding: 6px 13px; border-radius: 20px; font-size: 0.78rem; font-weight: 500;
+      border: 1px solid #2a2a3a; background: #0e0e18; color: #888;
+      cursor: pointer; transition: all 0.15s; white-space: nowrap;
+    }
+    .qs-chip:hover { border-color: #6d5fd6; color: #a78bfa; background: #13112a; }
+
+    /* Cost warning */
+    .cost-warn { display:none; background:#1a0e00; border:1px solid #3d2500; border-radius:8px; padding:8px 13px; font-size:0.78rem; color:#f59e0b; margin-top:8px; }
+
+    /* Prompt quality meter */
+    .prompt-meter { margin-top: 7px; }
+    .prompt-meter-bar-wrap { height: 3px; background: #1a1a2e; border-radius: 3px; overflow: hidden; }
+    .prompt-meter-bar { height: 100%; border-radius: 3px; width: 0%; transition: width 0.4s ease, background 0.4s ease; }
+    .prompt-meter-label { font-size: 0.72rem; margin-top: 4px; display: block; transition: color 0.3s; color: #444; }
+
+    /* Sticky Generate */
+    .sticky-generate {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: linear-gradient(135deg, #6d5fd6, #3b7dd8);
+      color: #fff; border: none; border-radius: 50px;
+      padding: 13px 40px; font-size: 0.95rem; font-weight: 700;
+      cursor: pointer; box-shadow: 0 8px 32px rgba(109,95,214,0.5);
+      z-index: 999; opacity: 0; pointer-events: none;
+      transition: opacity 0.25s, transform 0.25s; white-space: nowrap;
+      letter-spacing: 0.02em;
+    }
+    .sticky-generate.visible { opacity: 1; pointer-events: auto; }
+    .sticky-generate:hover { transform: translateX(-50%) scale(1.03); }
+
+    /* Results */
+    #results { width: 100%; max-width: 720px; }
+
+    .result-item {
+      background: #13131a; border: 1px solid #222233;
+      border-radius: 16px; padding: 20px 24px;
+      margin-bottom: 16px; animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+    .result-item .meta {
+      display: flex; justify-content: space-between;
+      align-items: flex-start; margin-bottom: 10px; gap: 12px;
+    }
+    .result-item .prompt-preview {
+      font-size: 0.85rem; color: #888; flex: 1;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 10px; border-radius: 20px;
+      font-size: 0.78rem; font-weight: 600; white-space: nowrap;
+    }
+    .status-badge.processing { background: #1a2a1a; color: #4ade80; }
+    .status-badge.completed  { background: #1a1e2a; color: #60a5fa; }
+    .status-badge.failed     { background: #2a1a1a; color: #f87171; }
+
+    .dl-btn {
+      display: inline-block; margin-top: 0.5rem;
+      background: rgba(109,95,214,0.2); border: 1px solid rgba(109,95,214,0.5);
+      color: #a89cf7; padding: 6px 16px; border-radius: 8px;
+      text-decoration: none; font-size: 0.85rem; cursor: pointer;
+    }
+    .dl-btn:hover { background: rgba(109,95,214,0.4); }
+
+    .history-item {
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px; padding: 0.75rem 1rem;
+      display: flex; gap: 1rem; align-items: flex-start;
+    }
+    .history-item video { width: 160px; height: 90px; border-radius: 6px; object-fit: cover; flex-shrink: 0; }
+    .history-item .h-info { flex: 1; min-width: 0; }
+    .history-item .h-prompt { font-size: 0.82rem; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
+    .history-item .h-meta { font-size: 0.75rem; color: #666; }
+
+    .spinner {
+      display: inline-block; width: 10px; height: 10px;
+      border: 2px solid #4ade8055; border-top-color: #4ade80;
+      border-radius: 50%; animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    video { width: 100%; border-radius: 10px; margin-top: 10px; background: #000; }
+    .video-url { word-break: break-all; font-size: 0.8rem; color: #60a5fa; margin-top: 8px; }
+    .video-url a { color: inherit; }
+    .error-msg { color: #f87171; font-size: 0.88rem; margin-top: 6px; }
+
+    /* Prompt area with enhance button */
+    .prompt-wrap { position: relative; }
+    .enhance-btn {
+      position: absolute; bottom: 10px; right: 10px;
+      background: linear-gradient(135deg, #6d5fd6, #3b7dd8);
+      border: none; border-radius: 7px; color: #fff;
+      font-size: 0.78rem; font-weight: 600; padding: 5px 11px;
+      cursor: pointer; transition: opacity 0.2s; z-index: 2;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .enhance-btn:hover { opacity: 0.85; }
+    .enhance-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .enhance-btn .spin { width: 10px; height: 10px; border: 2px solid #ffffff44; border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+    .enhance-btn.loading .spin { display: inline-block; }
+    .enhance-btn.loading .btn-text { display: none; }
+    #prompt { padding-bottom: 40px; }
+
+    /* Cinematic Prompt Agent */
+    .builder-card {
+      background: #13131a; border: 1px solid #2a2a4a;
+      border-radius: 16px; padding: 28px 32px;
+      width: 100%; max-width: 720px; margin-bottom: 32px;
+      box-shadow: 0 0 0 1px #a78bfa11 inset;
+    }
+    .builder-header { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+    .builder-header h2 {
+      font-size: 1.15rem; font-weight: 700;
+      background: linear-gradient(135deg, #a78bfa, #60a5fa);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .builder-badge {
+      font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 20px;
+      background: #1e1a2e; border: 1px solid #6d5fd655; color: #a78bfa; letter-spacing: 0.05em;
+    }
+    .builder-sub { color: #555; font-size: 0.82rem; margin-bottom: 20px; }
+
+    .builder-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+
+    .build-btn {
+      width: 100%; padding: 13px; border: none; border-radius: 10px;
+      background: linear-gradient(135deg, #7c3aed, #4f46e5);
+      color: #fff; font-size: 0.95rem; font-weight: 600;
+      cursor: pointer; transition: opacity 0.2s, transform 0.1s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .build-btn:hover { opacity: 0.88; }
+    .build-btn:active { transform: scale(0.98); }
+    .build-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .build-btn .spin { width: 14px; height: 14px; border: 2px solid #ffffff33; border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+    .build-btn.loading .spin { display: block; }
+    .build-btn.loading .btn-label { display: none; }
+
+    /* Reference image upload */
+    .ref-images-label { font-size: 0.78rem; color: #666; margin-bottom: 8px; display:flex; align-items:center; gap:8px; }
+    .ref-images-label span { color:#444; }
+    .ref-images-slots { display: flex; gap: 10px; margin-bottom: 14px; }
+    .ref-slot {
+      flex: 1; aspect-ratio: 1/1; max-width: 96px; border-radius: 10px;
+      border: 1px dashed #2a2a3a; background: #0d0d16;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; position: relative; overflow: hidden;
+      transition: border-color .18s;
+    }
+    .ref-slot:hover { border-color: #6d5fd6; }
+    .ref-slot.has-image { border-style: solid; border-color: #a78bfa55; }
+    .ref-slot img { width:100%; height:100%; object-fit:cover; border-radius:9px; display:block; }
+    .ref-slot .slot-plus { font-size: 1.4rem; color: #333; pointer-events: none; }
+    .ref-slot .slot-rm {
+      position:absolute; top:3px; right:3px; background:rgba(0,0,0,.7);
+      border:none; color:#f87171; border-radius:50%; width:18px; height:18px;
+      font-size:0.6rem; cursor:pointer; display:none; align-items:center; justify-content:center;
+      line-height:1; padding:0;
+    }
+    .ref-slot.has-image .slot-rm { display:flex; }
+    .ref-images-note { font-size:0.7rem; color:#333; margin-top:-10px; margin-bottom:12px; }
+
+    /* Mode toggle buttons */
+    .agent-modes { display: flex; gap: 8px; margin-bottom: 14px; }
+    .mode-btn {
+      flex: 1; padding: 8px 10px; border-radius: 8px; font-size: 0.78rem; font-weight: 600;
+      cursor: pointer; border: 1px solid #2a2a3a; background: #0d0d16; color: #555;
+      transition: all .18s; white-space: nowrap;
+    }
+    .mode-btn:hover { border-color: #6d5fd6; color: #a78bfa; }
+    .mode-btn.active-sound { border-color: #34d399; color: #34d399; background: rgba(52,211,153,.08); }
+    .mode-btn.active-music { border-color: #f59e0b; color: #f59e0b; background: rgba(245,158,11,.08); }
+
+    /* Output */
+    #builderOutput { display: none; margin-top: 20px; }
+    .output-inner {
+      background: #0c0c14; border: 1px solid #2a2a3a; border-radius: 12px;
+      padding: 20px; font-size: 0.84rem; line-height: 1.7;
+      font-family: "SF Mono", "Fira Code", monospace; color: #ccc;
+      white-space: pre-wrap; word-break: break-word;
+      min-height: 200px; max-height: 1200px; overflow-y: auto;
+    }
+    .output-inner .sec-label {
+      color: #a78bfa; font-weight: 700; font-size: 0.9rem;
+    }
+    .output-inner .shot-label {
+      color: #60a5fa; font-weight: 700;
+    }
+    .output-inner .field-label {
+      color: #34d399; font-weight: 600;
+    }
+    .output-actions {
+      display: flex; gap: 10px; margin-top: 14px;
+    }
+    .out-btn {
+      flex: 1; padding: 10px; border-radius: 9px; font-size: 0.85rem; font-weight: 600;
+      cursor: pointer; border: 1px solid; transition: all 0.2s;
+    }
+    .out-btn.copy { background: #13131a; border-color: #2a2a3a; color: #aaa; }
+    .out-btn.copy:hover { border-color: #a78bfa66; color: #a78bfa; }
+    .out-btn.copy.done { color: #4ade80; border-color: #4ade8055; }
+    .out-btn.use  { background: linear-gradient(135deg, #6d5fd6, #3b7dd8); border-color: transparent; color: #fff; }
+    .out-btn.use:hover { opacity: 0.88; }
+
+    /* Pricing pills */
+    .ppill {
+      font-size: 0.72rem; padding: 3px 10px; border-radius: 20px;
+      border: 1px solid #1e2a3a; color: #555; cursor: pointer;
+      transition: all 0.15s; white-space: nowrap;
+    }
+    .ppill:hover { border-color: #3a4a5a; color: #888; }
+    .ppill.active { border-color: #4ade8055; color: #4ade80; background: #0d1a14; }
+
+    .history-item{cursor:pointer}
+    .history-item:hover{border-color:#60a5fa !important;box-shadow:0 0 0 1px #60a5fa33}
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);z-index:1000;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+    .modal-overlay.open{display:flex}
+    .modal-box{background:#13131a;border:1px solid #2a2a3e;border-radius:18px;width:100%;max-width:860px;max-height:calc(100vh - 40px);overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.7);scrollbar-width:thin;scrollbar-color:#2a2a3e transparent}
+    .modal-box::-webkit-scrollbar{width:6px}.modal-box::-webkit-scrollbar-thumb{background:#2a2a3e;border-radius:3px}
+    .modal-head{display:flex;align-items:center;justify-content:space-between;padding:20px 24px 0}
+    .modal-head-title{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#555}
+    .modal-close-btn{background:none;border:none;color:#666;font-size:1.4rem;cursor:pointer;padding:4px 8px;border-radius:8px;transition:all .15s;line-height:1}
+    .modal-close-btn:hover{background:#1e1e2e;color:#ccc}
+    .modal-vid-wrap{margin:16px 24px;background:#0a0a0f;border-radius:12px;display:flex;align-items:center;justify-content:center;min-height:180px;padding:16px}
+    .modal-vid-wrap video{max-width:100%;max-height:58vh;border-radius:8px;display:block}
+    .modal-no-vid{color:#555;font-size:.9rem;text-align:center;padding:40px}
+    .modal-actions{display:flex;gap:10px;padding:0 24px 20px;flex-wrap:wrap}
+    .btn-dl{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#3b7dd8,#60a5fa);color:#fff;border:none;border-radius:9px;padding:9px 18px;font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;transition:opacity .2s}
+    .btn-dl:hover{opacity:.85}
+    .btn-ext{display:inline-flex;align-items:center;gap:6px;background:#1e1e2e;color:#aaa;border:1px solid #2a2a3e;border-radius:9px;padding:9px 18px;font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;transition:all .2s}
+    .btn-ext:hover{color:#fff;border-color:#444}
+    .modal-divider{height:1px;background:#1a1a28;margin:0 24px 20px}
+    .modal-sect{padding:0 24px 20px}
+    .modal-sect-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#555;margin-bottom:8px}
+    .prompt-blk{background:#0e0e18;border:1px solid #1e1e2e;border-radius:10px;padding:14px 16px;position:relative}
+    .prompt-txt{font-size:.87rem;color:#ccc;line-height:1.6;padding-right:68px;white-space:pre-wrap;word-break:break-word}
+    .btn-copy{position:absolute;top:10px;right:10px;background:#1e1e2e;border:1px solid #2a2a3e;color:#888;border-radius:7px;padding:5px 11px;font-size:.75rem;font-weight:600;cursor:pointer;transition:all .15s}
+    .btn-copy:hover{color:#a78bfa;border-color:#a78bfa55}
+    .btn-copy.copied{color:#4ade80;border-color:#4ade8055}
+    .meta-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+    .meta-item{background:#0e0e18;border:1px solid #1a1a28;border-radius:10px;padding:12px 14px}
+    .meta-key{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#555;margin-bottom:5px}
+    .meta-val{font-size:.85rem;color:#ccc;font-weight:500;word-break:break-all}
+    .meta-val.green{color:#4ade80}.meta-val.blue{color:#60a5fa}.meta-val.purple{color:#a78bfa}.meta-val.red{color:#f87171}
+    {% if embed %}
+    body{background:transparent;padding:0;align-items:stretch}
+    .card,.builder-card{
+      max-width:none;
+      border-radius:22px;
+      border-color:#242c44;
+      background:linear-gradient(180deg,rgba(17,22,37,.98),rgba(11,15,26,.98));
+      box-shadow:none;
+      margin-bottom:20px;
+    }
+    .tabs{
+      padding:6px;
+      border-radius:18px;
+      background:#0a0d16;
+      border:1px solid #20263b;
+    }
+    .tab{
+      border:0;
+      border-radius:13px;
+      background:transparent;
+      min-height:46px;
+      font-weight:700;
+    }
+    .tab.active{
+      background:linear-gradient(135deg,rgba(111,134,255,.34),rgba(88,183,255,.16));
+      border-color:transparent;
+      color:#dbe5ff;
+    }
+    textarea,input[type="text"],select{
+      background:#090c16;
+      border-color:#252d44;
+      border-radius:12px;
+    }
+    .upload-area{
+      border-style:dashed;
+      border-color:#2c3656;
+      border-radius:14px;
+      background:#0b1020;
+    }
+    .row,.builder-options{gap:16px}
+    .result-item,.history-item,.output-inner{
+      border-color:#222a40;
+      background:#0d1220;
+      border-radius:16px;
+    }
+    .modal-overlay{z-index:9999}
+    @media(max-width:900px){
+      .row,.builder-options{grid-template-columns:1fr}
+      .card,.builder-card{padding:22px}
+    }
+    {% endif %}
+  </style>
+</head>
+<body>
+
+{% if not embed %}
+<nav>
+  <span class="logo">KAMOD AI</span>
+  <div class="nav-grouped">
+    <div class="nav-group has-active">
+      <span class="nav-group-label">CREATE</span>
+      <div class="nav-group-items">
+        <a href="/" class="active">Seedance 2.0</a>
+        <a href="/ai-videos">AI Video Tools</a>
+        <a href="/ai-director">Director</a>
+        <a href="/images">AI Images</a>
+        <a href="/storyboard">Storyboard</a>
+        <a href="/ugc-studio">UGC Studio</a>
+      </div>
+    </div>
+    <div class="nav-sep"></div>
+    <div class="nav-group">
+      <span class="nav-group-label">ENHANCE</span>
+      <div class="nav-group-items">
+        <a href="/audio">Audio</a>
+        <a href="/avatars">Avatars</a>
+      </div>
+    </div>
+    <div class="nav-sep"></div>
+    <div class="nav-group">
+      <span class="nav-group-label">DELIVER</span>
+      <div class="nav-group-items">
+        <a href="/analytics">Analytics</a>
+        <a href="/dashboard">Dashboard</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <h1>AI Video Generator</h1>
+  <p>Text to Video &amp; Image to Video powered by Seedance 2.0</p>
+  <p style="margin-top:10px;font-size:0.82rem;">
+    Need prompt ideas? Browse
+    <a href="https://awesomevideoprompts.com/" target="_blank" rel="noopener"
+       style="color:#a78bfa;text-decoration:none;border-bottom:1px solid #a78bfa44;">
+      Awesome Video Prompts ↗
+    </a>
+  </p>
+</header>
+{% endif %}
+
+<div class="card">
+  <div class="tabs">
+    <div class="tab active" data-mode="text">Text to Video</div>
+    <div class="tab" data-mode="image">Image to Video</div>
+    <div class="tab" data-mode="video-edit">Video Edit</div>
+    <div class="tab" data-mode="omni">✦ Omni</div>
+    <div class="tab" data-mode="flf">⇋ First &amp; Last Frame</div>
+    <div class="tab" data-mode="combiner">🎞 Combiner</div>
+  </div>
+
+  <!-- Quick Start Templates -->
+  <div id="quickStartWrap">
+    <div class="qs-label">Quick Start</div>
+    <div class="qs-chips">
+      <span class="qs-chip" data-qs="action">🔥 Action Scene</span>
+      <span class="qs-chip" data-qs="commercial">🎥 Commercial Ad</span>
+      <span class="qs-chip" data-qs="carchase">🚗 Car Chase</span>
+      <span class="qs-chip" data-qs="emotional">💔 Emotional Story</span>
+      <span class="qs-chip" data-qs="horror">🧠 Horror Scene</span>
+    </div>
+  </div>
+
+  <label id="promptLabel">Prompt</label>
+  <div class="prompt-wrap" id="promptWrap">
+    <textarea id="prompt" placeholder="Describe your video… e.g. A cinematic drone shot over a futuristic city at sunset"></textarea>
+    <button class="enhance-btn" id="enhanceBtn" title="Make your prompt cinematic with AI">
+      <span class="spin"></span>
+      <span class="btn-text">🎬 Make Cinematic</span>
+    </button>
+  </div>
+  <div class="prompt-meter" id="promptMeter">
+    <div class="prompt-meter-bar-wrap"><div class="prompt-meter-bar" id="promptMeterBar"></div></div>
+    <span class="prompt-meter-label" id="promptMeterLabel">Start typing your prompt…</span>
+  </div>
+
+  <!-- Image section (shown for image-to-video mode) -->
+  <div class="image-section" id="imageSection">
+    <label>Reference Images <span style="color:#666;font-weight:400;font-size:0.75rem">up to 9 · first image = start frame · use @image1 @image2… in your prompt</span></label>
+    <div id="i2vImageList" style="display:flex;flex-direction:column;gap:10px;margin-bottom:10px"></div>
+    <button id="addI2VImageBtn" style="width:100%;padding:9px;border:1px dashed #2a2a3a;border-radius:9px;background:none;color:#666;font-size:0.82rem;cursor:pointer;transition:all 0.15s" onmouseover="this.style.borderColor='#6d5fd6';this.style.color='#a78bfa'" onmouseout="this.style.borderColor='#2a2a3a';this.style.color='#666'">+ Add Image</button>
+  </div>
+
+  <!-- Video Edit section -->
+  <div id="videoEditSection" style="display:none">
+    <div style="background:#0d1117;border:1px solid #1e2a3a;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:0.78rem;color:#888;line-height:1.6">
+      Base price <strong style="color:#4ade80">$0.60</strong> · Basic <strong style="color:#ccc">$0.08/sec</strong> · High <strong style="color:#ccc">$0.15/sec</strong> · <strong style="color:#ccc">Duration = source video length</strong> (max ~15s)
+    </div>
+
+    <label>Edit Prompt</label>
+    <textarea id="vePrompt" placeholder='The cat in @image1 walks through a garden — use @image1, @image2... to reference uploaded images' style="min-height:76px"></textarea>
+
+    <!-- Source Video -->
+    <label style="margin-top:14px">Source Video</label>
+    <div class="upload-tabs" style="margin-bottom:8px">
+      <div class="upload-tab active" id="veVidTabUpload">Upload File</div>
+      <div class="upload-tab" id="veVidTabUrl">Paste URL</div>
+    </div>
+    <div id="veVideoDrop" class="upload-area" style="padding:18px">
+      <input type="file" id="veVideoFile" accept="video/*"/>
+      <p><span>Choose video</span></p>
+    </div>
+    <div id="veVideoUrlWrap" style="display:none">
+      <input type="text" id="veVideoUrl" placeholder="https://cdn.example.com/your-video.mp4"/>
+    </div>
+    <div id="veVideoUploading" style="display:none;font-size:0.82rem;color:#a78bfa;padding:8px 0">Uploading…</div>
+    <div id="veVideoReady" style="display:none;background:#0d1a0d;border:1px solid #1e3a1e;border-radius:8px;padding:8px 12px;font-size:0.8rem;color:#4ade80;margin-top:6px;display:none;align-items:center;justify-content:space-between">
+      <span id="veVideoReadyName">✓ Video ready</span>
+      <button onclick="veResetVideo()" style="background:none;border:none;color:#888;font-size:0.75rem;cursor:pointer">✕ Remove</button>
+    </div>
+
+    <!-- Reference Images -->
+    <label style="margin-top:16px">Reference Images <span style="color:#555;font-weight:400">(optional, up to 9 — @image1 @image2… in prompt)</span></label>
+    <div id="veImagesList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px"></div>
+    <button id="veAddImageBtn" style="background:none;border:1px dashed #2a2a3a;color:#666;border-radius:7px;padding:5px 12px;font-size:0.78rem;cursor:pointer;width:100%;transition:all .15s;margin-bottom:14px">+ Add Reference Image</button>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px">
+      <div>
+        <label style="margin-top:0">Aspect Ratio</label>
+        <select id="veAspect">
+          <option value="16:9">16:9</option>
+          <option value="9:16">9:16</option>
+          <option value="4:3">4:3</option>
+          <option value="3:4">3:4</option>
+        </select>
+      </div>
+      <div>
+        <label style="margin-top:0">Quality</label>
+        <select id="veQuality">
+          <option value="basic">Basic ($0.08/s)</option>
+          <option value="high">High ($0.15/s)</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:flex-end;padding-bottom:2px">
+        <label style="display:flex;align-items:center;gap:6px;margin:0;cursor:pointer;font-size:0.8rem;color:#888">
+          <input type="checkbox" id="veRemoveWatermark" style="width:14px;height:14px;accent-color:#6d5fd6"/> Remove Watermark
+        </label>
+      </div>
+    </div>
+
+    <button id="veSubmitBtn" style="width:100%;padding:14px;border:none;border-radius:10px;background:linear-gradient(135deg,#6d5fd6,#3b7dd8);color:#fff;font-size:1rem;font-weight:700;cursor:pointer;transition:opacity .2s">✦ Edit Video</button>
+  </div>
+
+  <!-- Omni Reference section -->
+  <div id="omniSection" style="display:none">
+    <!-- Capabilities -->
+    <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px">
+      <span style="background:#1a1a2e;border:1px solid #2a2a4a;border-radius:20px;padding:4px 11px;font-size:0.72rem;color:#a78bfa">🎬 Multi-shot</span>
+      <span style="background:#1a1a2e;border:1px solid #2a2a4a;border-radius:20px;padding:4px 11px;font-size:0.72rem;color:#60a5fa">👤 Character Consistency</span>
+      <span style="background:#1a1a2e;border:1px solid #2a2a4a;border-radius:20px;padding:4px 11px;font-size:0.72rem;color:#34d399">🎵 Audio Reference</span>
+      <span style="background:#1a1a2e;border:1px solid #2a2a4a;border-radius:20px;padding:4px 11px;font-size:0.72rem;color:#f59e0b">🎥 Video Reference</span>
+      <span style="background:#1a1a2e;border:1px solid #2a2a4a;border-radius:20px;padding:4px 11px;font-size:0.72rem;color:#ec4899">✨ High Realism</span>
+    </div>
+
+    <!-- Train Character panel -->
+    <div style="border:1px solid #2a2a4a;border-radius:10px;margin-bottom:14px;overflow:hidden">
+      <button id="omniCharTrainToggle" onclick="omniToggleCharTrainer()"
+        style="width:100%;background:#0d0d18;border:none;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;color:#c4b5fd;font-size:0.82rem;font-weight:600;text-align:left">
+        <span>👤 Train Reusable Character</span>
+        <span id="omniCharTrainArrow" style="font-size:0.7rem;color:#555;transition:transform .2s">▼</span>
+      </button>
+      <div id="omniCharTrainBody" style="display:none;padding:12px 14px;background:#080810;border-top:1px solid #1a1a2e">
+        <div style="font-size:0.75rem;color:#666;margin-bottom:10px;line-height:1.5">
+          Train a character once from a portrait photo. After training completes, copy the
+          <strong style="color:#c4b5fd">@omni-character:&lt;id&gt;</strong> token and paste it into any Omni prompt for consistent identity.
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+          <div>
+            <label style="margin-top:0;font-size:0.75rem">Character Name <span style="color:#f59e0b">*</span></label>
+            <input id="omniCharName" type="text" placeholder="e.g. Sarah"
+              style="width:100%;box-sizing:border-box;background:#0d0d15;border:1px solid #2a2a3a;border-radius:7px;color:#e0e0e0;font-size:.82rem;padding:7px 10px;outline:none;font-family:inherit"/>
+          </div>
+          <div>
+            <label style="margin-top:0;font-size:0.75rem">Description <span style="color:#555;font-weight:400">(optional)</span></label>
+            <input id="omniCharDesc" type="text" placeholder="e.g. young woman, dark hair"
+              style="width:100%;box-sizing:border-box;background:#0d0d15;border:1px solid #2a2a3a;border-radius:7px;color:#e0e0e0;font-size:.82rem;padding:7px 10px;outline:none;font-family:inherit"/>
+          </div>
+        </div>
+        <label style="margin-top:0;font-size:0.75rem">Portrait Photo <span style="color:#f59e0b">*</span></label>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
+          <input id="omniCharImageUrl" type="text" placeholder="Paste image URL or upload →"
+            style="flex:1;background:#0d0d15;border:1px solid #2a2a3a;border-radius:7px;color:#e0e0e0;font-size:.82rem;padding:7px 10px;outline:none;font-family:inherit"/>
+          <label id="omniCharUploadLabel"
+            style="margin:0;cursor:pointer;background:#13131a;border:1px solid #2a2a3a;border-radius:7px;padding:7px 12px;font-size:.75rem;color:#888;white-space:nowrap;transition:all .15s"
+            onmouseover="this.style.borderColor='#c4b5fd';this.style.color='#c4b5fd'"
+            onmouseout="this.style.borderColor='#2a2a3a';this.style.color='#888'">
+            ↑ Upload
+            <input type="file" accept="image/*" style="display:none" onchange="omniCharHandleUpload(this)"/>
+          </label>
+        </div>
+        <button id="omniCharTrainBtn" onclick="omniCharSubmitTrain()"
+          style="width:100%;padding:9px;border:none;border-radius:8px;background:linear-gradient(135deg,#5b21b6,#2563eb);color:#fff;font-size:0.84rem;font-weight:700;cursor:pointer;transition:opacity .2s">
+          Train Character
+        </button>
+        <div id="omniCharTrainStatus" style="display:none;margin-top:10px"></div>
+        <!-- Saved characters list -->
+        <div id="omniCharList" style="margin-top:12px"></div>
+      </div>
+    </div>
+
+    <div style="background:#0d1117;border:1px solid #1e2a3a;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:0.78rem;color:#888;line-height:1.6">
+      <strong style="color:#f59e0b">At least 1 reference image is required.</strong> Use <strong style="color:#a78bfa">@image1…@image9</strong>, <strong style="color:#60a5fa">@video1…@video3</strong>, <strong style="color:#34d399">@audio1…@audio3</strong> in your prompt to reference the uploaded media. Trained characters: <strong style="color:#c4b5fd">@omni-character:&lt;id&gt;</strong>.
+    </div>
+
+    <label>Prompt</label>
+    <textarea id="omniPrompt" placeholder='e.g. A person @image1 walking on the beach at sunset, cinematic lighting' style="min-height:90px"></textarea>
+
+    <!-- Reference Images -->
+    <label style="margin-top:16px">Reference Images <span style="color:#f59e0b;font-weight:500;font-size:0.75rem">required · at least 1 · up to 9 · @image1…@image9</span></label>
+    <div id="omniImagesList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px"></div>
+    <button id="omniAddImageBtn" style="background:none;border:1px dashed #2a2a3a;color:#666;border-radius:7px;padding:5px 12px;font-size:0.78rem;cursor:pointer;width:100%;transition:all .15s;margin-bottom:14px"
+      onmouseover="this.style.borderColor='#a78bfa';this.style.color='#a78bfa'" onmouseout="this.style.borderColor='#2a2a3a';this.style.color='#666'">+ Add Reference Image</button>
+
+    <!-- Reference Videos -->
+    <label>Reference Videos <span style="color:#555;font-weight:400;font-size:0.75rem">(optional · up to 3 · MP4 max 15s · @video1…@video3)</span></label>
+    <div id="omniVideosList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px"></div>
+    <button id="omniAddVideoBtn" style="background:none;border:1px dashed #2a2a3a;color:#666;border-radius:7px;padding:5px 12px;font-size:0.78rem;cursor:pointer;width:100%;transition:all .15s;margin-bottom:14px"
+      onmouseover="this.style.borderColor='#60a5fa';this.style.color='#60a5fa'" onmouseout="this.style.borderColor='#2a2a3a';this.style.color='#666'">+ Add Reference Video</button>
+
+    <!-- Reference Audio -->
+    <label>Reference Audio <span style="color:#555;font-weight:400;font-size:0.75rem">(optional · up to 3 · MP3/WAV max 15s total · @audio1…@audio3)</span></label>
+    <div id="omniAudioList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px"></div>
+    <button id="omniAddAudioBtn" style="background:none;border:1px dashed #2a2a3a;color:#666;border-radius:7px;padding:5px 12px;font-size:0.78rem;cursor:pointer;width:100%;transition:all .15s;margin-bottom:14px"
+      onmouseover="this.style.borderColor='#34d399';this.style.color='#34d399'" onmouseout="this.style.borderColor='#2a2a3a';this.style.color='#666'">+ Add Reference Audio</button>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px">
+      <div>
+        <label style="margin-top:0">Quality</label>
+        <select id="omniQuality">
+          <option value="omni-standard">VIP Standard  $0.30/s</option>
+          <option value="omni-fast">VIP Fast  $0.21/s</option>
+          <option value="omni-hd">VIP HD 1080p  $0.675/s</option>
+        </select>
+      </div>
+      <div>
+        <label style="margin-top:0">Aspect Ratio</label>
+        <select id="omniAspect">
+          <option value="16:9">16:9 Landscape</option>
+          <option value="9:16">9:16 Portrait</option>
+          <option value="21:9">21:9 Ultrawide</option>
+          <option value="4:3">4:3</option>
+          <option value="3:4">3:4</option>
+          <option value="1:1">1:1 Square</option>
+        </select>
+      </div>
+      <div>
+        <label style="margin-top:0">Duration (4–15s)</label>
+        <select id="omniDuration">
+          <option value="4">4 seconds</option>
+          <option value="5" selected>5 seconds</option>
+          <option value="6">6 seconds</option>
+          <option value="7">7 seconds</option>
+          <option value="8">8 seconds</option>
+          <option value="9">9 seconds</option>
+          <option value="10">10 seconds</option>
+          <option value="12">12 seconds</option>
+          <option value="15">15 seconds</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Omni price estimate -->
+    <div id="omniPriceBar" style="display:flex;align-items:center;gap:10px;background:#0d1117;border:1px solid #1e2a3a;border-radius:10px;padding:10px 16px;margin-bottom:14px;flex-wrap:wrap">
+      <span style="font-size:0.78rem;color:#555;text-transform:uppercase;letter-spacing:.05em">Est. Cost</span>
+      <span id="omniPriceEst" style="font-size:1.2rem;font-weight:700;color:#a78bfa">$1.50</span>
+      <span id="omniPriceBreak" style="font-size:0.78rem;color:#666">5s × $0.30/sec · VIP Standard</span>
+    </div>
+
+    <button id="omniSubmitBtn" style="width:100%;padding:14px;border:none;border-radius:10px;background:linear-gradient(135deg,#7c3aed,#3b7dd8);color:#fff;font-size:1rem;font-weight:700;cursor:pointer;transition:opacity .2s">✦ Generate with Omni</button>
+  </div>
+
+  <!-- First & Last Frame section -->
+  <div id="flfSection" style="display:none">
+    <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px">
+      <span style="background:#1a1a2e;border:1px solid #2a2a4a;border-radius:20px;padding:4px 11px;font-size:0.72rem;color:#a78bfa">🎞 Frame-to-Frame Motion</span>
+      <span style="background:#1a1a2e;border:1px solid #2a2a4a;border-radius:20px;padding:4px 11px;font-size:0.72rem;color:#60a5fa">🖼 1 or 2 Images</span>
+      <span style="background:#1a1a2e;border:1px solid #2a2a4a;border-radius:20px;padding:4px 11px;font-size:0.72rem;color:#34d399">⚡ Fast & VIP Options</span>
+    </div>
+    <div style="background:#0d1117;border:1px solid #1e2a3a;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:0.78rem;color:#888;line-height:1.6">
+      Upload <strong style="color:#ccc">1 image</strong> (first frame only) or <strong style="color:#ccc">2 images</strong> (first + last frame). The model interpolates motion between them guided by your prompt.
+    </div>
+
+    <label>Prompt <span style="color:#555;font-weight:400;font-size:0.75rem">(describe the transition / motion)</span></label>
+    <textarea id="flfPrompt" placeholder='e.g. The camera slowly zooms in as the character turns their head toward the sunset' style="min-height:80px"></textarea>
+
+    <label style="margin-top:14px">Frames <span style="color:#f59e0b;font-weight:500;font-size:0.75rem">required · 1–2 · first then last</span></label>
+    <div id="flfImagesList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px"></div>
+    <button id="flfAddImageBtn" style="background:none;border:1px dashed #2a2a3a;color:#666;border-radius:7px;padding:5px 12px;font-size:0.78rem;cursor:pointer;width:100%;transition:all .15s;margin-bottom:14px"
+      onmouseover="this.style.borderColor='#a78bfa';this.style.color='#a78bfa'" onmouseout="this.style.borderColor='#2a2a3a';this.style.color='#666'">+ Add Frame (max 2)</button>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px">
+      <div>
+        <label style="margin-top:0">Quality</label>
+        <select id="flfQuality">
+          <optgroup label="── Global ──">
+            <option value="global-standard">Global Standard  $0.15/s</option>
+            <option value="global-fast">Global Fast  $0.15/s</option>
+          </optgroup>
+          <optgroup label="── VIP ──">
+            <option value="vip-standard">VIP Standard  $0.25/s</option>
+            <option value="vip-fast">VIP Fast  $0.21/s</option>
+          </optgroup>
+        </select>
+      </div>
+      <div>
+        <label style="margin-top:0">Aspect Ratio</label>
+        <select id="flfAspect">
+          <option value="16:9">16:9 Landscape</option>
+          <option value="9:16">9:16 Portrait</option>
+          <option value="1:1">1:1 Square</option>
+          <option value="4:3">4:3</option>
+          <option value="3:4">3:4</option>
+          <option value="21:9">21:9 Ultrawide</option>
+        </select>
+      </div>
+      <div>
+        <label style="margin-top:0">Duration (4–15s)</label>
+        <select id="flfDuration">
+          <option value="4">4 seconds</option>
+          <option value="5" selected>5 seconds</option>
+          <option value="6">6 seconds</option>
+          <option value="7">7 seconds</option>
+          <option value="8">8 seconds</option>
+          <option value="9">9 seconds</option>
+          <option value="10">10 seconds</option>
+          <option value="12">12 seconds</option>
+          <option value="15">15 seconds</option>
+        </select>
+      </div>
+    </div>
+    <div id="flfAspectHint" style="display:none;font-size:0.72rem;color:#666;margin-top:-8px;margin-bottom:14px">VIP Fast auto-infers aspect ratio from your reference images.</div>
+
+    <!-- FLF price estimate -->
+    <div id="flfPriceBar" style="display:flex;align-items:center;gap:10px;background:#0d1117;border:1px solid #1e2a3a;border-radius:10px;padding:10px 16px;margin-bottom:14px;flex-wrap:wrap">
+      <span style="font-size:0.78rem;color:#555;text-transform:uppercase;letter-spacing:.05em">Est. Cost</span>
+      <span id="flfPriceEst" style="font-size:1.2rem;font-weight:700;color:#4ade80">$0.75</span>
+      <span id="flfPriceBreak" style="font-size:0.78rem;color:#666">5s × $0.15/sec · Global Standard</span>
+    </div>
+
+    <button id="flfSubmitBtn" style="width:100%;padding:14px;border:none;border-radius:10px;background:linear-gradient(135deg,#0ea5e9,#7c3aed);color:#fff;font-size:1rem;font-weight:700;cursor:pointer;transition:opacity .2s">⇋ Generate First → Last</button>
+  </div>
+
+  <!-- Video Combiner section -->
+  <div id="combinerSection" style="display:none">
+    <!-- Capabilities -->
+    <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px">
+      <span style="background:#1a1a2e;border:1px solid #2a2a4a;border-radius:20px;padding:4px 11px;font-size:0.72rem;color:#a78bfa">🎞 Merge Clips</span>
+      <span style="background:#1a1a2e;border:1px solid #2a2a4a;border-radius:20px;padding:4px 11px;font-size:0.72rem;color:#60a5fa">🎬 Preserve Order</span>
+      <span style="background:#1a1a2e;border:1px solid #2a2a4a;border-radius:20px;padding:4px 11px;font-size:0.72rem;color:#34d399">📐 Custom Aspect</span>
+      <span style="background:#1a1a2e;border:1px solid #2a2a4a;border-radius:20px;padding:4px 11px;font-size:0.72rem;color:#f59e0b">⏱ 5–60s per clip</span>
+    </div>
+    <div style="background:#0d1117;border:1px solid #1e2a3a;border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:0.78rem;color:#888;line-height:1.6">
+      Upload your clips <strong style="color:#ccc">in order</strong>. Each clip must be <strong style="color:#4ade80">5–60 seconds</strong>. Minimum <strong style="color:#f59e0b">2 clips</strong> required. Use <strong style="color:#a78bfa">Auto</strong> aspect ratio to preserve the first clip's dimensions.
+      <br><span style="color:#60a5fa">Combiner is a low-cost utility; recent 2×5s combines have been about $0.03. Final provider cost is saved in history when returned.</span>
+    </div>
+
+    <!-- Video clip list -->
+    <label>Video Clips <span style="color:#f59e0b;font-weight:500;font-size:0.75rem">required · min 2 · in order · 5–60s each</span></label>
+    <div id="combinerClipsList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px"></div>
+    <button id="combinerAddClipBtn" style="background:none;border:1px dashed #2a2a3a;color:#666;border-radius:7px;padding:5px 12px;font-size:0.78rem;cursor:pointer;width:100%;transition:all .15s;margin-bottom:16px"
+      onmouseover="this.style.borderColor='#60a5fa';this.style.color='#60a5fa'" onmouseout="this.style.borderColor='#2a2a3a';this.style.color='#666'">+ Add Clip</button>
+
+    <!-- Aspect ratio -->
+    <div style="max-width:280px;margin-bottom:18px">
+      <label style="margin-top:0">Output Aspect Ratio</label>
+      <select id="combinerAspect">
+        <option value="auto">Auto (match first clip)</option>
+        <option value="16:9">16:9 Landscape</option>
+        <option value="9:16">9:16 Portrait</option>
+        <option value="1:1">1:1 Square</option>
+        <option value="21:9">21:9 Ultrawide</option>
+        <option value="4:3">4:3</option>
+        <option value="3:4">3:4</option>
+      </select>
+    </div>
+
+    <button id="combinerSubmitBtn" style="width:100%;padding:14px;border:none;border-radius:10px;background:linear-gradient(135deg,#0ea5e9,#6d5fd6);color:#fff;font-size:1rem;font-weight:700;cursor:pointer;transition:opacity .2s">🎞 Combine Videos</button>
+  </div>
+
+  <!-- Standard video controls (hidden in watermark mode) -->
+  <div id="videoControls">
+  <div class="row">
+    <div>
+      <label>Aspect Ratio</label>
+      <select id="aspectRatio">
+        <option value="16:9">16:9 Landscape</option>
+        <option value="9:16">9:16 Portrait</option>
+        <option value="1:1">1:1 Square</option>
+      </select>
+    </div>
+    <div>
+      <label>Duration</label>
+      <select id="duration">
+        <option value="5">5 seconds</option>
+        <option value="10">10 seconds</option>
+        <option value="15">15 seconds</option>
+      </select>
+    </div>
+    <div>
+      <label>Quality</label>
+      <select id="quality">
+        <optgroup label="── Global ──">
+          <option value="global-standard">Global Standard  $0.15/s</option>
+          <option value="global-fast">Global Fast  $0.15/s</option>
+        </optgroup>
+        <optgroup label="── VIP ──">
+          <option value="vip-standard">VIP Standard  $0.25/s</option>
+          <option value="vip-fast">VIP Fast  $0.21/s</option>
+          <option value="vip-hd">VIP HD 1080p  $0.675/s</option>
+        </optgroup>
+      </select>
+    </div>
+  </div>
+
+  <!-- Live pricing estimate -->
+  <div id="pricingBar" style="
+    margin-top:16px; padding:12px 16px; border-radius:10px;
+    background:#0d1117; border:1px solid #1e2a3a;
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+      <span style="font-size:0.78rem;color:#555;text-transform:uppercase;letter-spacing:.05em">Estimated Cost</span>
+      <span id="priceEst" style="font-size:1.3rem;font-weight:700;color:#4ade80">$0.75</span>
+      <span id="priceBreak" style="font-size:0.78rem;color:#666">5s × $0.15/sec · Global Standard</span>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;" id="pricePills">
+      <span class="ppill active" data-dur="5"  data-q="global-standard">5s Global $0.75</span>
+      <span class="ppill"        data-dur="10" data-q="global-standard">10s Global $1.50</span>
+      <span class="ppill"        data-dur="5"  data-q="global-fast">5s Fast $0.75</span>
+      <span class="ppill"        data-dur="10" data-q="global-fast">10s Fast $1.50</span>
+      <span class="ppill"        data-dur="5"  data-q="vip-standard">5s VIP $1.25</span>
+      <span class="ppill"        data-dur="10" data-q="vip-standard">10s VIP $2.50</span>
+      <span class="ppill"        data-dur="5"  data-q="vip-fast">5s VIP Fast $1.05</span>
+      <span class="ppill"        data-dur="5"  data-q="vip-hd">5s HD $3.38</span>
+    </div>
+  </div>
+
+  <div class="cost-warn" id="costWarn">⚠️ This generation costs <strong id="costWarnAmt"></strong> — make sure your prompt is ready before submitting.</div>
+  <button id="generateBtn">✦ Create Scene</button>
+  </div>
+</div>
+
+<div id="results"></div>
+
+<!-- Cinematic Prompt Agent -->
+<div class="builder-card" style="margin-top:2rem;">
+  <div class="builder-header">
+    <h2>Cinematic Prompt Agent</h2>
+    <span class="builder-badge">powered by Seed 2.0</span>
+  </div>
+  <p class="builder-sub">Describe any video idea — get a production-ready Seedance 2.0 prompt back, structured like a film director wrote it.</p>
+
+  <label style="margin-top:0">Your idea</label>
+  <textarea id="builderInput" placeholder="e.g. kung fu guy fighting ninja cats, funny. Or: a samurai at sunset. Keep it simple — the AI handles the rest." style="min-height:90px;margin-bottom:14px"></textarea>
+
+  <div class="builder-options">
+    <div>
+      <label style="margin-top:0">Duration hint</label>
+      <select id="builderDuration">
+        <option value="">Auto-select</option>
+        <option value="5">5 seconds</option>
+        <option value="10">10 seconds</option>
+        <option value="15">15 seconds</option>
+      </select>
+    </div>
+    <div>
+      <label style="margin-top:0">Style hint <span style="color:#444;font-size:0.78rem">(optional)</span></label>
+      <input type="text" id="builderStyle" placeholder="e.g. 1970s Hong Kong, noir, PSA..."/>
+    </div>
+  </div>
+
+  <div class="ref-images-label">
+    Reference images <span>(optional · up to 3 · character, location, style)</span>
+  </div>
+  <div class="ref-images-slots">
+    <div class="ref-slot" id="refSlot0" onclick="refSlotClick(0)">
+      <span class="slot-plus">＋</span>
+      <button class="slot-rm" onclick="event.stopPropagation();clearRefSlot(0)">✕</button>
+    </div>
+    <div class="ref-slot" id="refSlot1" onclick="refSlotClick(1)">
+      <span class="slot-plus">＋</span>
+      <button class="slot-rm" onclick="event.stopPropagation();clearRefSlot(1)">✕</button>
+    </div>
+    <div class="ref-slot" id="refSlot2" onclick="refSlotClick(2)">
+      <span class="slot-plus">＋</span>
+      <button class="slot-rm" onclick="event.stopPropagation();clearRefSlot(2)">✕</button>
+    </div>
+  </div>
+  <p class="ref-images-note">Seed 2.0 Lite will analyse character appearance, clothing, and location from these images.</p>
+  <input type="file" id="refFileInput" accept="image/*" style="display:none" onchange="handleRefFile(this)">
+
+  <div class="agent-modes">
+    <button class="mode-btn" id="modeSoundBtn" onclick="setAgentMode('sound',this)" title="Generate prompt with ambient sound effects and environment audio">🎧 Sound Only</button>
+    <button class="mode-btn" id="modeMusicBtn" onclick="setAgentMode('music',this)" title="Generate prompt with music, score, and cinematic audio">🎵 With Music</button>
+  </div>
+
+  <button class="build-btn" id="buildBtn">
+    <span class="spin"></span>
+    <span class="btn-label">🎬 Generate Prompt</span>
+  </button>
+
+  <div id="builderOutput">
+    <div class="output-inner" id="outputInner"></div>
+    <div class="output-char-count" id="outputCharCount" style="font-size:0.72rem;color:#444;text-align:right;padding:4px 2px 8px"></div>
+      <div class="output-actions">
+      <button class="out-btn copy" id="copyOutputBtn">📋 Copy Prompt</button>
+      <button class="out-btn use" id="useOutputBtn">▶ Use in Generator</button>
+    </div>
+  </div>
+</div>
+
+<!-- Generation History -->
+<div class="builder-card" id="historySection" style="margin-top:2rem;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+    <h2 style="margin:0;font-size:1.1rem;">Generation History</h2>
+    <button onclick="loadHistory()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#ccc;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:0.85rem;">↻ Refresh</button>
+  </div>
+  <div id="historyList" style="display:flex;flex-direction:column;gap:0.75rem;"></div>
+</div>
+
+<!-- Video preview modal -->
+<div class="modal-overlay" id="seedModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <span class="modal-head-title">Video Preview</span>
+      <button class="modal-close-btn" id="seedModalClose">✕</button>
+    </div>
+    <div class="modal-vid-wrap" id="seedModalVidWrap">
+      <div class="modal-no-vid">No video available</div>
+    </div>
+    <div class="modal-actions" id="seedModalActions"></div>
+    <div class="modal-divider"></div>
+    <div class="modal-sect">
+      <div class="modal-sect-label">Prompt</div>
+      <div class="prompt-blk">
+        <div class="prompt-txt" id="seedModalPrompt">—</div>
+        <button class="btn-copy" id="seedModalCopy">Copy</button>
+      </div>
+    </div>
+    <div class="modal-divider"></div>
+    <div class="modal-sect">
+      <div class="modal-sect-label">Details</div>
+      <div class="meta-grid" id="seedModalMeta"></div>
+    </div>
+    <div style="height:8px"></div>
+  </div>
+</div>
+
+<script>
+  // Prefill from AI Director "Send to Video"
+  (function(){
+    const p = localStorage.getItem("kamod_prefill_prompt");
+    const a = localStorage.getItem("kamod_prefill_aspect");
+    if (p) {
+      document.getElementById("prompt").value = p;
+      localStorage.removeItem("kamod_prefill_prompt");
+    }
+    if (a) {
+      const el = document.getElementById("aspectRatio");
+      if (el) el.value = a;
+      localStorage.removeItem("kamod_prefill_aspect");
+    }
+  })();
+
+  let currentMode = "text";
+
+  // ── Multi-image I2V ─────────────────────────────────────────────────────
+  let i2vRowCount = 0;
+  const i2vImages = {};  // rowId -> { uploadedUrl, mode }
+
+  function addI2VImageRow(prefillUrl) {
+    const total = document.querySelectorAll(".i2v-img-row").length;
+    if (total >= 9) { alert("Maximum 9 images for Seedance I2V."); return; }
+    const id = ++i2vRowCount;
+    i2vImages[id] = { uploadedUrl: prefillUrl || null, mode: prefillUrl ? "url" : "upload" };
+
+    const row = document.createElement("div");
+    row.className = "i2v-img-row";
+    row.id = "i2v-row-" + id;
+    const canRemove = total > 0;  // always allow remove except first row? Actually allow always except if only 1 left
+    row.innerHTML = `
+      <div class="i2v-img-row-header">
+        <span class="i2v-img-label">@image${id}</span>
+        <button class="i2v-img-rm" onclick="removeI2VRow(${id})" title="Remove">✕ Remove</button>
+      </div>
+      <div class="i2v-src-tabs">
+        <div class="i2v-src-tab active" data-row="${id}" data-src="upload">Upload</div>
+        <div class="i2v-src-tab" data-row="${id}" data-src="url">Paste URL</div>
+      </div>
+      <div id="i2v-upload-wrap-${id}">
+        <div class="i2v-dropzone" id="i2v-dz-${id}">
+          <input type="file" id="i2v-file-${id}" accept="image/*"/>
+          <p><span>Choose image</span></p>
+        </div>
+        <div class="i2v-uploading" id="i2v-upl-${id}">Uploading…</div>
+        <div class="i2v-preview" id="i2v-prev-${id}">
+          <img id="i2v-thumb-${id}" src="" alt=""/>
+          <span class="i2v-fname" id="i2v-fname-${id}"></span>
+          <button class="i2v-rm-file" onclick="clearI2VUpload(${id})">✕</button>
+        </div>
+      </div>
+      <div id="i2v-url-wrap-${id}" style="display:none">
+        <input type="text" id="i2v-url-${id}" placeholder="https://example.com/image.jpg"
+          style="font-size:0.82rem;padding:8px 10px"
+          oninput="i2vImages[${id}].uploadedUrl=null"/>
+      </div>`;
+    document.getElementById("i2vImageList").appendChild(row);
+
+    // Source tab switching
+    row.querySelectorAll(".i2v-src-tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        row.querySelectorAll(".i2v-src-tab").forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+        i2vImages[id].mode = tab.dataset.src;
+        document.getElementById("i2v-upload-wrap-" + id).style.display = tab.dataset.src === "upload" ? "block" : "none";
+        document.getElementById("i2v-url-wrap-" + id).style.display   = tab.dataset.src === "url"    ? "block" : "none";
+        if (tab.dataset.src === "url") i2vImages[id].uploadedUrl = null;
+      });
+    });
+
+    // Drag & drop
+    const dz = document.getElementById("i2v-dz-" + id);
+    dz.addEventListener("dragover", e => { e.preventDefault(); dz.classList.add("drag-over"); });
+    dz.addEventListener("dragleave", () => dz.classList.remove("drag-over"));
+    dz.addEventListener("drop", e => {
+      e.preventDefault(); dz.classList.remove("drag-over");
+      const f = e.dataTransfer.files[0];
+      if (f && f.type.startsWith("image/")) uploadI2VImage(id, f);
+    });
+    document.getElementById("i2v-file-" + id).addEventListener("change", e => {
+      if (e.target.files[0]) uploadI2VImage(id, e.target.files[0]);
+    });
+
+    if (prefillUrl) {
+      // Switch to URL tab and pre-fill
+      row.querySelectorAll(".i2v-src-tab").forEach(t => t.classList.remove("active"));
+      row.querySelector('[data-src="url"]').classList.add("active");
+      document.getElementById("i2v-upload-wrap-" + id).style.display = "none";
+      document.getElementById("i2v-url-wrap-" + id).style.display    = "block";
+      document.getElementById("i2v-url-" + id).value = prefillUrl;
+    }
+
+    renumberI2VRows();
+  }
+
+  function removeI2VRow(id) {
+    const remaining = document.querySelectorAll(".i2v-img-row").length;
+    if (remaining <= 1) { alert("At least one image is required for Image to Video."); return; }
+    const row = document.getElementById("i2v-row-" + id);
+    if (row) row.remove();
+    delete i2vImages[id];
+    renumberI2VRows();
+  }
+
+  function renumberI2VRows() {
+    document.querySelectorAll(".i2v-img-row").forEach((row, idx) => {
+      const label = row.querySelector(".i2v-img-label");
+      if (label) label.textContent = "@image" + (idx + 1);
+    });
+  }
+
+  function clearI2VUpload(id) {
+    i2vImages[id].uploadedUrl = null;
+    document.getElementById("i2v-prev-" + id).classList.remove("show");
+    document.getElementById("i2v-file-" + id).value = "";
+    document.getElementById("i2v-dz-" + id).style.display = "block";
+  }
+
+  async function uploadI2VImage(id, file) {
+    const dz  = document.getElementById("i2v-dz-" + id);
+    const upl = document.getElementById("i2v-upl-" + id);
+    const prv = document.getElementById("i2v-prev-" + id);
+    dz.style.display = "none"; upl.style.display = "block";
+    const fd = new FormData(); fd.append("file", file);
+    try {
+      const res  = await fetch("/upload", { method: "POST", body: fd });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      i2vImages[id].uploadedUrl = data.url;
+      document.getElementById("i2v-thumb-" + id).src = data.url;
+      document.getElementById("i2v-fname-" + id).textContent = file.name;
+      prv.classList.add("show");
+    } catch (e) {
+      alert("Upload failed: " + e.message);
+      dz.style.display = "block";
+    } finally { upl.style.display = "none"; }
+  }
+
+  function getI2VImageUrls() {
+    const urls = [];
+    document.querySelectorAll(".i2v-img-row").forEach(row => {
+      const idMatch = row.id.match(/i2v-row-(\d+)/);
+      if (!idMatch) return;
+      const id  = parseInt(idMatch[1]);
+      const img = i2vImages[id];
+      if (!img) return;
+      let url = "";
+      if (img.mode === "upload") {
+        url = img.uploadedUrl || "";
+      } else {
+        const inp = document.getElementById("i2v-url-" + id);
+        url = inp ? inp.value.trim() : "";
+      }
+      if (url) urls.push(url);
+    });
+    return urls;
+  }
+
+  document.getElementById("addI2VImageBtn").addEventListener("click", () => addI2VImageRow());
+
+  // Start with 1 row
+  addI2VImageRow();
+
+  // ── Quick Start Templates ────────────────────────────────────────────────
+  const QS_TEMPLATES = {
+    action:     { prompt: "A battle-hardened soldier sprints through an exploding warzone. Slow-motion debris fills the air. Handheld camera, dramatic backlighting, dust and fire. Cinematic 4K.", duration: "10", quality: "high" },
+    commercial: { prompt: "Sleek product reveal on a minimalist white surface. Camera slowly orbits. Perfect studio lighting, soft shadows, premium feel. Commercial photography style.", duration: "5",  quality: "high" },
+    carchase:   { prompt: "High-speed car chase through rain-soaked city streets at night. Neon reflections, tight corners, screeching tires. Low tracking shot, motion blur, cinematic grade.", duration: "10", quality: "high" },
+    emotional:  { prompt: "A lone figure stands at the edge of a cliff at golden hour. Wind in their hair, tears on their face. Slow cinematic pull-back, swelling light, emotional silence.", duration: "10", quality: "high" },
+    horror:     { prompt: "A dark hallway. A door at the end slowly creaks open revealing blinding white light. Handheld trembling camera, heavy breathing, unsettling ambient sound. Ultra-tense.", duration: "5",  quality: "high" },
+  };
+  document.querySelectorAll(".qs-chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      const t = QS_TEMPLATES[chip.dataset.qs];
+      if (!t) return;
+      document.getElementById("prompt").value = t.prompt;
+      document.getElementById("duration").value = t.duration;
+      document.getElementById("quality").value  = t.quality;
+      document.querySelectorAll(".tab").forEach(tb => { tb.classList.remove("active"); if (tb.dataset.mode === "text") tb.classList.add("active"); });
+      currentMode = "text";
+      document.getElementById("imageSection").classList.remove("visible");
+      document.getElementById("videoEditSection").style.display = "none";
+      document.getElementById("omniSection").style.display = "none";
+      document.getElementById("combinerSection").style.display = "none";
+      const _flf = document.getElementById("flfSection"); if (_flf) _flf.style.display = "none";
+      document.getElementById("videoControls").style.display = "block";
+      document.getElementById("promptWrap").style.display = "block";
+      document.getElementById("promptMeter").style.display = "block";
+      document.getElementById("promptLabel").style.display = "block";
+      updatePricing();
+      document.getElementById("prompt").focus();
+    });
+  });
+
+  // Mode tabs
+  document.querySelectorAll(".tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      currentMode = tab.dataset.mode;
+      const isVideoEdit = currentMode === "video-edit";
+      const isOmni      = currentMode === "omni";
+      const isCombiner  = currentMode === "combiner";
+      const isFlf       = currentMode === "flf";
+      const isSpecial   = isVideoEdit || isOmni || isCombiner || isFlf;
+      document.getElementById("imageSection").classList.toggle("visible", currentMode === "image");
+      document.getElementById("videoEditSection").style.display = isVideoEdit ? "block" : "none";
+      document.getElementById("omniSection").style.display      = isOmni      ? "block" : "none";
+      document.getElementById("combinerSection").style.display  = isCombiner  ? "block" : "none";
+      document.getElementById("flfSection").style.display       = isFlf       ? "block" : "none";
+      // Hide the HD 1080p option unless we're in Image→Video mode
+      const hdOpt = document.querySelector('#quality option[value="hd"]');
+      if (hdOpt) hdOpt.style.display = (currentMode === "image") ? "" : "none";
+      document.getElementById("videoControls").style.display  = isSpecial ? "none" : "block";
+      document.getElementById("promptWrap").style.display     = isSpecial ? "none" : "block";
+      document.getElementById("promptMeter").style.display    = isSpecial ? "none" : "block";
+      document.getElementById("promptLabel").style.display    = isSpecial ? "none" : "block";
+      document.getElementById("quickStartWrap").style.display = isSpecial ? "none" : "block";
+    });
+  });
+
+
+  // Generate
+  document.getElementById("generateBtn").addEventListener("click", async () => {
+    const prompt      = document.getElementById("prompt").value.trim();
+    const aspectRatio = document.getElementById("aspectRatio").value;
+    const duration    = document.getElementById("duration").value;
+    const quality     = document.getElementById("quality").value;
+    const btn         = document.getElementById("generateBtn");
+
+    let imagesList = [];
+    if (currentMode === "image") {
+      imagesList = getI2VImageUrls();
+      if (!imagesList.length) { alert("Please provide at least one reference image."); return; }
+    }
+
+    if (!prompt) { alert("Please enter a prompt."); return; }
+
+    btn.disabled = true;
+    startLoadingMessages(btn);
+
+    try {
+      const res = await fetch("/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt, mode: currentMode, aspect_ratio: aspectRatio, duration, quality, images_list: imagesList })
+      });
+      const data = await res.json();
+      if (data.error) { alert("Error: " + data.error); return; }
+      addResultCard(data.request_id, prompt, currentMode);
+      pollStatus(data.request_id);
+    } catch (e) {
+      alert("Request failed: " + e.message);
+    } finally {
+      stopLoadingMessages(btn, "✦ Create Scene");
+    }
+  });
+
+  function addResultCard(requestId, prompt, mode) {
+    const el = document.createElement("div");
+    el.className = "result-item";
+    el.id = "job-" + requestId;
+    el.innerHTML = `
+      <div class="meta">
+        <div class="prompt-preview">"${prompt}"</div>
+        <span class="status-badge processing"><span class="spinner"></span> Processing</span>
+      </div>
+      <div class="video-wrap"></div>
+    `;
+    document.getElementById("results").prepend(el);
+  }
+
+  // ── Video Edit ──────────────────────────────────────────────────────────
+  let veVideoUrl = "";
+
+  // Generic file uploader stores local static assets
+  async function veUploadFile(file, statusEl) {
+    statusEl.style.display = "block";
+    const fd = new FormData();
+    fd.append("file", file);
+    try {
+      const res  = await fetch("/upload", { method: "POST", body: fd });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      return data.url;
+    } finally {
+      statusEl.style.display = "none";
+    }
+  }
+
+  // Source video — tab toggle
+  document.getElementById("veVidTabUpload").addEventListener("click", () => {
+    document.getElementById("veVidTabUpload").classList.add("active");
+    document.getElementById("veVidTabUrl").classList.remove("active");
+    document.getElementById("veVideoDrop").style.display = "block";
+    document.getElementById("veVideoUrlWrap").style.display = "none";
+  });
+  document.getElementById("veVidTabUrl").addEventListener("click", () => {
+    document.getElementById("veVidTabUrl").classList.add("active");
+    document.getElementById("veVidTabUpload").classList.remove("active");
+    document.getElementById("veVideoDrop").style.display = "none";
+    document.getElementById("veVideoUrlWrap").style.display = "block";
+    veVideoUrl = "";
+    document.getElementById("veVideoReady").style.display = "none";
+  });
+
+  // Source video — file upload
+  const veVideoDrop = document.getElementById("veVideoDrop");
+  veVideoDrop.addEventListener("dragover", e => { e.preventDefault(); veVideoDrop.classList.add("drag-over"); });
+  veVideoDrop.addEventListener("dragleave", () => veVideoDrop.classList.remove("drag-over"));
+  veVideoDrop.addEventListener("drop", async e => {
+    e.preventDefault(); veVideoDrop.classList.remove("drag-over");
+    const file = e.dataTransfer.files[0];
+    if (file) await veHandleVideoFile(file);
+  });
+  document.getElementById("veVideoFile").addEventListener("change", async e => {
+    const file = e.target.files[0];
+    if (file) await veHandleVideoFile(file);
+  });
+
+  async function veHandleVideoFile(file) {
+    try {
+      const url = await veUploadFile(file, document.getElementById("veVideoUploading"));
+      veVideoUrl = url;
+      const ready = document.getElementById("veVideoReady");
+      document.getElementById("veVideoReadyName").textContent = "✓ " + file.name;
+      ready.style.display = "flex";
+      veVideoDrop.style.display = "none";
+    } catch (e) {
+      alert("Video upload failed: " + e.message);
+    }
+  }
+
+  function veResetVideo() {
+    veVideoUrl = "";
+    document.getElementById("veVideoReady").style.display = "none";
+    document.getElementById("veVideoDrop").style.display = "block";
+    document.getElementById("veVideoFile").value = "";
+  }
+
+  // Reference images — add row
+  function veAddImageRow() {
+    const list = document.getElementById("veImagesList");
+    const n = list.children.length + 1;
+    if (n > 9) { alert("Maximum 9 images."); return; }
+    const row = document.createElement("div");
+    row.style.cssText = "display:flex;gap:8px;align-items:center";
+    row.innerHTML = `
+      <span style="font-size:0.72rem;color:#555;white-space:nowrap;min-width:52px">@image${n}</span>
+      <input type="text" class="ve-img-url" placeholder="Paste URL or upload →"
+        style="flex:1;background:#0e0e18;border:1px solid #2a2a3a;border-radius:8px;color:#e0e0e0;font-size:.82rem;padding:7px 10px;outline:none;font-family:inherit"/>
+      <label style="margin:0;cursor:pointer;background:#13131a;border:1px solid #2a2a3a;border-radius:8px;padding:6px 10px;font-size:.75rem;color:#888;white-space:nowrap;transition:all .15s"
+        onmouseover="this.style.borderColor='#6d5fd6';this.style.color='#a78bfa'"
+        onmouseout="this.style.borderColor='#2a2a3a';this.style.color='#888'">
+        ↑ Upload
+        <input type="file" accept="image/*" style="display:none" onchange="veHandleImageFile(this)"/>
+      </label>
+      <button onclick="this.parentElement.remove()" style="background:none;border:none;color:#555;font-size:1rem;cursor:pointer;padding:0 4px" title="Remove">✕</button>
+    `;
+    list.appendChild(row);
+  }
+
+  async function veHandleImageFile(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const label = input.parentElement;
+    const urlInput = label.parentElement.querySelector(".ve-img-url");
+    label.textContent = "⏳";
+    try {
+      const url = await veUploadFile(file, { style: {} });
+      urlInput.value = url;
+      label.textContent = "✓ Uploaded";
+      label.style.color = "#4ade80";
+      label.style.borderColor = "#1e3a1e";
+    } catch (e) {
+      alert("Image upload failed: " + e.message);
+      label.textContent = "↑ Upload";
+    }
+  }
+
+  document.getElementById("veAddImageBtn").addEventListener("click", veAddImageRow);
+  // Add first row by default when tab opens
+  document.querySelector('[data-mode="video-edit"]').addEventListener("click", () => {
+    const list = document.getElementById("veImagesList");
+    if (list.children.length === 0) veAddImageRow();
+  });
+
+  document.getElementById("veSubmitBtn").addEventListener("click", async () => {
+    const prompt  = document.getElementById("vePrompt").value.trim();
+    const isUrl   = document.getElementById("veVidTabUrl").classList.contains("active");
+    const finalVideoUrl = isUrl ? document.getElementById("veVideoUrl").value.trim() : veVideoUrl;
+    const btn     = document.getElementById("veSubmitBtn");
+    if (!prompt)        { alert("Please enter an edit prompt."); return; }
+    if (!finalVideoUrl) { alert("Please upload or paste a source video URL."); return; }
+    const imageUrls = [...document.querySelectorAll(".ve-img-url")]
+      .map(i => i.value.trim()).filter(Boolean);
+    const aspect   = document.getElementById("veAspect").value;
+    const quality  = document.getElementById("veQuality").value;
+    const removeWm = document.getElementById("veRemoveWatermark").checked;
+
+    btn.disabled = true; btn.textContent = "Submitting…";
+    try {
+      const res = await fetch("/api/video-edit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt, video_url: finalVideoUrl, images_list: imageUrls, aspect_ratio: aspect, quality, remove_watermark: removeWm })
+      });
+      const data = await res.json();
+      if (data.error) { alert("Error: " + data.error); return; }
+      addResultCard(data.request_id, prompt, "video-edit");
+      pollStatus(data.request_id);
+    } catch (e) {
+      alert("Request failed: " + e.message);
+    } finally {
+      btn.disabled = false; btn.textContent = "✦ Edit Video";
+    }
+  });
+
+  function pollStatus(requestId) {
+    const interval = setInterval(async () => {
+      try {
+        const res  = await fetch("/status/" + requestId);
+        const data = await res.json();
+        const el   = document.getElementById("job-" + requestId);
+        if (!el) { clearInterval(interval); return; }
+        const badge = el.querySelector(".status-badge");
+        const wrap  = el.querySelector(".video-wrap");
+
+        if (data.status === "completed") {
+          clearInterval(interval);
+          badge.className = "status-badge completed";
+          badge.innerHTML = "✓ Completed";
+          const url = data.url;
+          wrap.innerHTML = url
+            ? `<video controls autoplay loop src="${url}"></video>
+               <a class="dl-btn" href="/download/${requestId}" download>⬇ Download</a>`
+            : `<div class="error-msg">Completed but no video URL returned.</div>`;
+        } else if (data.status === "failed") {
+          clearInterval(interval);
+          badge.className = "status-badge failed";
+          badge.innerHTML = "✗ Failed";
+          const isNetwork = data.recoverable || (data.error && data.error.includes("[network]"));
+          const recheckHtml = isNetwork
+            ? `<button onclick="recheckJob('${requestId}', this)" style="margin-top:8px;background:#1a1e2a;border:1px solid #2a2e4a;color:#60a5fa;border-radius:7px;padding:5px 13px;cursor:pointer;font-size:0.78rem;">↻ Recheck — job may still be processing</button>`
+            : '';
+          wrap.innerHTML = `<div class="error-msg">${data.error || "Generation failed."}</div>${recheckHtml}`;
+        }
+      } catch (e) { console.error("Poll error:", e); }
+    }, 5000);
+  }
+
+  async function recheckJob(requestId, btn) {
+    btn.disabled = true; btn.textContent = "Rechecking…";
+    try {
+      const res  = await fetch("/api/recheck/" + requestId, { headers: {} });
+      const data = await res.json();
+      const el   = document.getElementById("job-" + requestId);
+      if (el) {
+        el.querySelector(".status-badge").className = "status-badge processing";
+        el.querySelector(".status-badge").innerHTML = '<span class="spinner"></span> Processing';
+        el.querySelector(".video-wrap").innerHTML   = "";
+      }
+      pollStatus(requestId);
+    } catch (e) {
+      btn.disabled = false; btn.textContent = "↻ Recheck";
+      alert("Recheck failed: " + e.message);
+    }
+  }
+
+  // ── AI Prompt Enhancer ──────────────────────────────────────────────────
+  document.getElementById("enhanceBtn").addEventListener("click", async () => {
+    const promptEl = document.getElementById("prompt");
+    const raw = promptEl.value.trim();
+    if (!raw) { promptEl.focus(); return; }
+    const btn = document.getElementById("enhanceBtn");
+    btn.classList.add("loading");
+    btn.disabled = true;
+    try {
+      const res  = await fetch("/api/enhance-prompt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: raw })
+      });
+      const data = await res.json();
+      if (data.error) { alert("Enhancement failed: " + data.error); return; }
+      promptEl.value = data.enhanced;
+      promptEl.style.borderColor = "#6d5fd6";
+      setTimeout(() => { promptEl.style.borderColor = ""; }, 1500);
+    } catch (e) {
+      alert("Enhancement failed: " + e.message);
+    } finally {
+      btn.classList.remove("loading");
+      btn.disabled = false;
+    }
+  });
+
+  function esc(str) {
+    return (str || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+
+  // ── Live Pricing ────────────────────────────────────────────────────────
+  // Rates per second are UI estimates
+  const RATE = {
+    // T2V / I2V global tier
+    "global-standard": 0.15,
+    "global-fast":     0.15,
+    // T2V / I2V VIP tier
+    "vip-standard":    0.25,
+    "vip-fast":        0.21,
+    "vip-hd":          0.675,
+    // Omni VIP tier
+    "omni-standard":   0.30,
+    "omni-fast":       0.21,
+    "omni-hd":         0.675,
+    // FLF tiers (same structure as T2V)
+    "standard":        0.15,  // flf global standard alias
+    "fast":            0.15,  // flf global fast alias
+    // Legacy aliases
+    "basic":           0.15,
+    "high":            0.25,
+    "hd":              0.675,
+  };
+  // ── Cinematic loading messages ───────────────────────────────────────────
+  const LOADING_MSGS = [
+    "Building cinematic lighting…",
+    "Simulating physics…",
+    "Composing camera movement…",
+    "Rendering depth of field…",
+    "Timing the cut…",
+    "Grading color palette…",
+    "Syncing motion blur…",
+    "Finalizing the scene…",
+  ];
+  let _loadingInterval = null;
+  function startLoadingMessages(btn) {
+    let i = 0;
+    btn.textContent = LOADING_MSGS[0];
+    _loadingInterval = setInterval(() => {
+      i = (i + 1) % LOADING_MSGS.length;
+      if (!btn.disabled) { clearInterval(_loadingInterval); return; }
+      btn.textContent = LOADING_MSGS[i];
+    }, 2800);
+  }
+  function stopLoadingMessages(btn, label) {
+    clearInterval(_loadingInterval);
+    btn.disabled = false;
+    btn.textContent = label;
+  }
+
+  const QUALITY_LABEL = {
+    "global-standard": "Global Standard",
+    "global-fast":     "Global Fast",
+    "vip-standard":    "VIP Standard",
+    "vip-fast":        "VIP Fast",
+    "vip-hd":          "VIP HD 1080p",
+    "omni-standard":   "Omni VIP Standard",
+    "omni-fast":       "Omni VIP Fast",
+    "omni-hd":         "Omni VIP HD",
+    "standard":        "Global Standard",
+    "fast":            "Global Fast",
+    "basic":           "Global Standard",
+    "high":            "Global High",
+    "hd":              "VIP HD 1080p",
+  };
+
+  function updatePricing() {
+    const dur  = parseInt(document.getElementById("duration").value) || 5;
+    const q    = document.getElementById("quality").value || "global-standard";
+    const rate = RATE[q] || 0.25;
+    const cost = (dur * rate).toFixed(2);
+    const label = QUALITY_LABEL[q] || q;
+    document.getElementById("priceEst").textContent   = "$" + cost;
+    document.getElementById("priceBreak").textContent = `${dur}s × $${rate}/sec · ${label}`;
+    document.querySelectorAll(".ppill").forEach(p => {
+      p.classList.toggle("active", p.dataset.dur == dur && p.dataset.q === q);
+    });
+    // Cost warning for expensive generations
+    const warn = document.getElementById("costWarn");
+    const expensive = parseFloat(cost) >= 2.00;
+    warn.style.display = expensive ? "block" : "none";
+    if (expensive) document.getElementById("costWarnAmt").textContent = "$" + cost;
+  }
+  document.getElementById("duration").addEventListener("change", updatePricing);
+  document.getElementById("quality").addEventListener("change", updatePricing);
+  document.getElementById("pricePills").addEventListener("click", e => {
+    const pill = e.target.closest(".ppill");
+    if (!pill) return;
+    document.getElementById("duration").value = pill.dataset.dur;
+    document.getElementById("quality").value  = pill.dataset.q;
+    updatePricing();
+  });
+  updatePricing();
+
+  // ── Omni & FLF mini-pricing ─────────────────────────────────────────────
+  function _miniPrice(durId, qualityId, estId, breakId) {
+    const dur   = parseInt(document.getElementById(durId)?.value) || 5;
+    const q     = document.getElementById(qualityId)?.value || "global-standard";
+    // Map omni-* values back to rate keys
+    const rateKey = q.startsWith("omni-") ? q : q;
+    const rate  = RATE[rateKey] || RATE[q.replace("omni-","")] || 0.25;
+    const cost  = (dur * rate).toFixed(2);
+    const label = QUALITY_LABEL[q] || QUALITY_LABEL[q.replace("omni-","")] || q;
+    const estEl   = document.getElementById(estId);
+    const breakEl = document.getElementById(breakId);
+    if (estEl)   estEl.textContent   = "$" + cost;
+    if (breakEl) breakEl.textContent = `${dur}s × $${rate}/sec · ${label}`;
+  }
+
+  function updateOmniPricing()  { _miniPrice("omniDuration", "omniQuality", "omniPriceEst", "omniPriceBreak"); }
+  function updateFlfPricing()   { _miniPrice("flfDuration",  "flfQuality",  "flfPriceEst",  "flfPriceBreak"); }
+
+  document.getElementById("omniDuration").addEventListener("change", updateOmniPricing);
+  document.getElementById("omniQuality").addEventListener("change",  updateOmniPricing);
+  document.getElementById("flfDuration").addEventListener("change",  updateFlfPricing);
+  document.getElementById("flfQuality").addEventListener("change",   updateFlfPricing);
+  updateOmniPricing();
+  updateFlfPricing();
+
+  // ── Cinematic Prompt Agent ──────────────────────────────────────────────────────
+  let lastBuiltPrompt = "";
+  const refImages = [null, null, null]; // base64 data-URIs
+  let _refSlotTarget = 0;
+
+  function refSlotClick(idx) {
+    _refSlotTarget = idx;
+    document.getElementById('refFileInput').value = '';
+    document.getElementById('refFileInput').click();
+  }
+
+  function handleRefFile(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      refImages[_refSlotTarget] = e.target.result;
+      const slot = document.getElementById('refSlot' + _refSlotTarget);
+      slot.innerHTML = `<img src="${e.target.result}" alt="ref"><button class="slot-rm" onclick="event.stopPropagation();clearRefSlot(${_refSlotTarget})">✕</button>`;
+      slot.classList.add('has-image');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function clearRefSlot(idx) {
+    refImages[idx] = null;
+    const slot = document.getElementById('refSlot' + idx);
+    slot.className = 'ref-slot';
+    slot.innerHTML = `<span class="slot-plus">＋</span><button class="slot-rm" onclick="event.stopPropagation();clearRefSlot(${idx})">✕</button>`;
+    slot.setAttribute('onclick', `refSlotClick(${idx})`);
+  }
+  let agentMode = "cinematic"; // cinematic | sound | music
+
+  function setAgentMode(mode, btn) {
+    if (agentMode === mode) {
+      // toggle off
+      agentMode = "cinematic";
+      document.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active-sound","active-music"));
+    } else {
+      agentMode = mode;
+      document.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active-sound","active-music"));
+      btn.classList.add(mode === "sound" ? "active-sound" : "active-music");
+    }
+  }
+
+  document.getElementById("buildBtn").addEventListener("click", async () => {
+    const idea  = document.getElementById("builderInput").value.trim();
+    if (!idea) { document.getElementById("builderInput").focus(); return; }
+    const dur   = document.getElementById("builderDuration").value;
+    const style = document.getElementById("builderStyle").value.trim();
+    const btn   = document.getElementById("buildBtn");
+
+    btn.classList.add("loading");
+    btn.disabled = true;
+    document.getElementById("builderOutput").style.display = "none";
+
+    try {
+      const res  = await fetch("/api/build-prompt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idea, duration: dur, style, mode: agentMode, images: refImages.filter(Boolean) })
+      });
+      const data = await res.json();
+      if (data.error) { alert("Builder error: " + data.error); return; }
+      lastBuiltPrompt = data.prompt;
+      renderBuilderOutput(data.prompt);
+      document.getElementById("builderOutput").style.display = "block";
+      document.getElementById("builderOutput").scrollIntoView({ behavior: "smooth", block: "nearest" });
+    } catch (e) {
+      alert("Builder failed: " + e.message);
+    } finally {
+      btn.classList.remove("loading");
+      btn.disabled = false;
+    }
+  });
+
+  function renderBuilderOutput(text) {
+    // Syntax-highlight sections, shots, and field labels
+    let html = esc(text)
+      // 【Section】 headers
+      .replace(/【([^】]+)】/g, '<span class="sec-label">【$1】</span>')
+      // [00:00–00:XX] shot labels
+      .replace(/(\[[\d:–\-]+\][^\n]*)/g, '<span class="shot-label">$1</span>')
+      // Field labels
+      .replace(/\b(Camera|Action|Details|Scene|Style|Duration|Character Consistency|EFFECT|Shots|Role|Act \d+):/g,
+               '<span class="field-label">$1:</span>')
+      // VFX agent section headers (ALL CAPS lines like SHOT-BY-SHOT EFFECTS TIMELINE)
+      .replace(/^(SHOT-BY-SHOT EFFECTS TIMELINE|MASTER EFFECTS INVENTORY|EFFECTS DENSITY MAP|ENERGY ARC)$/gm,
+               '<span class="sec-label">$1</span>')
+      // SHOT [N] lines
+      .replace(/(SHOT \d+ \([^)]+\)[^\n]*)/g, '<span class="shot-label">$1</span>');
+    document.getElementById("outputInner").innerHTML = html;
+    const len = text.length;
+    document.getElementById("outputCharCount").textContent = len + " characters";
+    document.getElementById("outputCharCount").style.color = "#444";
+  }
+
+  document.getElementById("copyOutputBtn").addEventListener("click", () => {
+    if (!lastBuiltPrompt) return;
+    navigator.clipboard.writeText(lastBuiltPrompt).then(() => {
+      const btn = document.getElementById("copyOutputBtn");
+      btn.textContent = "✓ Copied!";
+      btn.classList.add("done");
+      setTimeout(() => { btn.textContent = "📋 Copy Prompt"; btn.classList.remove("done"); }, 2000);
+    });
+  });
+
+  document.getElementById("useOutputBtn").addEventListener("click", () => {
+    if (!lastBuiltPrompt) return;
+    // Switch generator to Text to Video tab
+    document.querySelectorAll(".tab").forEach(t => { t.classList.remove("active"); if (t.dataset.mode === "text") t.classList.add("active"); });
+    currentMode = "text";
+    document.getElementById("imageSection").classList.remove("visible");
+    document.getElementById("videoEditSection").style.display = "none";
+    document.getElementById("omniSection").style.display = "none";
+    document.getElementById("combinerSection").style.display = "none";
+    document.getElementById("videoControls").style.display = "block";
+    document.getElementById("promptWrap").style.display = "block";
+    document.getElementById("promptMeter").style.display = "block";
+    document.getElementById("promptLabel").style.display = "block";
+    document.getElementById("prompt").value = lastBuiltPrompt;
+    document.getElementById("prompt").style.borderColor = "#6d5fd6";
+    setTimeout(() => { document.getElementById("prompt").style.borderColor = ""; }, 1500);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  // ── Generation History ───────────────────────────────────────────────────
+  function formatTimeTaken(ms) {
+    const n = Number(ms);
+    if (!Number.isFinite(n) || n <= 0) return "";
+    const totalSeconds = Math.max(1, Math.round(n / 1000));
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return minutes ? `${minutes}m ${seconds}s` : `${seconds}s`;
+  }
+
+  async function loadHistory() {
+    const list = document.getElementById("historyList");
+    list.innerHTML = '<div style="color:#666;font-size:0.85rem;">Loading…</div>';
+    try {
+      const res  = await fetch("/api/stats", { headers: {} });
+      const data = await res.json();
+      const items = (data.history || []).filter(h => h.status === "completed" && h.video_url);
+      if (!items.length) {
+        list.innerHTML = '<div style="color:#555;font-size:0.85rem;">No completed generations yet.</div>';
+        return;
+      }
+      window._seedHistory = items;
+      list.innerHTML = items.map((h, i) => {
+        const date = h.created_at ? h.created_at.replace("T", " ").slice(0, 16) : "";
+        const timeTaken = formatTimeTaken(h.execution_time_ms);
+        const meta = [h.model, h.aspect_ratio, h.duration ? h.duration + "s" : "", h.quality, timeTaken ? "Time taken " + timeTaken : ""].filter(Boolean).join(" · ");
+        return `
+          <div class="history-item" data-idx="${i}">
+            <video src="${h.video_url}" muted loop preload="metadata" onmouseenter="this.play()" onmouseleave="this.pause()"></video>
+            <div class="h-info">
+              <div class="h-prompt">"${h.prompt}"</div>
+              <div class="h-meta">${meta} &nbsp;·&nbsp; ${date}</div>
+              <a class="dl-btn" href="/download/${h.request_id}" download style="margin-top:8px;">⬇ Download</a>
+            </div>
+          </div>`;
+      }).join("");
+      document.querySelectorAll('#historyList .history-item[data-idx]').forEach(card => {
+        card.addEventListener('click', () => {
+          const item = window._seedHistory[parseInt(card.dataset.idx, 10)];
+          if (item) openSeedModal(item);
+        });
+      });
+    } catch (e) {
+      list.innerHTML = '<div style="color:#f87171;font-size:0.85rem;">Failed to load history.</div>';
+    }
+  }
+
+  loadHistory();
+
+  // ── Video Preview Modal ──────────────────────────────────────────────────
+  function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+  function openSeedModal(item) {
+    const url = item.video_url || item.output_url || '';
+    const vidWrap = document.getElementById('seedModalVidWrap');
+    vidWrap.innerHTML = url
+      ? `<video src="${escHtml(url)}" controls playsinline preload="metadata"></video>`
+      : `<div class="modal-no-vid">No video available.</div>`;
+    const actions = document.getElementById('seedModalActions');
+    const downloadHref = item.request_id ? `/download/${encodeURIComponent(item.request_id)}` : url;
+    actions.innerHTML = url
+      ? `<a class="btn-dl" href="${escHtml(downloadHref)}" download>↓ Download</a>
+         <a class="btn-ext" href="${escHtml(url)}" target="_blank" rel="noopener">↗ Open in new tab</a>`
+      : '';
+    document.getElementById('seedModalPrompt').textContent = item.prompt || '—';
+    const copyBtn = document.getElementById('seedModalCopy');
+    copyBtn.textContent = 'Copy'; copyBtn.classList.remove('copied');
+    copyBtn.onclick = () => {
+      navigator.clipboard.writeText(item.prompt || '').then(() => {
+        copyBtn.textContent = 'Copied!'; copyBtn.classList.add('copied');
+        setTimeout(() => { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('copied'); }, 2000);
+      });
+    };
+    const statusCls = {completed:'blue',processing:'green',failed:'red'}[item.status]||'';
+    const dateStr = item.created_at ? item.created_at.replace('T',' ').substring(0,16)+' UTC' : '—';
+    const timeTaken = formatTimeTaken(item.execution_time_ms);
+    const metaItems = [
+      {k:'Status', v:item.status||'—', c:statusCls},
+      {k:'Model', v:item.model||'—', c:'purple'},
+      {k:'Duration', v:item.duration?item.duration+'s':'—'},
+      {k:'Aspect Ratio', v:item.aspect_ratio||'—'},
+      {k:'Quality', v:item.quality||'—'},
+      {k:'Time Taken', v:timeTaken || '—'},
+      {k:'Cost', v:item.cost !== null && item.cost !== undefined ? '$' + Number(item.cost).toFixed(4).replace(/0+$/,'').replace(/\.$/,'') : '—'},
+      {k:'Created', v:dateStr},
+      {k:'Job ID', v:item.request_id||'—'},
+    ];
+    document.getElementById('seedModalMeta').innerHTML = metaItems.map(m =>
+      `<div class="meta-item"><div class="meta-key">${m.k}</div><div class="meta-val${m.c?' '+m.c:''}">${escHtml(String(m.v))}</div></div>`
+    ).join('');
+    document.getElementById('seedModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeSeedModal() {
+    document.getElementById('seedModal').classList.remove('open');
+    document.body.style.overflow = '';
+    const vid = document.querySelector('#seedModal video');
+    if (vid) { vid.pause(); vid.src = ''; }
+  }
+
+  document.getElementById('seedModalClose').addEventListener('click', closeSeedModal);
+  document.getElementById('seedModal').addEventListener('click', e => { if (e.target.id === 'seedModal') closeSeedModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSeedModal(); });
+
+  // ── Prompt Quality Meter ────────────────────────────────────────────────
+  const CINEMATIC_KEYWORDS = ["cinematic", "camera", "lighting", "motion", "aerial", "close-up", "slow motion", "tracking", "drone", "handheld", "dolly", "pan", "timelapse", "4k", "bokeh", "depth of field", "golden hour", "silhouette", "fog", "dramatic", "lens", "focus", "blur"];
+  function updatePromptMeter() {
+    const text  = document.getElementById("prompt").value.trim();
+    const words = text ? text.split(/\s+/).length : 0;
+    const hasCinematic = CINEMATIC_KEYWORDS.some(k => text.toLowerCase().includes(k));
+    const bar   = document.getElementById("promptMeterBar");
+    const label = document.getElementById("promptMeterLabel");
+    const btn   = document.getElementById("generateBtn");
+    let pct, color, labelText, glow;
+    if (words === 0) {
+      pct = 0;   color = "#333";    labelText = "Start typing your prompt…"; glow = false;
+    } else if (words < 5) {
+      pct = 20;  color = "#f87171"; labelText = "Too short — add more detail"; glow = false;
+    } else if (words < 10) {
+      pct = 50;  color = "#f59e0b"; labelText = "Getting there… keep going"; glow = false;
+    } else if (words < 18 && !hasCinematic) {
+      pct = 75;  color = "#60a5fa"; labelText = "Good — try adding cinematic details"; glow = false;
+    } else {
+      pct = 100; color = "#4ade80"; labelText = "Cinematic ✓  ready to generate"; glow = true;
+    }
+    bar.style.width      = pct + "%";
+    bar.style.background = color;
+    label.style.color    = color;
+    label.textContent    = labelText;
+    btn.style.boxShadow  = glow ? "0 0 28px rgba(74,222,128,0.3), 0 4px 20px rgba(109,95,214,0.45)" : "";
+  }
+  document.getElementById("prompt").addEventListener("input", updatePromptMeter);
+  updatePromptMeter();
+
+  // ── Persist Last Settings ───────────────────────────────────────────────
+  (function restoreSettings() {
+    const d = localStorage.getItem("kamod_duration");
+    const q = localStorage.getItem("kamod_quality");
+    if (d) document.getElementById("duration").value = d;
+    if (q) {
+      const sel = document.getElementById("quality");
+      // Migrate legacy "basic"/"high" to new tier keys
+      const legacyMap = { basic: "global-standard", high: "vip-standard" };
+      const newQ = legacyMap[q] || q;
+      // Only set if the option exists in the dropdown
+      const opt = sel.querySelector(`option[value="${newQ}"]`);
+      if (opt) sel.value = newQ;
+    }
+    updatePricing();
+  })();
+  function saveSettings() {
+    localStorage.setItem("kamod_duration", document.getElementById("duration").value);
+    localStorage.setItem("kamod_quality",  document.getElementById("quality").value);
+  }
+  document.getElementById("duration").addEventListener("change", saveSettings);
+  document.getElementById("quality").addEventListener("change", saveSettings);
+  document.getElementById("pricePills").addEventListener("click", () => setTimeout(saveSettings, 0));
+
+  // ── Omni Reference ──────────────────────────────────────────────────────
+
+  // Generic file uploader for Omni (images, videos, audio)
+  async function omniUploadFile(file) {
+    const fd = new FormData();
+    fd.append("file", file);
+    const res  = await fetch("/upload", { method: "POST", body: fd });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    return data.url;
+  }
+
+  // Generic "add media row" helper
+  function omniAddMediaRow(listId, labelPrefix, maxCount, acceptAttr, maxLabel) {
+    const list = document.getElementById(listId);
+    const n = list.children.length + 1;
+    if (n > maxCount) { alert(`Maximum ${maxCount} ${maxLabel} for Omni.`); return; }
+    const row = document.createElement("div");
+    row.style.cssText = "display:flex;gap:8px;align-items:center";
+    row.innerHTML = `
+      <span style="font-size:0.72rem;color:#555;white-space:nowrap;min-width:58px">${labelPrefix}${n}</span>
+      <input type="text" class="omni-media-url" placeholder="Paste URL or upload →"
+        style="flex:1;background:#0e0e18;border:1px solid #2a2a3a;border-radius:8px;color:#e0e0e0;font-size:.82rem;padding:7px 10px;outline:none;font-family:inherit"/>
+      <label style="margin:0;cursor:pointer;background:#13131a;border:1px solid #2a2a3a;border-radius:8px;padding:6px 10px;font-size:.75rem;color:#888;white-space:nowrap;transition:all .15s"
+        onmouseover="this.style.borderColor='#6d5fd6';this.style.color='#a78bfa'"
+        onmouseout="this.style.borderColor='#2a2a3a';this.style.color='#888'">
+        ↑ Upload
+        <input type="file" accept="${acceptAttr}" style="display:none" onchange="omniHandleFileInput(this)"/>
+      </label>
+      <button onclick="this.parentElement.remove()" style="background:none;border:none;color:#555;font-size:1rem;cursor:pointer;padding:0 4px" title="Remove">✕</button>
+    `;
+    list.appendChild(row);
+  }
+
+  async function omniHandleFileInput(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const label    = input.parentElement;
+    const urlInput = label.parentElement.querySelector(".omni-media-url");
+    const origText = label.childNodes[0] ? label.childNodes[0].textContent : "↑ Upload";
+    label.childNodes[0].textContent = "⏳";
+    try {
+      const url = await omniUploadFile(file);
+      urlInput.value = url;
+      label.childNodes[0].textContent = "✓ Done";
+      label.style.color = "#4ade80";
+      label.style.borderColor = "#1e3a1e";
+    } catch (e) {
+      alert("Upload failed: " + e.message);
+      label.childNodes[0].textContent = origText;
+    }
+  }
+
+  document.getElementById("omniAddImageBtn").addEventListener("click", () =>
+    omniAddMediaRow("omniImagesList", "@image", 9, "image/*", "images"));
+  document.getElementById("omniAddVideoBtn").addEventListener("click", () =>
+    omniAddMediaRow("omniVideosList", "@video", 3, "video/*", "video clips"));
+  document.getElementById("omniAddAudioBtn").addEventListener("click", () =>
+    omniAddMediaRow("omniAudioList", "@audio", 3, "audio/*", "audio clips"));
+
+  // Initialize with one image row when Omni tab is first opened
+  document.querySelector('[data-mode="omni"]').addEventListener("click", () => {
+    if (document.getElementById("omniImagesList").children.length === 0) {
+      omniAddMediaRow("omniImagesList", "@image", 9, "image/*", "images");
+    }
+  });
+
+  // ── First & Last Frame ──────────────────────────────────────────────────
+  function flfAddImageRow() {
+    const list = document.getElementById("flfImagesList");
+    const n = list.children.length + 1;
+    if (n > 2) { alert("Maximum 2 frames (first + last)."); return; }
+    const labelText = n === 1 ? "First Frame" : "Last Frame";
+    const row = document.createElement("div");
+    row.style.cssText = "display:flex;gap:8px;align-items:center";
+    row.innerHTML = `
+      <span style="font-size:0.72rem;color:#a78bfa;white-space:nowrap;min-width:78px;font-weight:600">${labelText}</span>
+      <input type="text" class="flf-media-url" placeholder="Paste image URL or upload →"
+        style="flex:1;background:#0e0e18;border:1px solid #2a2a3a;border-radius:8px;color:#e0e0e0;font-size:.82rem;padding:7px 10px;outline:none;font-family:inherit"/>
+      <label style="margin:0;cursor:pointer;background:#13131a;border:1px solid #2a2a3a;border-radius:8px;padding:6px 10px;font-size:.75rem;color:#888;white-space:nowrap;transition:all .15s"
+        onmouseover="this.style.borderColor='#6d5fd6';this.style.color='#a78bfa'"
+        onmouseout="this.style.borderColor='#2a2a3a';this.style.color='#888'">
+        ↑ Upload
+        <input type="file" accept="image/*" style="display:none" onchange="omniHandleFileInput(this)"/>
+      </label>
+      <button onclick="this.parentElement.remove()" style="background:none;border:none;color:#555;font-size:1rem;cursor:pointer;padding:0 4px" title="Remove">✕</button>
+    `;
+    // Re-use omniHandleFileInput: but it targets ".omni-media-url" — switch class for reuse.
+    row.querySelector("input[type=text]").classList.add("omni-media-url");
+    list.appendChild(row);
+  }
+  document.getElementById("flfAddImageBtn").addEventListener("click", flfAddImageRow);
+
+  // Seed one row on first FLF tab click
+  document.querySelector('[data-mode="flf"]').addEventListener("click", () => {
+    if (document.getElementById("flfImagesList").children.length === 0) {
+      flfAddImageRow();
+    }
+  });
+
+  // Aspect hint for VIP Fast (auto-infers aspect)
+  document.getElementById("flfQuality").addEventListener("change", (e) => {
+    const isVipFast = e.target.value === "vip-fast";
+    document.getElementById("flfAspect").disabled = isVipFast;
+    document.getElementById("flfAspectHint").style.display = isVipFast ? "block" : "none";
+  });
+
+  document.getElementById("flfSubmitBtn").addEventListener("click", async () => {
+    const prompt  = document.getElementById("flfPrompt").value.trim();
+    const aspect  = document.getElementById("flfAspect").value;
+    const dur     = parseInt(document.getElementById("flfDuration").value);
+    const quality = document.getElementById("flfQuality").value;
+    const btn     = document.getElementById("flfSubmitBtn");
+
+    const images = [...document.querySelectorAll("#flfImagesList .flf-media-url, #flfImagesList .omni-media-url")]
+      .map(i => i.value.trim()).filter(Boolean);
+
+    if (!images.length) { alert("Please provide at least the first-frame image."); return; }
+
+    btn.disabled = true; btn.textContent = "Submitting…";
+    try {
+      const res = await fetch("/api/first-last-frame", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt, images_list: images, aspect_ratio: aspect, duration: dur, quality })
+      });
+      const data = await res.json();
+      if (data.error) { alert("Error: " + data.error); return; }
+      addResultCard(data.request_id, prompt || "First → Last Frame", "flf");
+      pollStatus(data.request_id);
+    } catch (e) {
+      alert("Request failed: " + e.message);
+    } finally {
+      btn.disabled = false; btn.textContent = "⇋ Generate First → Last";
+    }
+  });
+
+  function omniGetUrlsFromList(listId) {
+    return [...document.querySelectorAll(`#${listId} .omni-media-url`)]
+      .map(i => i.value.trim()).filter(Boolean);
+  }
+
+  document.getElementById("omniSubmitBtn").addEventListener("click", async () => {
+    const prompt = document.getElementById("omniPrompt").value.trim();
+    const aspect = document.getElementById("omniAspect").value;
+    const dur    = parseInt(document.getElementById("omniDuration").value);
+    const quality = document.getElementById("omniQuality").value;
+    const btn    = document.getElementById("omniSubmitBtn");
+    if (!prompt) { alert("Please enter a prompt."); return; }
+
+    const images = omniGetUrlsFromList("omniImagesList");
+    const videos = omniGetUrlsFromList("omniVideosList");
+    const audio  = omniGetUrlsFromList("omniAudioList");
+
+    if (!images.length) {
+      alert("Omni Reference requires at least one reference image.\nAdd an image URL or upload a file in the Reference Images section.");
+      return;
+    }
+
+    btn.disabled = true; btn.textContent = "Submitting…";
+    try {
+      const res = await fetch("/api/omni-reference", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt, images_list: images, video_files: videos, audio_files: audio, aspect_ratio: aspect, duration: dur,
+          // map omni-* UI values to backend-understood keys
+          quality: quality.replace("omni-", "") })
+      });
+      const data = await res.json();
+      if (data.error) { alert("Error: " + data.error); return; }
+      addResultCard(data.request_id, prompt, "omni");
+      pollStatus(data.request_id);
+    } catch (e) {
+      alert("Request failed: " + e.message);
+    } finally {
+      btn.disabled = false; btn.textContent = "✦ Generate with Omni";
+    }
+  });
+
+  // ── Omni Character Trainer ──────────────────────────────────────────────
+
+  // Persisted characters: [{request_id, character_name, omni_ref}]
+  let omniCharacters = JSON.parse(localStorage.getItem("omniCharacters") || "[]");
+
+  function omniToggleCharTrainer() {
+    const body  = document.getElementById("omniCharTrainBody");
+    const arrow = document.getElementById("omniCharTrainArrow");
+    const open  = body.style.display === "none";
+    body.style.display  = open ? "block" : "none";
+    arrow.style.transform = open ? "rotate(180deg)" : "";
+    if (open) omniRenderCharList();
+  }
+
+  function omniRenderCharList() {
+    const list = document.getElementById("omniCharList");
+    if (!omniCharacters.length) { list.innerHTML = ""; return; }
+    list.innerHTML = `
+      <div style="font-size:0.73rem;color:#555;margin-bottom:6px;font-weight:600;letter-spacing:.04em">TRAINED CHARACTERS</div>
+      ${omniCharacters.map((c, i) => `
+        <div style="background:#0d0d18;border:1px solid #1e1e2e;border-radius:8px;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <div>
+            <div style="font-size:0.8rem;font-weight:600;color:#e0e0e0">${c.character_name}</div>
+            <div style="font-size:0.72rem;color:#c4b5fd;font-family:monospace;margin-top:2px">${c.omni_ref}</div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button onclick="omniCharCopyRef(${i})"
+              style="background:#1a1a2e;border:1px solid #2a2a4a;border-radius:6px;color:#c4b5fd;font-size:0.72rem;padding:4px 9px;cursor:pointer;transition:all .15s"
+              onmouseover="this.style.background='#2a1a4a'" onmouseout="this.style.background='#1a1a2e'">Copy</button>
+            <button onclick="omniCharPasteRef(${i})"
+              style="background:#1a1a2e;border:1px solid #2a2a4a;border-radius:6px;color:#60a5fa;font-size:0.72rem;padding:4px 9px;cursor:pointer;transition:all .15s"
+              onmouseover="this.style.background='#0a1a2e'" onmouseout="this.style.background='#1a1a2e'">Insert</button>
+            <button onclick="omniCharDelete(${i})"
+              style="background:none;border:none;color:#555;font-size:0.72rem;cursor:pointer;transition:color .15s"
+              onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='#555'">✕</button>
+          </div>
+        </div>`).join("")}`;
+  }
+
+  function omniCharCopyRef(idx) {
+    const ref = omniCharacters[idx].omni_ref;
+    navigator.clipboard.writeText(ref).then(() => {
+      const btn = document.querySelectorAll("#omniCharList button")[idx * 3];
+      if (btn) { const orig = btn.textContent; btn.textContent = "Copied!"; setTimeout(() => btn.textContent = orig, 1200); }
+    });
+  }
+
+  function omniCharPasteRef(idx) {
+    const ref = omniCharacters[idx].omni_ref;
+    const ta  = document.getElementById("omniPrompt");
+    const pos = ta.selectionStart;
+    ta.value  = ta.value.slice(0, pos) + ref + ta.value.slice(pos);
+    ta.focus();
+    ta.selectionStart = ta.selectionEnd = pos + ref.length;
+  }
+
+  function omniCharDelete(idx) {
+    omniCharacters.splice(idx, 1);
+    localStorage.setItem("omniCharacters", JSON.stringify(omniCharacters));
+    omniRenderCharList();
+  }
+
+  async function omniCharHandleUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const label = document.getElementById("omniCharUploadLabel");
+    const orig  = label.childNodes[0].textContent;
+    label.childNodes[0].textContent = "⏳";
+    try {
+      const url = await omniUploadFile(file);
+      document.getElementById("omniCharImageUrl").value = url;
+      label.childNodes[0].textContent = "✓";
+      label.style.color = "#4ade80";
+    } catch (e) {
+      label.childNodes[0].textContent = orig;
+      alert("Upload failed: " + e.message);
+    }
+  }
+
+  async function omniCharSubmitTrain() {
+    const image_url      = document.getElementById("omniCharImageUrl").value.trim();
+    const character_name = document.getElementById("omniCharName").value.trim();
+    const description    = document.getElementById("omniCharDesc").value.trim();
+    const btn            = document.getElementById("omniCharTrainBtn");
+    const statusEl       = document.getElementById("omniCharTrainStatus");
+
+    if (!image_url)      { alert("Please provide a portrait photo."); return; }
+    if (!character_name) { alert("Please enter a character name."); return; }
+
+    btn.disabled = true; btn.textContent = "Submitting…";
+    statusEl.style.display = "block";
+    statusEl.innerHTML = `<div style="font-size:0.78rem;color:#888">⏳ Submitting training job…</div>`;
+
+    try {
+      const res  = await fetch("/api/omni-character/train", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image_url, character_name, description })
+      });
+      const data = await res.json();
+      if (data.error) { statusEl.innerHTML = `<div style="color:#f87171;font-size:0.78rem">Error: ${data.error}</div>`; return; }
+
+      const rid = data.request_id;
+      statusEl.innerHTML = `<div style="font-size:0.78rem;color:#a78bfa">⏳ Training <strong>${character_name}</strong>… (this may take 1–2 minutes)</div>`;
+
+      // Poll until done
+      const poll = setInterval(async () => {
+        try {
+          const sr   = await fetch(`/api/omni-character/status/${rid}`);
+          const sd   = await sr.json();
+          if (sd.status === "completed") {
+            clearInterval(poll);
+            const omni_ref = sd.omni_ref || `@omni-character:${rid}`;
+            omniCharacters.unshift({ request_id: rid, character_name, omni_ref });
+            localStorage.setItem("omniCharacters", JSON.stringify(omniCharacters));
+            omniRenderCharList();
+            statusEl.innerHTML = `
+              <div style="background:#0a1a0a;border:1px solid #166534;border-radius:8px;padding:8px 10px;font-size:0.78rem">
+                <div style="color:#4ade80;font-weight:600;margin-bottom:4px">✓ Character trained: <strong>${character_name}</strong></div>
+                <div style="color:#c4b5fd;font-family:monospace;margin-bottom:6px">${omni_ref}</div>
+                <button onclick="navigator.clipboard.writeText('${omni_ref}')"
+                  style="background:#1a1a2e;border:1px solid #2a2a4a;border-radius:6px;color:#c4b5fd;font-size:0.72rem;padding:4px 10px;cursor:pointer">Copy Token</button>
+              </div>`;
+            // Reset form
+            document.getElementById("omniCharImageUrl").value = "";
+            document.getElementById("omniCharName").value = "";
+            document.getElementById("omniCharDesc").value = "";
+          } else if (sd.status === "failed") {
+            clearInterval(poll);
+            statusEl.innerHTML = `<div style="color:#f87171;font-size:0.78rem">Training failed: ${sd.error || "unknown error"}</div>`;
+          }
+        } catch (_) {}
+      }, 8000);
+
+    } catch (e) {
+      statusEl.innerHTML = `<div style="color:#f87171;font-size:0.78rem">Request failed: ${e.message}</div>`;
+    } finally {
+      btn.disabled = false; btn.textContent = "Train Character";
+    }
+  }
+
+  // ── Video Combiner ──────────────────────────────────────────────────────
+  let combinerClipCount = 0;
+  const combinerClips = {};   // id -> { uploadedUrl }
+
+  function combinerAddRow() {
+    const list = document.getElementById("combinerClipsList");
+    if (list.children.length >= 60) { alert("Maximum 60 clips supported."); return; }
+    const id = ++combinerClipCount;
+    combinerClips[id] = { uploadedUrl: null };
+    const n = list.children.length + 1;
+    const row = document.createElement("div");
+    row.id = "combiner-row-" + id;
+    row.style.cssText = "background:#0e0e18;border:1px solid #2a2a3a;border-radius:9px;padding:10px 12px";
+    row.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
+        <span style="font-size:0.72rem;font-weight:600;color:#60a5fa;letter-spacing:.04em" id="combiner-label-${id}">Clip ${n}</span>
+        <button onclick="combinerRemoveRow(${id})" style="background:none;border:none;color:#555;font-size:0.78rem;cursor:pointer;transition:color .15s" onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='#555'">✕ Remove</button>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="text" class="combiner-clip-url" id="combiner-url-${id}"
+          placeholder="Paste video URL or upload →"
+          style="flex:1;background:#0d0d15;border:1px solid #2a2a3a;border-radius:7px;color:#e0e0e0;font-size:.82rem;padding:7px 10px;outline:none;font-family:inherit"/>
+        <label style="margin:0;cursor:pointer;background:#13131a;border:1px solid #2a2a3a;border-radius:7px;padding:6px 10px;font-size:.75rem;color:#888;white-space:nowrap;transition:all .15s"
+          onmouseover="this.style.borderColor='#60a5fa';this.style.color='#60a5fa'"
+          onmouseout="this.style.borderColor='#2a2a3a';this.style.color='#888'">
+          ↑ Upload
+          <input type="file" accept="video/*" style="display:none" onchange="combinerHandleFile(this, ${id})"/>
+        </label>
+      </div>
+      <div id="combiner-status-${id}" style="display:none;font-size:0.75rem;color:#a78bfa;margin-top:5px">⏳ Uploading…</div>`;
+    list.appendChild(row);
+    combinerRenumber();
+  }
+
+  function combinerRemoveRow(id) {
+    const list = document.getElementById("combinerClipsList");
+    if (list.children.length <= 2) { alert("Minimum 2 clips required."); return; }
+    const row = document.getElementById("combiner-row-" + id);
+    if (row) row.remove();
+    delete combinerClips[id];
+    combinerRenumber();
+  }
+
+  function combinerRenumber() {
+    document.querySelectorAll("#combinerClipsList > div").forEach((row, idx) => {
+      const idMatch = row.id.match(/combiner-row-(\d+)/);
+      if (!idMatch) return;
+      const lbl = document.getElementById("combiner-label-" + idMatch[1]);
+      if (lbl) lbl.textContent = "Clip " + (idx + 1);
+    });
+  }
+
+  async function combinerHandleFile(input, id) {
+    const file = input.files[0];
+    if (!file) return;
+    const label = input.parentElement;
+    const statusEl = document.getElementById("combiner-status-" + id);
+    label.childNodes[0].textContent = "⏳";
+    statusEl.style.display = "block";
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res  = await fetch("/upload", { method: "POST", body: fd });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      combinerClips[id].uploadedUrl = data.url;
+      document.getElementById("combiner-url-" + id).value = data.url;
+      label.childNodes[0].textContent = "✓ Done";
+      label.style.color = "#4ade80";
+      label.style.borderColor = "#1e3a1e";
+      statusEl.style.display = "none";
+    } catch (e) {
+      alert("Upload failed: " + e.message);
+      label.childNodes[0].textContent = "↑ Upload";
+      statusEl.style.display = "none";
+    }
+  }
+
+  document.getElementById("combinerAddClipBtn").addEventListener("click", combinerAddRow);
+
+  // Initialise with 2 rows when combiner tab first clicked
+  document.querySelector('[data-mode="combiner"]').addEventListener("click", () => {
+    if (document.getElementById("combinerClipsList").children.length === 0) {
+      combinerAddRow();
+      combinerAddRow();
+    }
+  });
+
+  document.getElementById("combinerSubmitBtn").addEventListener("click", async () => {
+    const videoUrls = [...document.querySelectorAll(".combiner-clip-url")]
+      .map(i => i.value.trim()).filter(Boolean);
+    if (videoUrls.length < 2) {
+      alert("Please add at least 2 video clip URLs before combining.");
+      return;
+    }
+    const aspect = document.getElementById("combinerAspect").value;
+    const btn = document.getElementById("combinerSubmitBtn");
+    btn.disabled = true;
+    btn.textContent = "Submitting…";
+    try {
+      const res = await fetch("/api/combine-videos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ videos_list: videoUrls, aspect_ratio: aspect })
+      });
+      const data = await res.json();
+      if (data.error) { alert("Error: " + data.error); return; }
+      addResultCard(data.request_id, `[Combiner] ${videoUrls.length} clips → ${aspect}`, "combiner");
+      pollStatus(data.request_id);
+    } catch (e) {
+      alert("Request failed: " + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "🎞 Combine Videos";
+    }
+  });
+
+  // ── Sticky Create Scene ─────────────────────────────────────────────────
+  const stickyBtn = document.getElementById("stickyGenBtn");
+  const mainGenBtn = document.getElementById("generateBtn");
+  const stickyObs = new IntersectionObserver(entries => {
+    stickyBtn.classList.toggle("visible", !entries[0].isIntersecting);
+  }, { threshold: 0.5 });
+  stickyObs.observe(mainGenBtn);
+  stickyBtn.addEventListener("click", () => mainGenBtn.click());
+</script>
+
+<button class="sticky-generate" id="stickyGenBtn">✦ Create Scene</button>
+
+{% include 'legal_footer.html' %}
+</body>
+</html>

@@ -1,0 +1,1679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Music & Speech — KAMOD AI</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0a0a0f;color:#e0e0e0;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:36px 20px 80px}
+
+    nav{width:100%;max-width:1100px;display:flex;flex-direction:column;align-items:center;gap:12px;margin:0 auto 36px}
+    nav .logo{font-size:1.15rem;font-weight:700;background:linear-gradient(135deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.01em}
+    .nav-grouped{display:flex;align-items:flex-end;gap:0;background:#0d0d16;border:1px solid #1c1c2e;border-radius:13px;padding:5px 8px;overflow-x:auto;max-width:100%;scrollbar-width:none}
+    .nav-grouped::-webkit-scrollbar{display:none}
+    .nav-group{display:flex;flex-direction:column;align-items:center;gap:2px;padding:0 2px}
+    .nav-group-label{font-size:.58rem;font-weight:800;letter-spacing:.1em;color:#252535;text-transform:uppercase;transition:color .2s;padding:0 4px;user-select:none}
+    .nav-group.has-active .nav-group-label{color:#6060a0}
+    .nav-group-items{display:flex;gap:1px}
+    .nav-grouped a{color:#555;text-decoration:none;font-size:.77rem;font-weight:500;padding:6px 11px;border-radius:8px;transition:all .15s;white-space:nowrap;letter-spacing:.01em}
+    .nav-grouped a:hover{color:#bbb;background:rgba(255,255,255,0.05)}
+    .nav-grouped a.active{background:linear-gradient(135deg,#6d5fd6,#3b7dd8);color:#fff;font-weight:600;box-shadow:0 0 14px rgba(109,95,214,.45)}
+    .nav-sep{width:1px;height:28px;background:#1c1c2e;margin:0 5px 3px;flex-shrink:0;align-self:flex-end}
+
+    header{text-align:center;margin-bottom:30px}
+    header h1{font-size:2.1rem;font-weight:700;background:linear-gradient(135deg,#34d399,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    header p{color:#888;margin-top:8px;font-size:.95rem}
+
+    .wrapper{width:100%;max-width:900px}
+
+    /* Section tabs */
+    .section-tabs{display:flex;gap:4px;margin-bottom:24px;background:#10101a;padding:5px;border-radius:12px;border:1px solid #1e1e2e}
+    .section-tab{flex:1;padding:9px 8px;border-radius:8px;border:none;background:none;color:#888;cursor:pointer;font-size:.85rem;font-weight:500;transition:all .2s;text-align:center}
+    .section-tab.active{background:#1e1e35;color:#a78bfa;font-weight:600}
+    .section-tab:hover:not(.active){color:#ccc}
+
+    .section{display:none}
+    .section.active{display:block}
+
+    /* Sub-tabs */
+    .sub-tabs{display:flex;gap:8px;margin-bottom:18px}
+    .sub-tab{padding:7px 16px;border-radius:8px;border:1px solid #222233;background:#0e0e18;color:#888;cursor:pointer;font-size:.8rem;transition:all .2s}
+    .sub-tab.active{border-color:#34d399;color:#34d399;background:#0d1a14}
+    .sub-tab:hover:not(.active){border-color:#33333a;color:#ccc}
+
+    .panel{display:none}
+    .panel.active{display:block}
+
+    /* Card */
+    .card{background:#13131a;border:1px solid #222233;border-radius:14px;padding:24px;margin-bottom:18px}
+    .card h3{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#555;margin-bottom:16px}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+
+    label{display:block;font-size:.78rem;color:#999;margin-bottom:5px;margin-top:14px}
+    label:first-of-type{margin-top:0}
+    textarea,input[type=text],select{width:100%;background:#0e0e18;border:1px solid #2a2a3a;border-radius:8px;color:#e0e0e0;font-size:.85rem;padding:8px 11px;outline:none;transition:border-color .2s;font-family:inherit}
+    textarea{resize:vertical;min-height:80px}
+    textarea:focus,input[type=text]:focus,select:focus{border-color:#34d399}
+
+    /* Submit button */
+    .submit-btn{margin-top:18px;width:100%;padding:12px;border:none;border-radius:9px;font-size:.9rem;font-weight:600;cursor:pointer;transition:opacity .2s,transform .1s}
+    .submit-btn:hover{opacity:.9}
+    .submit-btn:active{transform:scale(.98)}
+    .submit-btn:disabled{opacity:.4;cursor:not-allowed}
+    .btn-music {background:linear-gradient(135deg,#34d399,#059669);color:#fff}
+    .btn-lipsync{background:linear-gradient(135deg,#60a5fa,#3b82f6);color:#fff}
+    .btn-audio  {background:linear-gradient(135deg,#a78bfa,#7c3aed);color:#fff}
+
+    /* File / URL input */
+    .src-tabs{display:flex;gap:6px;margin-bottom:10px}
+    .src-tab{padding:4px 12px;border-radius:6px;border:1px solid #2a2a3a;background:#0e0e18;color:#888;cursor:pointer;font-size:.75rem;transition:all .15s}
+    .src-tab.active{border-color:#34d399;color:#34d399;background:#0d1a14}
+    .dropzone{border:1px solid #1e1e2e;border-radius:8px;padding:10px 16px;text-align:center;cursor:pointer;position:relative;transition:all .2s;background:#0c0c18}
+    .dropzone:hover,.dropzone.drag-over{border-color:#34d39955;background:#0d1a14}
+    .dropzone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+    .dropzone p{color:#555;font-size:.78rem;margin:0}
+    .dropzone p span{color:#34d399}
+    .upload-preview{margin-top:8px;display:none;position:relative}
+    .upload-preview .fname{font-size:.78rem;color:#34d399;background:#0d1a14;border:1px solid #1a3d25;border-radius:6px;padding:5px 10px;display:flex;align-items:center;justify-content:space-between}
+    .upload-preview .rm-file{color:#f87171;cursor:pointer;font-size:.75rem;padding:0 4px}
+    .uploading-ind{display:none;color:#34d399;font-size:.78rem;margin-top:6px}
+
+    /* Results */
+    .results-title{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#555;margin-bottom:14px}
+    .result-item{background:#0e0e18;border:1px solid #1e1e2e;border-radius:10px;padding:14px;margin-bottom:12px;animation:fadeIn .3s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1}}
+    .result-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+    .result-label{font-size:.8rem;font-weight:600;color:#ccc}
+    .result-desc{font-size:.73rem;color:#666;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px}
+    .badge{font-size:.72rem;padding:2px 9px;border-radius:20px;font-weight:600}
+    .badge.processing{background:#1a2a1a;color:#4ade80}
+    .badge.completed {background:#1a1e2a;color:#60a5fa}
+    .badge.failed    {background:#2a1a1a;color:#f87171}
+    audio{width:100%;border-radius:7px;margin-top:6px}
+    video{width:100%;border-radius:7px;margin-top:6px;background:#000}
+    .dl-btn{display:inline-block;margin-top:8px;padding:6px 14px;background:#1a2a3a;border:1px solid #2a4a6a;border-radius:7px;color:#60a5fa;font-size:.78rem;text-decoration:none;transition:background .15s}
+    .dl-btn:hover{background:#1e3a5a}
+    .err-txt{color:#f87171;font-size:.78rem;margin-top:6px}
+    .empty-state{color:#555;font-size:.82rem;padding:10px 0}
+
+    .spinner{display:inline-block;width:8px;height:8px;border:2px solid #4ade8044;border-top-color:#4ade80;border-radius:50%;animation:spin .7s linear infinite;margin-right:4px;vertical-align:middle}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .info-box{background:#0d1a14;border:1px solid #1a3d25;border-radius:8px;padding:10px 13px;font-size:.78rem;color:#6b9;margin-bottom:14px;line-height:1.6}
+    .info-box b{color:#34d399}
+
+    /* History */
+    .history-section{width:100%;max-width:900px;margin-top:48px}
+    .history-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+    .history-header h2{font-size:1rem;font-weight:700;color:#ccc}
+    .history-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+    .history-card{background:#13131a;border:1px solid #222233;border-radius:12px;padding:14px;animation:fadeIn .3s ease}
+    .history-card .hc-model{font-size:.7rem;color:#555;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+    .history-card .hc-prompt{font-size:.8rem;color:#bbb;margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+    .history-card .hc-date{font-size:.72rem;color:#555;margin-bottom:10px}
+    .history-card audio{width:100%;border-radius:6px;margin-bottom:6px}
+    .history-card .dl-btn{width:100%;text-align:center;box-sizing:border-box;display:block}
+    .history-empty{color:#555;font-size:.82rem;padding:10px 0}
+
+    /* ── Voice Over Studio ─────────────────────────────────── */
+    .vo-layout{display:grid;grid-template-columns:1fr 380px;gap:20px;align-items:start}
+    @media(max-width:900px){.vo-layout{grid-template-columns:1fr}}
+
+    .vo-step-card{background:#13131a;border:1px solid #1e1e2e;border-radius:16px;padding:22px;margin-bottom:16px;position:relative;overflow:hidden}
+    .vo-step-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#a78bfa,#60a5fa,#34d399);opacity:0.5}
+
+    .vo-step-header{display:flex;align-items:flex-start;gap:14px;margin-bottom:18px}
+    .vo-step-num{font-size:1.6rem;font-weight:900;color:#1e1e2e;background:linear-gradient(135deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;flex-shrink:0;padding-top:2px}
+    .vo-step-header h3{font-size:.9rem;font-weight:700;color:#e0e0e0;margin-bottom:3px}
+    .vo-step-header p{font-size:.75rem;color:#555}
+
+    /* Voice grid */
+    .voice-gender-tabs{display:flex;gap:6px;margin-bottom:14px}
+    .vg-tab{padding:5px 14px;border-radius:20px;border:1px solid #222233;background:#0e0e18;color:#666;cursor:pointer;font-size:.75rem;font-weight:500;transition:all .2s}
+    .vg-tab.active{border-color:#a78bfa;color:#a78bfa;background:#15102a}
+    .vg-tab:hover:not(.active){border-color:#33333a;color:#bbb}
+
+    .voice-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-height:280px;overflow-y:auto;padding-right:4px;scrollbar-width:thin;scrollbar-color:#2a2a3a transparent}
+    .voice-grid::-webkit-scrollbar{width:4px}
+    .voice-grid::-webkit-scrollbar-track{background:transparent}
+    .voice-grid::-webkit-scrollbar-thumb{background:#2a2a3a;border-radius:4px}
+
+    .voice-card{background:#0e0e18;border:1px solid #1e1e2e;border-radius:10px;padding:10px 10px 8px;cursor:pointer;transition:all .2s;position:relative}
+    .voice-card:hover{border-color:#333355;background:#12121e}
+    .voice-card.selected{border-color:#a78bfa;background:#130f22;box-shadow:0 0 0 1px #a78bfa33}
+    .vc-name{font-size:.8rem;font-weight:700;color:#ccc;margin-bottom:2px}
+    .vc-trait{font-size:.7rem;color:#555;margin-bottom:6px}
+    .vc-badges{display:flex;gap:4px;align-items:center;justify-content:space-between}
+    .vc-gender{font-size:.65rem;padding:2px 7px;border-radius:10px;font-weight:600}
+    .vc-gender.female{background:#1a0e1e;color:#d8b4fe;border:1px solid #4c1d95}
+    .vc-gender.male{background:#0e1420;color:#93c5fd;border:1px solid #1e3a5f}
+    .vc-preview{font-size:.65rem;padding:2px 8px;border-radius:10px;border:1px solid #2a2a3a;background:transparent;color:#555;cursor:pointer;transition:all .15s;white-space:nowrap}
+    .vc-preview:hover{border-color:#a78bfa;color:#a78bfa}
+    .vc-preview.playing{border-color:#34d399;color:#34d399;animation:pulse-border .8s infinite}
+    @keyframes pulse-border{0%,100%{border-color:#34d399}50%{border-color:#059669}}
+
+    /* Template chips */
+    .tmpl-label{font-size:.72rem;color:#555;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+    .tmpl-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+    .tmpl-chip{padding:5px 12px;border-radius:20px;border:1px solid #222233;background:#0e0e18;color:#888;cursor:pointer;font-size:.75rem;transition:all .18s;white-space:nowrap}
+    .tmpl-chip:hover{border-color:#60a5fa;color:#60a5fa}
+    .tmpl-chip.active{border-color:#60a5fa;color:#60a5fa;background:#0c1623}
+
+    /* Script editor */
+    .script-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+    .script-charcount{font-size:.72rem;color:#444}
+    .btn-enhance{padding:5px 14px;border-radius:8px;border:1px solid #a78bfa44;background:#130f22;color:#a78bfa;cursor:pointer;font-size:.75rem;font-weight:600;transition:all .2s;display:flex;align-items:center;gap:5px}
+    .btn-enhance:hover{border-color:#a78bfa;background:#1a1228}
+    .btn-enhance:disabled{opacity:.4;cursor:not-allowed}
+    .btn-enhance .enh-spin{display:none;width:10px;height:10px;border:2px solid #a78bfa44;border-top-color:#a78bfa;border-radius:50%;animation:spin .6s linear infinite}
+    .btn-enhance.loading .enh-spin{display:inline-block}
+
+    .vo-textarea{width:100%;background:#0a0a14;border:1px solid #1e1e2e;border-radius:10px;color:#e0e0e0;font-size:.85rem;padding:12px 14px;outline:none;resize:vertical;min-height:130px;font-family:inherit;line-height:1.7;transition:border-color .2s}
+    .vo-textarea:focus{border-color:#a78bfa55}
+
+    .fmt-row{display:flex;align-items:center;gap:10px;margin-top:12px}
+    .fmt-row label{font-size:.78rem;color:#666;margin:0}
+    .fmt-badge{padding:4px 12px;border-radius:20px;border:1px solid #34d39944;background:#0a1a14;color:#34d399;font-size:.72rem;font-weight:600}
+
+    .btn-vo-generate{width:100%;margin-top:16px;padding:14px;border:none;border-radius:11px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;font-size:.95rem;font-weight:700;cursor:pointer;transition:all .2s;letter-spacing:.02em;display:flex;align-items:center;justify-content:center;gap:8px}
+    .btn-vo-generate:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 6px 24px #7c3aed44}
+    .btn-vo-generate:active{transform:translateY(0)}
+    .btn-vo-generate:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+
+    /* Selected voice preview panel */
+    .selected-voice-panel{background:#13131a;border:1px solid #1e1e2e;border-radius:16px;padding:18px;margin-bottom:16px;position:relative;overflow:hidden}
+    .selected-voice-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#7c3aed,#4f46e5)}
+    .svp-label{font-size:.7rem;color:#555;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+    .svp-voice{display:flex;align-items:center;gap:12px}
+    .svp-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#4f46e5);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
+    .svp-name{font-size:1rem;font-weight:700;color:#e0e0e0}
+    .svp-sub{font-size:.75rem;color:#666;margin-top:2px}
+
+    /* VO Results panel */
+    .vo-results-panel{position:sticky;top:20px}
+    .vo-results-card{background:#13131a;border:1px solid #1e1e2e;border-radius:16px;padding:20px;overflow:hidden;position:relative}
+    .vo-results-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#34d399,#60a5fa)}
+
+    .vo-result-item{background:#0e0e18;border:1px solid #1e1e2e;border-radius:10px;padding:14px;margin-bottom:12px;animation:fadeIn .3s ease}
+    .vo-result-meta{font-size:.72rem;color:#555;margin-bottom:6px;display:flex;gap:8px;flex-wrap:wrap}
+    .vo-result-meta span{background:#161620;border:1px solid #222233;padding:2px 8px;border-radius:20px}
+    .vo-result-prompt{font-size:.78rem;color:#888;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+    .dl-row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+    .dl-wav{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;background:#0c1a0c;border:1px solid #1a4a1a;border-radius:7px;color:#34d399;font-size:.75rem;text-decoration:none;transition:background .15s;font-weight:600}
+    .dl-wav:hover{background:#0f240f}
+
+    .vo-empty{color:#444;font-size:.82rem;text-align:center;padding:30px 10px}
+    .vo-empty-icon{font-size:2rem;margin-bottom:8px;opacity:.4}
+    {% if embed %}
+    body{background:transparent;padding:0;align-items:stretch}
+    .wrapper,.history-section{max-width:none;padding:0}
+    .section-tabs{
+      padding:6px;
+      border-radius:18px;
+      background:#0a0d16;
+      border:1px solid #20263b;
+    }
+    .section-tab{
+      border-radius:13px;
+      min-height:46px;
+      font-weight:700;
+    }
+    .section-tab.active{
+      background:linear-gradient(135deg,rgba(52,211,153,.22),rgba(142,167,255,.14));
+      color:#d8fff0;
+    }
+    .card,.vo-step-card,.vo-results-card,.history-card{
+      border-radius:22px;
+      border-color:#242c44;
+      background:linear-gradient(180deg,rgba(17,22,37,.98),rgba(11,15,26,.98));
+    }
+    .dropzone{
+      border-style:dashed;
+      border-color:#2c3656;
+      border-radius:14px;
+      background:#0b1020;
+    }
+    textarea,input[type=text],select{
+      background:#090c16;
+      border-color:#252d44;
+      border-radius:12px;
+    }
+    .result-item,.vo-result-item{
+      border-color:#222a40;
+      background:#0d1220;
+      border-radius:16px;
+    }
+    @media(max-width:980px){
+      .grid-2,.vo-layout{grid-template-columns:1fr}
+    }
+    {% endif %}
+  </style>
+</head>
+<body>
+
+{% if not embed %}
+<nav>
+  <span class="logo">KAMOD AI</span>
+  <div class="nav-grouped">
+    <div class="nav-group">
+      <span class="nav-group-label">CREATE</span>
+      <div class="nav-group-items">
+        <a href="/">Seedance 2.0</a>
+        <a href="/ai-videos">AI Video Tools</a>
+        <a href="/ai-director">Director</a>
+        <a href="/images">AI Images</a>
+        <a href="/storyboard">Storyboard</a>
+        <a href="/ugc-studio">UGC Studio</a>
+      </div>
+    </div>
+    <div class="nav-sep"></div>
+    <div class="nav-group has-active">
+      <span class="nav-group-label">ENHANCE</span>
+      <div class="nav-group-items">
+        <a href="/audio" class="active">Audio</a>
+        <a href="/avatars">Avatars</a>
+      </div>
+    </div>
+    <div class="nav-sep"></div>
+    <div class="nav-group">
+      <span class="nav-group-label">DELIVER</span>
+      <div class="nav-group-items">
+        <a href="/analytics">Analytics</a>
+        <a href="/dashboard">Dashboard</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <h1>Music & Speech</h1>
+  <p>Generate music, add sound effects, and sync lips to any audio</p>
+</header>
+{% endif %}
+
+<div class="wrapper">
+
+  <!-- Section tabs -->
+  <div class="section-tabs">
+    <button class="section-tab active" data-section="music">Music</button>
+    <button class="section-tab" data-section="voiceover">Voice Over Studio</button>
+    <button class="section-tab" data-section="lipsync">Lip-Sync</button>
+    <button class="section-tab" data-section="mmaudio">Audio SFX</button>
+    <button class="section-tab" data-section="voiceclone">Voice Clone</button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- MUSIC SECTION                                  -->
+  <!-- ══════════════════════════════════════════════ -->
+  <div class="section active" id="section-music">
+    <div class="sub-tabs">
+      <div class="sub-tab active" data-panel="create">🎵 Suno</div>
+      <div class="sub-tab" data-panel="remix">Remix</div>
+      <div class="sub-tab" data-panel="extend">Extend</div>
+      <div class="sub-tab" data-panel="lyria">🎼 Lyria</div>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <!-- Create -->
+        <div class="panel active card" id="panel-create">
+          <h3>Generate New Track</h3>
+          <div class="info-box">Describe the music you want — genre, mood, instruments, tempo.</div>
+          <label>Prompt <span style="color:#f87171">*</span></label>
+          <textarea id="music-create-prompt" placeholder="Upbeat lo-fi hip hop with jazzy piano and vinyl crackle, 90 BPM…"></textarea>
+          <label>Style <span style="color:#f87171">*</span> <span style="color:#555;font-weight:400;font-size:0.72rem">e.g. lo-fi, cinematic, electronic, jazz, pop</span></label>
+          <input type="text" id="music-create-style" placeholder="lo-fi hip hop, jazz piano, cinematic orchestral…"/>
+          <label>Duration (seconds)</label>
+          <select id="music-create-dur">
+            <option value="15">15s</option>
+            <option value="30" selected>30s</option>
+            <option value="60">60s</option>
+            <option value="120">120s</option>
+          </select>
+          <button class="submit-btn btn-music" id="btn-music-create">Generate Music</button>
+        </div>
+
+        <!-- Remix -->
+        <div class="panel card" id="panel-remix">
+          <h3>Remix Existing Track</h3>
+          <div class="info-box">Upload or paste a URL to an existing audio track, then describe how to remix it.</div>
+          <label>Source Audio</label>
+          <div id="remix-src-tabs" class="src-tabs">
+            <div class="src-tab active" data-src="url">Paste URL</div>
+            <div class="src-tab" data-src="upload">Upload File</div>
+          </div>
+          <div id="remix-url-wrap">
+            <input type="text" id="remix-audio-url" placeholder="https://example.com/track.mp3"/>
+          </div>
+          <div id="remix-upload-wrap" style="display:none">
+            <div class="dropzone" id="remix-dropzone">
+              <input type="file" id="remix-file" accept="audio/*"/>
+              <p><span>Choose audio</span></p>
+            </div>
+            <div class="uploading-ind" id="remix-uploading">Uploading…</div>
+            <div class="upload-preview" id="remix-preview">
+              <div class="fname"><span id="remix-fname">file.mp3</span><span class="rm-file" id="remix-rm">✕</span></div>
+            </div>
+          </div>
+          <label>Remix Prompt</label>
+          <textarea id="music-remix-prompt" placeholder="Make it more energetic, add electric guitar, shift to minor key…"></textarea>
+          <button class="submit-btn btn-music" id="btn-music-remix">Remix Track</button>
+        </div>
+
+        <!-- Extend -->
+        <div class="panel card" id="panel-extend">
+          <h3>Extend a Track</h3>
+          <div class="info-box">Continue an existing track with new sections. Upload an MP3 or paste a URL.</div>
+          <label>Source Audio</label>
+          <div class="src-tabs" id="extend-src-tabs">
+            <div class="src-tab active" data-src="url">Paste URL</div>
+            <div class="src-tab" data-src="upload">Upload MP3</div>
+          </div>
+          <div id="extend-url-wrap">
+            <input type="text" id="extend-audio-url" placeholder="https://example.com/track.mp3"/>
+          </div>
+          <div id="extend-upload-wrap" style="display:none">
+            <div class="dropzone" id="extend-dropzone">
+              <input type="file" id="extend-file" accept="audio/*,.mp3"/>
+              <p><span>Choose audio</span></p>
+            </div>
+            <div class="uploading-ind" id="extend-uploading">Uploading…</div>
+            <div class="upload-preview" id="extend-preview">
+              <div class="fname"><span id="extend-fname">track.mp3</span><span class="rm-file" id="extend-rm">✕</span></div>
+            </div>
+          </div>
+          <label>Continuation Prompt</label>
+          <textarea id="music-extend-prompt" placeholder="Continue the melody, build into a crescendo, add strings…"></textarea>
+          <label>Extension Duration (seconds)</label>
+          <select id="music-extend-dur">
+            <option value="15">15s</option>
+            <option value="30" selected>30s</option>
+            <option value="60">60s</option>
+          </select>
+          <button class="submit-btn btn-music" id="btn-music-extend">Extend Track</button>
+        </div>
+
+        <!-- Lyria -->
+        <div class="panel card" id="panel-lyria">
+          <h3>Lyria Music Generation</h3>
+          <div class="info-box">
+            <b>Lyria 3 Clip</b> — Short clips, loops, previews · 30 seconds · MP3<br>
+            <b>Lyria 3 Pro</b> — Full-length songs with verses, choruses, bridges · MP3 / WAV
+          </div>
+          <label>Model</label>
+          <select id="lyria-model">
+            <option value="lyria-3-clip-preview">Lyria 3 Clip — 30s clips &amp; loops</option>
+            <option value="lyria-3-pro-preview">Lyria 3 Pro — Full songs (minutes)</option>
+          </select>
+          <label>Output Format</label>
+          <select id="lyria-format">
+            <option value="mp3">MP3</option>
+            <option value="wav">WAV (Pro only)</option>
+          </select>
+          <label>Prompt <span style="color:#f87171">*</span></label>
+          <textarea id="lyria-prompt" style="min-height:110px" placeholder="Upbeat cinematic orchestral track with rising strings, powerful brass, and driving percussion. Epic and motivational…"></textarea>
+          <div style="font-size:.72rem;color:#555;margin-top:4px">
+            Describe genre, mood, tempo, instruments, and structural cues (e.g. "starts soft, builds to a climax").
+          </div>
+          <button class="submit-btn" id="btn-lyria" style="background:linear-gradient(135deg,#4285f4,#34a853);color:#fff;margin-top:18px">
+            🎼 Generate with Lyria
+          </button>
+        </div>
+      </div>
+
+      <!-- Music Results -->
+      <div>
+        <div class="card">
+          <div class="results-title">Results</div>
+          <div id="music-results"><div class="empty-state">Generate a track to see results.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- LIP-SYNC SECTION                               -->
+  <!-- ══════════════════════════════════════════════ -->
+  <div class="section" id="section-lipsync">
+    <div class="grid-2">
+      <div>
+        <div class="card">
+          <h3>Lip-Sync Video to Audio</h3>
+          <div class="info-box">
+            <b>Sync-Lipsync</b> — High-fidelity facial alignment<br>
+            <b>LatentSync</b> — Fast with smooth temporal consistency<br>
+            <b>Creatify</b> — Optimized for marketing/social formats<br>
+            <b>Veed</b> — Broad video format support
+          </div>
+
+          <label>Model</label>
+          <select id="lipsync-model">
+            <option value="sync-lipsync">Sync-Lipsync (High Fidelity)</option>
+            <option value="latentsync">LatentSync (Fast)</option>
+            <option value="creatify-lipsync">Creatify</option>
+            <option value="veed-lipsync">Veed</option>
+          </select>
+
+          <label>Video <span style="color:#f87171">*</span></label>
+          <div class="src-tabs" id="lipsync-video-tabs">
+            <div class="src-tab active" data-src="url">Paste URL</div>
+            <div class="src-tab" data-src="upload">Upload File</div>
+          </div>
+          <div id="lipsync-video-url-wrap">
+            <input type="text" id="lipsync-video-url" placeholder="https://example.com/face-video.mp4"/>
+          </div>
+          <div id="lipsync-video-upload-wrap" style="display:none">
+            <div class="dropzone" id="lipsync-video-dropzone">
+              <input type="file" id="lipsync-video-file" accept="video/*"/>
+              <p><span>Choose video</span></p>
+            </div>
+            <div class="uploading-ind" id="lipsync-video-uploading">Uploading…</div>
+            <div class="upload-preview" id="lipsync-video-preview">
+              <div class="fname"><span id="lipsync-video-fname">video.mp4</span><span class="rm-file" id="lipsync-video-rm">✕</span></div>
+            </div>
+          </div>
+
+          <label>Audio URL</label>
+          <div class="src-tabs" id="lipsync-audio-tabs">
+            <div class="src-tab active" data-src="url">Paste URL</div>
+            <div class="src-tab" data-src="upload">Upload File</div>
+          </div>
+          <div id="lipsync-audio-url-wrap">
+            <input type="text" id="lipsync-audio-url" placeholder="https://example.com/voice.mp3"/>
+          </div>
+          <div id="lipsync-audio-upload-wrap" style="display:none">
+            <div class="dropzone" id="lipsync-dropzone">
+              <input type="file" id="lipsync-audio-file" accept="audio/*"/>
+              <p><span>Choose audio</span></p>
+            </div>
+            <div class="uploading-ind" id="lipsync-uploading">Uploading…</div>
+            <div class="upload-preview" id="lipsync-preview">
+              <div class="fname"><span id="lipsync-fname">audio.mp3</span><span class="rm-file" id="lipsync-rm">✕</span></div>
+            </div>
+          </div>
+
+          <button class="submit-btn btn-lipsync" id="btn-lipsync">Sync Lips</button>
+        </div>
+      </div>
+
+      <!-- Lipsync Results -->
+      <div>
+        <div class="card">
+          <div class="results-title">Results</div>
+          <div id="lipsync-results"><div class="empty-state">Submit a lip-sync job to see results.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- MMAUDIO SECTION                                -->
+  <!-- ══════════════════════════════════════════════ -->
+  <div class="section" id="section-mmaudio">
+    <div class="sub-tabs" id="mmaudio-sub-tabs">
+      <div class="sub-tab active" data-panel="t2a">Text → Audio</div>
+      <div class="sub-tab" data-panel="v2v">Video → Audio</div>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <!-- Text to Audio -->
+        <div class="panel active card" id="panel-t2a">
+          <h3>Text to Audio / Sound Effects</h3>
+          <div class="info-box">Generate Foley, ambient sound effects, or speech from a text description.</div>
+          <label>Prompt</label>
+          <textarea id="t2a-prompt" placeholder="Rain falling on a tin roof, distant thunder, birds chirping…"></textarea>
+          <label>Duration (seconds)</label>
+          <select id="t2a-dur">
+            <option value="5">5s</option>
+            <option value="10" selected>10s</option>
+            <option value="20">20s</option>
+            <option value="30">30s</option>
+          </select>
+          <button class="submit-btn btn-audio" id="btn-t2a">Generate Audio</button>
+        </div>
+
+        <!-- Video to Audio -->
+        <div class="panel card" id="panel-v2v">
+          <h3>Video → Synchronized Audio</h3>
+          <div class="info-box">Generate audio that matches the motion and content of an existing video.</div>
+          <label>Video <span style="color:#f87171">*</span></label>
+          <div class="src-tabs" id="v2v-src-tabs">
+            <div class="src-tab active" data-src="upload">Upload File</div>
+            <div class="src-tab" data-src="url">Paste URL</div>
+          </div>
+          <div id="v2v-upload-wrap">
+            <div class="dropzone" id="v2v-dropzone">
+              <input type="file" id="v2v-file" accept="video/*"/>
+              <p><span>Choose video</span></p>
+            </div>
+            <div class="uploading-ind" id="v2v-uploading">Uploading…</div>
+            <div class="upload-preview" id="v2v-preview" style="display:none">
+              <div class="fname">
+                <span id="v2v-fname">video.mp4</span>
+                <span class="rm-file" id="v2v-rm">✕ Remove</span>
+              </div>
+            </div>
+          </div>
+          <div id="v2v-url-wrap" style="display:none">
+            <input type="text" id="v2v-video-url" placeholder="https://example.com/video.mp4"/>
+          </div>
+          <label>Prompt <span style="color:#555">(optional — guide the audio style)</span></label>
+          <textarea id="v2v-prompt" placeholder="Cinematic orchestral score, tense atmosphere…"></textarea>
+          <button class="submit-btn btn-audio" id="btn-v2v">Generate Audio</button>
+        </div>
+      </div>
+
+      <!-- MMAudio Results -->
+      <div>
+        <div class="card">
+          <div class="results-title">Results</div>
+          <div id="mmaudio-results"><div class="empty-state">Generate audio to see results.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- VOICE CLONE SECTION                            -->
+  <!-- ══════════════════════════════════════════════ -->
+  <div class="section" id="section-voiceclone">
+    <div class="grid-2">
+      <div>
+        <div class="card">
+          <h3>Voice Replication</h3>
+          <div class="info-box">
+            Upload a <b>10–30 s reference audio sample</b>. BytePlus MegaTTS learns your voice's tone, accent, and rhythm — then speaks any text in that voice. Training takes 1–3 minutes.
+          </div>
+
+          <!-- Reference audio upload -->
+          <label>Reference Audio <span style="color:#f87171">*</span></label>
+          <div class="src-tabs" id="vc-src-tabs">
+            <div class="src-tab active" data-src="upload">Upload File</div>
+            <div class="src-tab" data-src="url">Paste URL</div>
+          </div>
+
+          <div id="vc-upload-wrap">
+            <div class="dropzone" id="vc-dropzone">
+              <input type="file" id="vc-file" accept="audio/*,.wav,.mp3,.m4a,.ogg,.flac"/>
+              <p><span>Choose audio</span></p>
+            </div>
+            <div class="uploading-ind" id="vc-uploading">Uploading…</div>
+            <div class="upload-preview" id="vc-preview" style="display:none">
+              <div class="fname">
+                <span id="vc-fname">reference.wav</span>
+                <span class="rm-file" id="vc-rm">✕ Remove</span>
+              </div>
+              <audio id="vc-audio-preview" controls style="width:100%;margin-top:8px;border-radius:7px"></audio>
+            </div>
+          </div>
+
+          <div id="vc-url-wrap" style="display:none">
+            <input type="text" id="vc-audio-url" placeholder="https://example.com/reference-voice.wav"/>
+          </div>
+
+          <!-- Speaker ID -->
+          <label>Speaker ID <span style="color:#f87171">*</span></label>
+          <input type="text" id="vc-voice-id" placeholder="e.g. myVoice_001 (min 4 chars)" maxlength="64"/>
+          <div id="vc-id-hint" style="font-size:.72rem;color:#555;margin-top:4px">Unique identifier for this voice. Reuse it later to synthesize more audio.</div>
+
+          <!-- Clone Model -->
+          <label>Clone Model</label>
+          <select id="vc-model">
+            <option value="0">Mega — Best Quality (default)</option>
+            <option value="1">ICL 1.0 — In-Context Learning</option>
+            <option value="2">DiT Standard — Diffusion Model</option>
+            <option value="3">DiT Restoration — Noise-robust</option>
+          </select>
+
+          <!-- Toggles -->
+          <div style="display:flex;gap:16px;margin-top:16px">
+            <label style="display:flex;align-items:center;gap:8px;margin-top:0;cursor:pointer;font-size:.82rem;color:#ccc">
+              <input type="checkbox" id="vc-noise" style="accent-color:#a78bfa;width:15px;height:15px"/>
+              Noise Reduction
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;margin-top:0;cursor:pointer;font-size:.82rem;color:#ccc">
+              <input type="checkbox" id="vc-normalize" style="accent-color:#a78bfa;width:15px;height:15px"/>
+              Volume Normalization
+            </label>
+          </div>
+
+          <!-- Preview text (used after cloning succeeds) -->
+          <label>Preview Text</label>
+          <textarea id="vc-prompt" style="min-height:90px" placeholder="Hello! This is my cloned voice speaking. The quick brown fox jumps over the lazy dog.">Hello! Welcome to KAMOD! This is a preview of your cloned voice. I hope you enjoy it!</textarea>
+          <div style="font-size:.72rem;color:#555;margin-top:4px">Spoken in your cloned voice once training completes.</div>
+
+          <button class="submit-btn btn-audio" id="btn-voice-clone" style="background:linear-gradient(135deg,#a78bfa,#6d5fd6)">
+            🎙️ Start Voice Cloning
+          </button>
+        </div>
+      </div>
+
+      <!-- Voice Clone Results -->
+      <div>
+        <div class="card">
+          <div class="results-title">Cloned Voice Results</div>
+          <div class="info-box" style="margin-bottom:14px">
+            Training takes 1–3 minutes. Once complete, the preview is auto-synthesized. Copy the <b>Speaker ID</b> to reuse the voice anytime.
+          </div>
+          <div id="vc-results"><div class="empty-state">Start voice cloning to see results here.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- VOICE OVER STUDIO                              -->
+  <!-- ══════════════════════════════════════════════ -->
+  <div class="section" id="section-voiceover">
+    <div class="vo-layout">
+
+      <!-- ── LEFT: Controls ───────────────────────── -->
+      <div>
+
+        <!-- Step 1: Voice Selection -->
+        <div class="vo-step-card">
+          <div class="vo-step-header">
+            <span class="vo-step-num">01</span>
+            <div>
+              <h3>Choose Voice</h3>
+              <p>Select a character voice — 8 BytePlus Seed-TTS voices</p>
+            </div>
+          </div>
+          <div class="voice-gender-tabs">
+            <button class="vg-tab active" data-gender="all">All (8)</button>
+            <button class="vg-tab" data-gender="female">♀ Female (5)</button>
+            <button class="vg-tab" data-gender="male">♂ Male (3)</button>
+          </div>
+          <div class="voice-grid" id="vo-voice-grid"><!-- JS rendered --></div>
+        </div>
+
+        <!-- Step 2: Style & Language -->
+        <div class="vo-step-card">
+          <div class="vo-step-header">
+            <span class="vo-step-num">02</span>
+            <div>
+              <h3>Style & Language</h3>
+              <p>Set the delivery tone, language, and template</p>
+            </div>
+          </div>
+
+          <div class="tmpl-label">Quick Templates</div>
+          <div class="tmpl-chips" id="vo-tmpl-chips"></div>
+
+          <label>Style Instructions <span style="color:#555;font-weight:400">(optional)</span></label>
+          <textarea id="vo-style" class="vo-textarea" style="min-height:60px"
+            placeholder="e.g. Speak slowly with gravitas, pause after each sentence, build tension…"></textarea>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:2px">
+            <div>
+              <label>Tone</label>
+              <select id="vo-tone" style="width:100%;background:#0e0e18;border:1px solid #2a2a3a;border-radius:8px;color:#e0e0e0;font-size:.83rem;padding:8px 11px;outline:none">
+                <option value="">— Default —</option>
+                <option>Dramatic</option>
+                <option>Authoritative</option>
+                <option>Warm &amp; Friendly</option>
+                <option>Energetic</option>
+                <option>Calm &amp; Soothing</option>
+                <option>Mysterious</option>
+                <option>Inspirational</option>
+                <option>Conversational</option>
+                <option>Urgent</option>
+                <option>Playful</option>
+                <option>Serious</option>
+              </select>
+            </div>
+            <div>
+              <label>Speaking Pace</label>
+              <select id="vo-pace" style="width:100%;background:#0e0e18;border:1px solid #2a2a3a;border-radius:8px;color:#e0e0e0;font-size:.83rem;padding:8px 11px;outline:none">
+                <option value="">— Default —</option>
+                <option>Very slow</option>
+                <option>Slow</option>
+                <option>Moderate</option>
+                <option>Fast</option>
+                <option>Very fast</option>
+              </select>
+            </div>
+          </div>
+
+          <label style="margin-top:12px">Language</label>
+          <select id="vo-language" style="width:100%;background:#0e0e18;border:1px solid #2a2a3a;border-radius:8px;color:#e0e0e0;font-size:.83rem;padding:8px 11px;outline:none">
+            <option>English</option>
+            <option>Russian</option>
+            <option>Uzbek</option>
+            <option>Spanish</option>
+            <option>French</option>
+            <option>German</option>
+            <option>Arabic</option>
+            <option>Japanese</option>
+            <option>Korean</option>
+            <option>Chinese (Mandarin)</option>
+            <option>Portuguese</option>
+            <option>Italian</option>
+            <option>Hindi</option>
+            <option>Turkish</option>
+            <option>Dutch</option>
+            <option>Polish</option>
+            <option>Swedish</option>
+          </select>
+        </div>
+
+        <!-- Step 3: Script -->
+        <div class="vo-step-card">
+          <div class="vo-step-header">
+            <span class="vo-step-num">03</span>
+            <div>
+              <h3>Your Script</h3>
+              <p>Write, paste, or let AI enhance your voice over</p>
+            </div>
+          </div>
+
+          <div class="script-toolbar">
+            <span class="script-charcount" id="vo-charcount">0 / 5000 characters</span>
+            <button class="btn-enhance" id="btn-vo-enhance">
+              <span class="enh-spin"></span>
+              ✨ AI Enhance
+            </button>
+          </div>
+          <textarea id="vo-script" class="vo-textarea" maxlength="5000"
+            placeholder="Enter your script here… e.g.
+In a world where every second counts, one product stands above the rest.
+Introducing the future — built for those who dare to lead."></textarea>
+
+          <div class="fmt-row" style="margin-top:14px">
+            <label style="margin:0;font-size:.78rem;color:#666;flex-shrink:0">Output Format</label>
+            <div style="display:flex;gap:6px">
+              <button class="fmt-btn active" id="fmt-mp3" data-fmt="mp3"
+                style="padding:4px 14px;border-radius:20px;border:1px solid #60a5fa44;background:#0c1623;color:#60a5fa;cursor:pointer;font-size:.75rem;font-weight:600;transition:all .2s">
+                MP3 <span style="opacity:.6;font-size:.68rem">128kbps</span>
+              </button>
+              <button class="fmt-btn" id="fmt-wav" data-fmt="wav"
+                style="padding:4px 14px;border-radius:20px;border:1px solid #2a2a3a;background:#0e0e18;color:#666;cursor:pointer;font-size:.75rem;font-weight:600;transition:all .2s">
+                WAV <span style="opacity:.6;font-size:.68rem">Lossless</span>
+              </button>
+            </div>
+          </div>
+
+          <button class="btn-vo-generate" id="btn-vo-generate">
+            <span>🎙️</span> Generate Voice Over
+          </button>
+          <div id="vo-timer" style="text-align:center;font-size:.75rem;color:#555;margin-top:8px;display:none">
+            <span id="vo-timer-txt">⏱ Generating… 0s</span>
+            <div style="margin-top:6px;height:2px;background:#1e1e2e;border-radius:2px;overflow:hidden">
+              <div id="vo-progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#7c3aed,#60a5fa);transition:width .5s;border-radius:2px"></div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /left -->
+
+      <!-- ── RIGHT: Selected voice + Results ─────── -->
+      <div class="vo-results-panel">
+
+        <!-- Selected voice info -->
+        <div class="selected-voice-panel" id="vo-selected-panel">
+          <div class="svp-label">Selected Voice</div>
+          <div class="svp-voice">
+            <div class="svp-avatar" id="svp-avatar">🎙️</div>
+            <div>
+              <div class="svp-name" id="svp-name">James</div>
+              <div class="svp-sub" id="svp-sub">♂ Male · Conversational · English</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Results -->
+        <div class="vo-results-card">
+          <div class="results-title" style="margin-bottom:16px">Generated Voice Overs</div>
+          <div id="vo-results">
+            <div class="vo-empty">
+              <div class="vo-empty-icon">🎙️</div>
+              <div>Your voice overs will appear here</div>
+              <div style="font-size:.72rem;margin-top:6px;color:#333">Select a voice and write your script to begin</div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /right -->
+
+    </div>
+  </div>
+
+
+</div><!-- /wrapper -->
+
+<!-- History Section -->
+<div class="history-section">
+  <div class="history-header">
+    <h2>Generation History</h2>
+    <button onclick="loadAudioHistory()" style="padding:6px 14px;border-radius:7px;border:1px solid #2a2a3a;background:#0e0e18;color:#888;cursor:pointer;font-size:.78rem">↻ Refresh</button>
+  </div>
+  <div class="history-grid" id="audio-history-grid">
+    <div class="history-empty">Loading history…</div>
+  </div>
+</div>
+
+<script>
+// ─── Tab switching ──────────────────────────────────────
+document.querySelectorAll('.section-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.section-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('section-' + tab.dataset.section).classList.add('active');
+  });
+});
+
+function initSubTabs(containerSelector, panelPrefix) {
+  document.querySelectorAll(`${containerSelector} .sub-tab`).forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll(`${containerSelector} .sub-tab`).forEach(t => t.classList.remove('active'));
+      document.querySelectorAll(`#${panelPrefix} .panel`).forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(`panel-${tab.dataset.panel}`)?.classList.add('active');
+    });
+  });
+}
+initSubTabs('#section-music .sub-tabs', 'section-music');
+initSubTabs('#mmaudio-sub-tabs',        'section-mmaudio');
+
+// ─── Upload helpers ─────────────────────────────────────
+function initAudioUpload({ srcTabsId, urlWrapId, uploadWrapId, dropzoneId, fileInputId, uploadingId, previewId, fnameId, rmId, onUploaded }) {
+  let uploadedUrl = null;
+
+  const srcTabs   = document.getElementById(srcTabsId)?.querySelectorAll('.src-tab');
+  const urlWrap   = document.getElementById(urlWrapId);
+  const upWrap    = document.getElementById(uploadWrapId);
+  const dropzone  = document.getElementById(dropzoneId);
+  const fileInput = document.getElementById(fileInputId);
+  const uploading = document.getElementById(uploadingId);
+  const preview   = document.getElementById(previewId);
+  const fnameEl   = document.getElementById(fnameId);
+  const rmEl      = document.getElementById(rmId);
+
+  srcTabs?.forEach(tab => {
+    tab.addEventListener('click', () => {
+      srcTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const src = tab.dataset.src;
+      if (urlWrap)  urlWrap.style.display  = src === 'url'    ? 'block' : 'none';
+      if (upWrap)   upWrap.style.display   = src === 'upload' ? 'block' : 'none';
+      if (src === 'url') { uploadedUrl = null; onUploaded(null); }
+    });
+  });
+
+  dropzone?.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+  dropzone?.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+  dropzone?.addEventListener('drop', e => { e.preventDefault(); dropzone.classList.remove('drag-over'); const f = e.dataTransfer.files[0]; if (f) doUpload(f); });
+  fileInput?.addEventListener('change', e => { if (e.target.files[0]) doUpload(e.target.files[0]); });
+  rmEl?.addEventListener('click', () => { uploadedUrl = null; onUploaded(null); preview.style.display = 'none'; fileInput.value = ''; dropzone.style.display = 'block'; });
+
+  async function doUpload(file) {
+    uploading.style.display = 'block';
+    dropzone.style.display  = 'none';
+    const fd = new FormData();
+    fd.append('file', file);
+    try {
+      const res  = await fetch('/upload', { method:'POST', body: fd });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      uploadedUrl = data.url;
+      onUploaded(uploadedUrl);
+      if (fnameEl) fnameEl.textContent = file.name;
+      preview.style.display = 'block';
+    } catch (e) {
+      alert('Upload failed: ' + e.message);
+      dropzone.style.display = 'block';
+    } finally {
+      uploading.style.display = 'none';
+    }
+  }
+
+  return { getUrl: () => uploadedUrl };
+}
+
+// init remix upload
+let remixUploadedUrl = null;
+const remixUploader = initAudioUpload({
+  srcTabsId:'remix-src-tabs', urlWrapId:'remix-url-wrap', uploadWrapId:'remix-upload-wrap',
+  dropzoneId:'remix-dropzone', fileInputId:'remix-file', uploadingId:'remix-uploading',
+  previewId:'remix-preview', fnameId:'remix-fname', rmId:'remix-rm',
+  onUploaded: url => { remixUploadedUrl = url; }
+});
+
+let lipsyncAudioUploadedUrl = null;
+const lipsyncAudioUploader = initAudioUpload({
+  srcTabsId:'lipsync-audio-tabs', urlWrapId:'lipsync-audio-url-wrap', uploadWrapId:'lipsync-audio-upload-wrap',
+  dropzoneId:'lipsync-dropzone', fileInputId:'lipsync-audio-file', uploadingId:'lipsync-uploading',
+  previewId:'lipsync-preview', fnameId:'lipsync-fname', rmId:'lipsync-rm',
+  onUploaded: url => { lipsyncAudioUploadedUrl = url; }
+});
+
+let lipsyncVideoUploadedUrl = null;
+const lipsyncVideoUploader = initAudioUpload({
+  srcTabsId:'lipsync-video-tabs', urlWrapId:'lipsync-video-url-wrap', uploadWrapId:'lipsync-video-upload-wrap',
+  dropzoneId:'lipsync-video-dropzone', fileInputId:'lipsync-video-file', uploadingId:'lipsync-video-uploading',
+  previewId:'lipsync-video-preview', fnameId:'lipsync-video-fname', rmId:'lipsync-video-rm',
+  onUploaded: url => { lipsyncVideoUploadedUrl = url; }
+});
+
+let extendUploadedUrl = null;
+const extendUploader = initAudioUpload({
+  srcTabsId:'extend-src-tabs', urlWrapId:'extend-url-wrap', uploadWrapId:'extend-upload-wrap',
+  dropzoneId:'extend-dropzone', fileInputId:'extend-file', uploadingId:'extend-uploading',
+  previewId:'extend-preview', fnameId:'extend-fname', rmId:'extend-rm',
+  onUploaded: url => { extendUploadedUrl = url; }
+});
+
+// ─── Generic submit + poll ───────────────────────────────
+async function submitJob(endpoint, payload, resultsId, label, mediaType='audio') {
+  const resultsEl = document.getElementById(resultsId);
+  resultsEl.querySelector('.empty-state')?.remove();
+
+  try {
+    const res  = await fetch(endpoint, {
+      method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.error) { alert('Error: ' + data.error); return; }
+    addResultCard(resultsEl, data.request_id, label, payload.prompt || '', mediaType);
+    pollResult(data.request_id, resultsEl, mediaType);
+  } catch (e) {
+    alert('Request failed: ' + e.message);
+  }
+}
+
+function addResultCard(container, requestId, label, desc, mediaType) {
+  const el = document.createElement('div');
+  el.className = 'result-item';
+  el.id = 'res-' + requestId;
+  el.innerHTML = `
+    <div class="result-header">
+      <div>
+        <div class="result-label">${esc(label)}</div>
+        ${desc ? `<div class="result-desc">"${esc(desc)}"</div>` : ''}
+      </div>
+      <span class="badge processing"><span class="spinner"></span> Processing</span>
+    </div>
+    <div class="res-body"></div>`;
+  container.prepend(el);
+}
+
+function pollResult(requestId, container, mediaType) {
+  const interval = setInterval(async () => {
+    try {
+      const res  = await fetch('/api/audio/status/' + requestId, { headers: {} });
+      const data = await res.json();
+      const el   = document.getElementById('res-' + requestId);
+      if (!el) { clearInterval(interval); return; }
+      const badge = el.querySelector('.badge');
+      const body  = el.querySelector('.res-body');
+
+      if (data.status === 'completed') {
+        clearInterval(interval);
+        badge.className = 'badge completed';
+        badge.textContent = '✓ Done';
+        const url = data.url;
+        if (url) {
+          if (mediaType === 'audio') {
+            body.innerHTML = `<audio controls src="${url}"></audio><a class="dl-btn" href="/audio-download/${requestId}" download>⬇ Download</a>`;
+          } else {
+            body.innerHTML = `<video controls src="${url}"></video><a class="dl-btn" href="/audio-download/${requestId}" download>⬇ Download</a>`;
+          }
+          loadAudioHistory();
+        } else {
+          body.innerHTML = `<div class="err-txt">Completed but no media URL found in response.</div>`;
+        }
+      } else if (data.status === 'failed') {
+        clearInterval(interval);
+        badge.className = 'badge failed';
+        badge.textContent = '✗ Failed';
+        body.innerHTML = `<div class="err-txt">${esc(data.error || 'Generation failed.')}</div>`;
+      }
+    } catch (e) { console.error('Poll error:', e); }
+  }, 4000);
+}
+
+// ─── Music: Create ──────────────────────────────────────
+document.getElementById('btn-music-create').addEventListener('click', async function() {
+  const prompt = document.getElementById('music-create-prompt').value.trim();
+  const style  = document.getElementById('music-create-style').value.trim();
+  if (!prompt) { alert('Please enter a prompt.'); return; }
+  if (!style)  { alert('Please enter a style (e.g. lo-fi, cinematic, jazz).'); return; }
+  setBtn(this, true, 'Generating…');
+  await submitJob('/api/audio/suno-create',
+    { prompt, style, duration: document.getElementById('music-create-dur').value },
+    'music-results', 'Suno — New Track', 'audio');
+  setBtn(this, false, 'Generate Music');
+});
+
+// ─── Music: Remix ───────────────────────────────────────
+document.getElementById('btn-music-remix').addEventListener('click', async function() {
+  const audioUrl = remixUploadedUrl || document.getElementById('remix-audio-url')?.value.trim();
+  const prompt   = document.getElementById('music-remix-prompt').value.trim();
+  if (!audioUrl) { alert('Please provide a source audio URL or upload a file.'); return; }
+  setBtn(this, true, 'Remixing…');
+  await submitJob('/api/audio/suno-remix',
+    { audio_url: audioUrl, prompt },
+    'music-results', 'Suno — Remix', 'audio');
+  setBtn(this, false, 'Remix Track');
+});
+
+// ─── Music: Extend ──────────────────────────────────────
+document.getElementById('btn-music-extend').addEventListener('click', async function() {
+  const audioUrl = extendUploadedUrl || document.getElementById('extend-audio-url')?.value.trim();
+  const prompt   = document.getElementById('music-extend-prompt').value.trim();
+  if (!audioUrl) { alert('Please upload an MP3 or paste a source audio URL.'); return; }
+  setBtn(this, true, 'Extending…');
+  await submitJob('/api/audio/suno-extend',
+    { audio_url: audioUrl, prompt, duration: document.getElementById('music-extend-dur').value },
+    'music-results', 'Suno — Extended', 'audio');
+  setBtn(this, false, 'Extend Track');
+});
+
+// ─── Lip-Sync ───────────────────────────────────────────
+document.getElementById('btn-lipsync').addEventListener('click', async function() {
+  const videoUrl = lipsyncVideoUploadedUrl || document.getElementById('lipsync-video-url')?.value.trim();
+  const audioUrl = lipsyncAudioUploadedUrl || document.getElementById('lipsync-audio-url')?.value.trim();
+  const model    = document.getElementById('lipsync-model').value;
+  if (!videoUrl) { alert('Please provide a video URL or upload a file.'); return; }
+  if (!audioUrl) { alert('Please provide an audio URL or upload a file.'); return; }
+  setBtn(this, true, 'Syncing…');
+  const modelLabel = document.getElementById('lipsync-model').selectedOptions[0].text;
+  await submitJob('/api/audio/lipsync',
+    { video_url: videoUrl, audio_url: audioUrl, model },
+    'lipsync-results', 'Lip-Sync — ' + modelLabel, 'video');
+  setBtn(this, false, 'Sync Lips');
+});
+
+// ─── MMAudio: Text → Audio ──────────────────────────────
+document.getElementById('btn-t2a').addEventListener('click', async function() {
+  const prompt = document.getElementById('t2a-prompt').value.trim();
+  if (!prompt) { alert('Please enter a prompt.'); return; }
+  setBtn(this, true, 'Generating…');
+  await submitJob('/api/audio/mmaudio-text',
+    { prompt, duration: document.getElementById('t2a-dur').value },
+    'mmaudio-results', 'MMAudio — Sound Effect', 'audio');
+  setBtn(this, false, 'Generate Audio');
+});
+
+// ─── MMAudio: Video → Audio (upload support) ─────────────
+let v2vUploadedUrl = null;
+let v2vSrcMode = 'upload';
+
+document.querySelectorAll('#v2v-src-tabs .src-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('#v2v-src-tabs .src-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    v2vSrcMode = tab.dataset.src;
+    document.getElementById('v2v-upload-wrap').style.display = v2vSrcMode === 'upload' ? 'block' : 'none';
+    document.getElementById('v2v-url-wrap').style.display   = v2vSrcMode === 'url'    ? 'block' : 'none';
+    if (v2vSrcMode === 'url') v2vUploadedUrl = null;
+  });
+});
+
+const v2vDropzone = document.getElementById('v2v-dropzone');
+v2vDropzone.addEventListener('dragover', e => { e.preventDefault(); v2vDropzone.classList.add('drag-over'); });
+v2vDropzone.addEventListener('dragleave', () => v2vDropzone.classList.remove('drag-over'));
+v2vDropzone.addEventListener('drop', e => {
+  e.preventDefault(); v2vDropzone.classList.remove('drag-over');
+  const f = e.dataTransfer.files[0]; if (f) uploadV2VVideo(f);
+});
+document.getElementById('v2v-file').addEventListener('change', e => { if (e.target.files[0]) uploadV2VVideo(e.target.files[0]); });
+document.getElementById('v2v-rm').addEventListener('click', () => {
+  v2vUploadedUrl = null;
+  document.getElementById('v2v-preview').style.display = 'none';
+  document.getElementById('v2v-file').value = '';
+  v2vDropzone.style.display = 'block';
+});
+
+async function uploadV2VVideo(file) {
+  v2vDropzone.style.display = 'none';
+  document.getElementById('v2v-uploading').style.display = 'block';
+  const fd = new FormData(); fd.append('file', file);
+  try {
+    const res  = await fetch('/upload', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    v2vUploadedUrl = data.url;
+    document.getElementById('v2v-fname').textContent = file.name;
+    document.getElementById('v2v-preview').style.display = 'block';
+  } catch (e) {
+    alert('Upload failed: ' + e.message);
+    v2vDropzone.style.display = 'block';
+  } finally {
+    document.getElementById('v2v-uploading').style.display = 'none';
+  }
+}
+
+document.getElementById('btn-v2v').addEventListener('click', async function() {
+  const videoUrl = v2vSrcMode === 'upload'
+    ? v2vUploadedUrl
+    : document.getElementById('v2v-video-url').value.trim();
+  const prompt = document.getElementById('v2v-prompt').value.trim();
+  if (!videoUrl) { alert('Please upload a video or paste a URL.'); return; }
+  setBtn(this, true, 'Generating…');
+  await submitJob('/api/audio/mmaudio-video',
+    { video_url: videoUrl, prompt },
+    'mmaudio-results', 'MMAudio — Video Sync', 'audio');
+  setBtn(this, false, 'Generate Audio');
+});
+
+// ─── Voice Clone (BytePlus MegaTTS) ─────────────────────────
+let vcUploadedUrl = null;
+let vcSrcMode = 'upload';
+
+// Source mode tabs
+document.querySelectorAll('#vc-src-tabs .src-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('#vc-src-tabs .src-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    vcSrcMode = tab.dataset.src;
+    document.getElementById('vc-upload-wrap').style.display = vcSrcMode === 'upload' ? 'block' : 'none';
+    document.getElementById('vc-url-wrap').style.display   = vcSrcMode === 'url'    ? 'block' : 'none';
+    if (vcSrcMode === 'url') vcUploadedUrl = null;
+  });
+});
+
+// Drag & drop
+const vcDz = document.getElementById('vc-dropzone');
+vcDz.addEventListener('dragover', e => { e.preventDefault(); vcDz.classList.add('drag-over'); });
+vcDz.addEventListener('dragleave', () => vcDz.classList.remove('drag-over'));
+vcDz.addEventListener('drop', e => { e.preventDefault(); vcDz.classList.remove('drag-over'); const f = e.dataTransfer.files[0]; if (f) vcUploadFile(f); });
+document.getElementById('vc-file').addEventListener('change', e => { if (e.target.files[0]) vcUploadFile(e.target.files[0]); });
+
+document.getElementById('vc-rm').addEventListener('click', () => {
+  vcUploadedUrl = null;
+  document.getElementById('vc-preview').style.display = 'none';
+  document.getElementById('vc-file').value = '';
+  vcDz.style.display = 'block';
+  document.getElementById('vc-audio-preview').src = '';
+});
+
+async function vcUploadFile(file) {
+  document.getElementById('vc-uploading').style.display = 'block';
+  vcDz.style.display = 'none';
+  const fd = new FormData();
+  fd.append('file', file);
+  try {
+    const res  = await fetch('/upload', { method:'POST', body: fd });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    vcUploadedUrl = data.url;
+    document.getElementById('vc-fname').textContent = file.name;
+    document.getElementById('vc-audio-preview').src = vcUploadedUrl;
+    document.getElementById('vc-preview').style.display = 'block';
+  } catch (e) {
+    alert('Upload failed: ' + e.message);
+    vcDz.style.display = 'block';
+  } finally {
+    document.getElementById('vc-uploading').style.display = 'none';
+  }
+}
+
+// Speaker ID hint
+document.getElementById('vc-voice-id').addEventListener('input', function() {
+  const v = this.value.trim();
+  const hint = document.getElementById('vc-id-hint');
+  if (!v) {
+    hint.style.color = '#555';
+    hint.textContent = 'Unique identifier for this voice. Reuse it later to synthesize more audio.';
+    return;
+  }
+  if (v.length < 4) {
+    hint.style.color = '#f59e0b';
+    hint.textContent = '⚠ Too short — minimum 4 characters';
+  } else {
+    hint.style.color = '#34d399';
+    hint.textContent = '✓ Valid Speaker ID';
+  }
+});
+
+// Submit — Step 1: send to BytePlus for training
+document.getElementById('btn-voice-clone').addEventListener('click', async function() {
+  const audioUrl   = vcSrcMode === 'upload' ? vcUploadedUrl : document.getElementById('vc-audio-url').value.trim();
+  const speakerId  = document.getElementById('vc-voice-id').value.trim();
+  const previewTxt = document.getElementById('vc-prompt').value.trim();
+
+  if (!audioUrl)              { alert('Please upload a reference audio file or paste a URL.'); return; }
+  if (!speakerId)             { alert('Please enter a Speaker ID.'); return; }
+  if (speakerId.length < 4)  { alert('Speaker ID must be at least 4 characters.'); return; }
+
+  setBtn(this, true, '⏳ Submitting…');
+
+  try {
+    const res = await fetch('/api/audio/voice-clone', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        audio_url:                 audioUrl,
+        speaker_id:                speakerId,
+        model_type:                parseInt(document.getElementById('vc-model').value, 10),
+        need_noise_reduction:      document.getElementById('vc-noise').checked,
+        need_volume_normalization: document.getElementById('vc-normalize').checked,
+      }),
+    });
+    const data = await res.json();
+    if (data.error) { alert('Error: ' + data.error); return; }
+
+    // Add a result card and start polling
+    const resultsEl = document.getElementById('vc-results');
+    resultsEl.querySelector('.empty-state')?.remove();
+    vcAddCard(resultsEl, speakerId, previewTxt);
+    vcPollStatus(speakerId, previewTxt);
+  } catch (e) {
+    alert('Request failed: ' + e.message);
+  } finally {
+    setBtn(this, false, '🎙️ Start Voice Cloning');
+  }
+});
+
+// Create a result card for a cloning job
+function vcAddCard(container, speakerId, previewTxt) {
+  const card = document.createElement('div');
+  card.className = 'result-card';
+  card.id = 'vc-card-' + speakerId;
+  card.innerHTML = `
+    <div class="res-header">
+      <div class="res-meta">
+        <span class="res-title">Speaker: <b>${esc(speakerId)}</b></span>
+        <span class="badge processing" id="vc-badge-${esc(speakerId)}">⏳ Training…</span>
+      </div>
+    </div>
+    <div class="res-body" id="vc-body-${esc(speakerId)}">
+      <div style="color:#888;font-size:.82rem">Model is training your voice. This takes 1–3 minutes…</div>
+    </div>`;
+  container.prepend(card);
+}
+
+// Status labels for BytePlus clone status codes
+const VC_STATUS_LABEL = { not_found:'Not Found', training:'Training…', success:'Ready', failed:'Failed', active:'Active', unknown:'Unknown' };
+const VC_STATUS_BADGE = { not_found:'processing', training:'processing', success:'completed', failed:'failed', active:'completed', unknown:'processing' };
+
+// Poll until success / failed
+function vcPollStatus(speakerId, previewTxt) {
+  const timer = setInterval(async () => {
+    try {
+      const res  = await fetch('/api/audio/voice-clone/status/' + encodeURIComponent(speakerId));
+      const data = await res.json();
+
+      const badge = document.getElementById('vc-badge-' + speakerId);
+      const body  = document.getElementById('vc-body-'  + speakerId);
+      if (!badge) { clearInterval(timer); return; }
+
+      const st = data.status || 'unknown';
+      badge.className   = 'badge ' + (VC_STATUS_BADGE[st] || 'processing');
+      badge.textContent = VC_STATUS_LABEL[st] || st;
+
+      if (st === 'success' || st === 'active') {
+        clearInterval(timer);
+        // Show demo audio if returned, then auto-synthesize preview
+        let html = `<div style="color:#34d399;font-size:.82rem;margin-bottom:8px">✓ Voice trained! Speaker ID: <code style="background:#1a1a2e;padding:2px 6px;border-radius:4px">${esc(speakerId)}</code></div>`;
+        if (data.demo_audio) {
+          html += `<div style="font-size:.75rem;color:#888;margin-bottom:4px">Demo audio from BytePlus:</div>
+                   <audio controls src="${esc(data.demo_audio)}" style="width:100%;border-radius:7px;margin-bottom:10px"></audio>`;
+        }
+        if (previewTxt) {
+          html += `<div style="font-size:.75rem;color:#888;margin-bottom:6px">Synthesizing your preview text…</div>
+                   <div id="vc-synth-${esc(speakerId)}"><div class="spinner" style="display:inline-block;width:14px;height:14px;border:2px solid #555;border-top-color:#a78bfa;border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle"></div> Generating…</div>`;
+          body.innerHTML = html;
+          vcSynthesize(speakerId, previewTxt);
+        } else {
+          body.innerHTML = html;
+        }
+        loadAudioHistory();
+      } else if (st === 'failed') {
+        clearInterval(timer);
+        body.innerHTML = `<div class="err-txt">${esc(data.error || 'Voice cloning failed on the server.')}</div>`;
+      }
+    } catch (e) { console.error('VC poll error:', e); }
+  }, 5000);
+}
+
+// Step 2: synthesize preview with the cloned voice
+async function vcSynthesize(speakerId, text) {
+  const synthEl = document.getElementById('vc-synth-' + speakerId);
+  try {
+    const res  = await fetch('/api/audio/voice-clone/synthesize', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ speaker_id: speakerId, text }),
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    if (synthEl) {
+      synthEl.innerHTML = `
+        <audio controls src="${data.url}" style="width:100%;border-radius:7px;margin-top:4px"></audio>
+        <a class="dl-btn" href="${data.url}" download>⬇ Download Preview</a>`;
+    }
+    loadAudioHistory();
+  } catch (e) {
+    if (synthEl) synthEl.innerHTML = `<div class="err-txt">Preview synthesis failed: ${esc(e.message)}</div>`;
+  }
+}
+
+// ─── Voice Over Studio ──────────────────────────────────
+// BytePlus Seed-TTS 2.0 preset voice IDs
+// name = voice_type sent to the API, label = display name shown in UI
+const VO_VOICES = [
+  // ── Female voices ────────────────────────────────────────────────────────
+  // Confirmed from BytePlus console (mars cluster)
+  { name:'zh_female_jitangmeimei_mars_bigtts',  label:'Grace',   trait:'Warm',       gender:'female' },
+  { name:'zh_female_linjia_mars_bigtts',         label:'Lily',    trait:'General',    gender:'female' },
+  { name:'zh_female_shaoergushi_mars_bigtts',    label:'Tina',    trait:'Dubbing',    gender:'female' },
+  // Additional female voices (moon cluster — test in your account; remove if error)
+  { name:'zh_female_wanwanxiaohe_moon_bigtts',   label:'Mei',     trait:'Bright',     gender:'female' },
+  { name:'zh_female_shuangkuaisisi_moon_bigtts', label:'Sisi',    trait:'Energetic',  gender:'female' },
+  // ── Male voices ──────────────────────────────────────────────────────────
+  // Confirmed working ✓
+  { name:'zh_male_jieshuonansheng_mars_bigtts',  label:'James',   trait:'Dubbing',    gender:'male' },
+  { name:'zh_male_silang_mars_bigtts',           label:'William', trait:'Dubbing',    gender:'male' },
+  { name:'zh_male_jingqiangkanye_moon_bigtts',   label:'Wei',     trait:'Strong',     gender:'male' },
+];
+
+const VO_TEMPLATES = [
+  { label:'🎬 Cinematic',    style:'Speak with cinematic gravitas — slow, powerful, and emotionally resonant. Build tension with deliberate pacing.' },
+  { label:'📢 Advertising',  style:'Energetic, persuasive, and confident. Clear articulation, punchy delivery. Build excitement toward a call-to-action.' },
+  { label:'🎙️ Narrator',    style:'Clear, authoritative storytelling voice. Measured pace, warm tone, keeps the listener engaged throughout.' },
+  { label:'📰 Documentary',  style:'Calm, objective, and informative. Professional broadcaster tone with precise diction and steady pacing.' },
+  { label:'🎧 Podcast',      style:'Conversational, relaxed, and approachable. Speak like a trusted friend — warm, natural, and engaging.' },
+  { label:'📖 Audiobook',    style:'Expressive storytelling with character differentiation. Vivid, immersive narration that brings the text to life.' },
+  { label:'🔔 Notification', style:'Concise, clear, and friendly. Short, punchy delivery with a helpful and professional tone.' },
+  { label:'🌙 ASMR',         style:'Extremely soft, slow, and soothing. Near-whisper delivery with gentle emphasis and long pauses.' },
+];
+
+let voSelectedVoice = 'zh_male_jieshuonansheng_mars_bigtts'; // James — confirmed working
+let voGenderFilter  = 'all';
+let voActiveTemplate = null;
+
+function renderVoiceGrid() {
+  const grid = document.getElementById('vo-voice-grid');
+  const filtered = voGenderFilter === 'all' ? VO_VOICES : VO_VOICES.filter(v => v.gender === voGenderFilter);
+  grid.innerHTML = filtered.map(v => `
+    <div class="voice-card${v.name === voSelectedVoice ? ' selected' : ''}" data-voice="${v.name}" onclick="selectVoice('${v.name}')">
+      <div class="vc-name">${v.label || v.name}</div>
+      <div class="vc-trait">${v.trait}</div>
+      <div class="vc-badges">
+        <span class="vc-gender ${v.gender}">${v.gender === 'female' ? '♀' : '♂'}</span>
+        <button class="vc-preview" data-voice="${v.name}" onclick="event.stopPropagation();previewVoice('${v.name}',this)">▶ Preview</button>
+      </div>
+    </div>`).join('');
+}
+
+function selectVoice(name) {
+  voSelectedVoice = name;
+  renderVoiceGrid();
+  const v = VO_VOICES.find(x => x.name === name);
+  if (!v) return;
+  document.getElementById('svp-name').textContent = v.label || v.name;
+  document.getElementById('svp-sub').textContent =
+    `${v.gender === 'female' ? '♀ Female' : '♂ Male'} · ${v.trait} · ${document.getElementById('vo-language').value}`;
+  document.getElementById('svp-avatar').textContent = v.gender === 'female' ? '👩' : '👨';
+}
+
+// Gender filter tabs
+document.querySelectorAll('.vg-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.vg-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    voGenderFilter = tab.dataset.gender;
+    renderVoiceGrid();
+  });
+});
+
+// Templates
+const tmplContainer = document.getElementById('vo-tmpl-chips');
+VO_TEMPLATES.forEach(t => {
+  const chip = document.createElement('button');
+  chip.className = 'tmpl-chip';
+  chip.textContent = t.label;
+  chip.dataset.style = t.style;
+  chip.addEventListener('click', () => {
+    if (chip.classList.contains('active')) {
+      chip.classList.remove('active');
+      document.getElementById('vo-style').value = '';
+      voActiveTemplate = null;
+    } else {
+      document.querySelectorAll('.tmpl-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      document.getElementById('vo-style').value = t.style;
+      voActiveTemplate = t.label;
+    }
+  });
+  tmplContainer.appendChild(chip);
+});
+
+// Character counter
+document.getElementById('vo-script').addEventListener('input', function() {
+  document.getElementById('vo-charcount').textContent = `${this.value.length.toLocaleString()} / 5,000 characters`;
+});
+
+// Language change → update subtitle
+document.getElementById('vo-language').addEventListener('change', () => selectVoice(voSelectedVoice));
+
+// Preview voice (short sample)
+async function previewVoice(voiceName, btnEl) {
+  if (btnEl.classList.contains('playing')) return;
+  btnEl.classList.add('playing');
+  btnEl.textContent = '⏳';
+  const sampleText = 'Welcome to our AI Voice Studio. This is a preview of my voice — how does it sound?';
+  try {
+    const res  = await fetch('/api/voiceover/generate', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ voice: voiceName, text: sampleText, style_instruction:'', language:'English' })
+    });
+    const data = await res.json();
+    if (data.error) { alert('Preview error: ' + data.error); return; }
+    const audio = new Audio(data.url);
+    audio.play();
+    audio.onended = () => { btnEl.classList.remove('playing'); btnEl.textContent = '▶ Preview'; };
+  } catch (e) {
+    alert('Preview failed: ' + e.message);
+    btnEl.classList.remove('playing');
+    btnEl.textContent = '▶ Preview';
+  }
+}
+
+// AI Enhance
+document.getElementById('btn-vo-enhance').addEventListener('click', async function() {
+  const script = document.getElementById('vo-script').value.trim();
+  if (!script) { alert('Please enter a script to enhance.'); return; }
+  this.classList.add('loading');
+  this.disabled = true;
+  try {
+    const res  = await fetch('/api/voiceover/enhance', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        script,
+        style: document.getElementById('vo-style').value.trim(),
+        template: voActiveTemplate || '',
+      })
+    });
+    const data = await res.json();
+    if (data.error) { alert('Enhance error: ' + data.error); return; }
+    document.getElementById('vo-script').value = data.enhanced;
+    document.getElementById('vo-charcount').textContent =
+      `${data.enhanced.length.toLocaleString()} / 5,000 characters`;
+  } catch (e) {
+    alert('Enhance failed: ' + e.message);
+  } finally {
+    this.classList.remove('loading');
+    this.disabled = false;
+  }
+});
+
+// Generate
+document.getElementById('btn-vo-generate').addEventListener('click', async function() {
+  const text = document.getElementById('vo-script').value.trim();
+  if (!text) { alert('Please enter a script.'); return; }
+
+  const resultsEl = document.getElementById('vo-results');
+  resultsEl.querySelector('.vo-empty')?.remove();
+
+  const cardId = 'vor-' + Date.now();
+  const card = document.createElement('div');
+  card.className = 'vo-result-item';
+  card.id = cardId;
+  const v = VO_VOICES.find(x => x.name === voSelectedVoice) || { trait:'', gender:'male' };
+  card.innerHTML = `
+    <div class="vo-result-meta">
+      <span>${esc(voSelectedVoice)} · ${esc(v.trait)}</span>
+      <span>${esc(document.getElementById('vo-language').value)}</span>
+      ${voActiveTemplate ? `<span>${esc(voActiveTemplate)}</span>` : ''}
+    </div>
+    <div class="vo-result-prompt">"${esc(text.slice(0,120))}${text.length > 120 ? '…' : ''}"</div>
+    <div class="result-header" style="margin-bottom:0">
+      <span></span>
+      <span class="badge processing"><span class="spinner"></span> Generating…</span>
+    </div>
+    <div class="vo-res-body"></div>`;
+  resultsEl.prepend(card);
+
+  this.disabled = true;
+  this.innerHTML = '<span class="spinner" style="border-color:#fff4;border-top-color:#fff;width:12px;height:12px"></span> Generating…';
+
+  try {
+    const res  = await fetch('/api/voiceover/generate', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        voice:             voSelectedVoice,
+        text,
+        style_instruction: document.getElementById('vo-style').value.trim(),
+        language:          document.getElementById('vo-language').value,
+        tone:              document.getElementById('vo-tone').value,
+        pace:              document.getElementById('vo-pace').value,
+      })
+    });
+    const data = await res.json();
+    const badge = card.querySelector('.badge');
+    const body  = card.querySelector('.vo-res-body');
+
+    if (data.error) {
+      badge.className = 'badge failed'; badge.textContent = '✗ Failed';
+      body.innerHTML = `<div class="err-txt">${esc(data.error)}</div>`;
+    } else {
+      badge.className = 'badge completed'; badge.textContent = '✓ Done';
+      body.innerHTML = `
+        <audio controls src="${esc(data.url)}" style="width:100%;border-radius:8px;margin-top:10px"></audio>
+        <div class="dl-row">
+          <a class="dl-wav" href="${esc(data.url)}" download="${esc(data.filename || 'voiceover.wav')}">
+            ⬇ Download WAV
+          </a>
+        </div>`;
+      loadAudioHistory();
+    }
+  } catch (e) {
+    const badge = card.querySelector('.badge');
+    const body  = card.querySelector('.vo-res-body');
+    badge.className = 'badge failed'; badge.textContent = '✗ Failed';
+    body.innerHTML = `<div class="err-txt">${esc(e.message)}</div>`;
+  } finally {
+    this.disabled = false;
+    this.innerHTML = '<span>🎙️</span> Generate Voice Over';
+  }
+});
+
+// Init on load
+renderVoiceGrid();
+selectVoice('Puck');
+
+// ─── Legacy music ───────────────────────────────────────
+document.getElementById('btn-lyria').addEventListener('click', async function() {
+  const prompt  = document.getElementById('lyria-prompt').value.trim();
+  const model   = document.getElementById('lyria-model').value;
+  const fmt     = document.getElementById('lyria-format').value;
+  if (!prompt) { alert('Please enter a prompt.'); return; }
+
+  const resultsEl = document.getElementById('music-results');
+  resultsEl.querySelector('.empty-state')?.remove();
+
+  const cardId = 'lyria-' + Date.now();
+  const modelLabel = model === 'lyria-3-pro-preview' ? 'Lyria 3 Pro' : 'Lyria 3 Clip';
+  const card = document.createElement('div');
+  card.className = 'result-item';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="result-header">
+      <div>
+        <div class="result-label">${esc(modelLabel)}</div>
+        <div class="result-desc">"${esc(prompt)}"</div>
+      </div>
+      <span class="badge processing"><span class="spinner"></span> Generating…</span>
+    </div>
+    <div class="res-body"></div>`;
+  resultsEl.prepend(card);
+
+  setBtn(this, true, '⏳ Generating…');
+  try {
+    const res  = await fetch('/api/audio/lyria', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model, prompt, output_format: fmt }),
+    });
+    const data = await res.json();
+    const badge = card.querySelector('.badge');
+    const body  = card.querySelector('.res-body');
+    if (data.error) {
+      badge.className = 'badge failed'; badge.textContent = '✗ Failed';
+      body.innerHTML = `<div class="err-txt">${esc(data.error)}</div>`;
+    } else {
+      badge.className = 'badge completed'; badge.textContent = '✓ Done';
+      const ext = data.mime_type && data.mime_type.includes('wav') ? 'wav' : 'mp3';
+      body.innerHTML = `
+        <audio controls src="${esc(data.url)}" style="width:100%;border-radius:7px;margin-top:6px"></audio>
+        <a class="dl-btn" href="${esc(data.url)}" download="lyria-${Date.now()}.${ext}">⬇ Download ${ext.toUpperCase()}</a>`;
+      loadAudioHistory();
+    }
+  } catch (e) {
+    const badge = card.querySelector('.badge');
+    const body  = card.querySelector('.res-body');
+    badge.className = 'badge failed'; badge.textContent = '✗ Failed';
+    body.innerHTML = `<div class="err-txt">${esc(e.message)}</div>`;
+  } finally {
+    setBtn(this, false, '🎼 Generate with Lyria');
+  }
+});
+
+// ─── Utils ──────────────────────────────────────────────
+function setBtn(btn, disabled, text) { btn.disabled = disabled; btn.textContent = text; }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ─── Audio History ───────────────────────────────────────
+async function loadAudioHistory() {
+  const grid = document.getElementById('audio-history-grid');
+  try {
+    const res  = await fetch('/api/history/audio', { headers: {} });
+    const data = await res.json();
+    const items = data.history || [];
+    if (!items.length) {
+      grid.innerHTML = '<div class="history-empty">No audio generations yet.</div>';
+      return;
+    }
+    grid.innerHTML = items.map(item => {
+      const date = new Date(item.created_at).toLocaleString();
+      const model = (item.model || '').replace('mmaudio-v2/', '').replace('-music', '');
+      const prompt = item.prompt || '';
+      const hasUrl = !!item.output_url;
+      const rid = item.specs || '';
+      return `<div class="history-card">
+        <div class="hc-model">${esc(model)}</div>
+        <div class="hc-prompt">${esc(prompt)}</div>
+        <div class="hc-date">${date}</div>
+        ${hasUrl ? `<audio controls src="${esc(item.output_url)}"></audio>
+          <a class="dl-btn" href="/audio-download/${esc(rid)}" download>⬇ Download</a>` : '<div class="hc-model" style="color:#f59e0b">⏳ Processing…</div>'}
+      </div>`;
+    }).join('');
+  } catch (e) {
+    grid.innerHTML = '<div class="history-empty">Failed to load history.</div>';
+  }
+}
+
+// Load history on page load
+loadAudioHistory();
+</script>
+
+{% include 'legal_footer.html' %}
+</body>
+</html>

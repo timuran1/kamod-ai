@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kling v3.0 — KAMOD AI</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0a0a0f;color:#e0e0e0;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:36px 20px 80px}
+    body.embed{padding:0;min-height:auto}
+    body.embed .wrapper{width:100%;max-width:none;padding:0 8px 24px}
+    body.embed .history-section{margin-top:24px}
+
+    nav{width:100%;max-width:1100px;display:flex;flex-direction:column;align-items:center;gap:12px;margin:0 auto 36px}
+    nav .logo{font-size:1.15rem;font-weight:700;background:linear-gradient(135deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.01em}
+    .nav-grouped{display:flex;align-items:flex-end;gap:0;background:#0d0d16;border:1px solid #1c1c2e;border-radius:13px;padding:5px 8px;overflow-x:auto;max-width:100%;scrollbar-width:none}
+    .nav-grouped::-webkit-scrollbar{display:none}
+    .nav-group{display:flex;flex-direction:column;align-items:center;gap:2px;padding:0 2px}
+    .nav-group-label{font-size:.58rem;font-weight:800;letter-spacing:.1em;color:#252535;text-transform:uppercase;transition:color .2s;padding:0 4px;user-select:none}
+    .nav-group.has-active .nav-group-label{color:#6060a0}
+    .nav-group-items{display:flex;gap:1px}
+    .nav-grouped a{color:#555;text-decoration:none;font-size:.77rem;font-weight:500;padding:6px 11px;border-radius:8px;transition:all .15s;white-space:nowrap;letter-spacing:.01em}
+    .nav-grouped a:hover{color:#bbb;background:rgba(255,255,255,0.05)}
+    .nav-grouped a.active{background:linear-gradient(135deg,#6d5fd6,#3b7dd8);color:#fff;font-weight:600;box-shadow:0 0 14px rgba(109,95,214,.45)}
+    .nav-sep{width:1px;height:28px;background:#1c1c2e;margin:0 5px 3px;flex-shrink:0;align-self:flex-end}
+
+    header{text-align:center;margin-bottom:28px}
+    header h1{font-size:2.2rem;font-weight:700;background:linear-gradient(135deg,#60a5fa,#a78bfa,#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    header p{color:#888;margin-top:8px;font-size:.95rem}
+
+    .wrapper{width:100%;max-width:1000px}
+
+    /* Section tabs */
+    .section-tabs{display:flex;gap:4px;margin-bottom:24px;background:#10101a;padding:5px;border-radius:12px;border:1px solid #1e1e2e}
+    .section-tab{flex:1;padding:10px 8px;border-radius:8px;border:none;background:none;color:#888;cursor:pointer;font-size:.85rem;font-weight:500;transition:all .2s;text-align:center}
+    .section-tab.active{background:#0e1a2e;color:#60a5fa;font-weight:600}
+    .section-tab:hover:not(.active){color:#ccc}
+    .section{display:none}
+    .section.active{display:block}
+
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+
+    /* Model cards */
+    .model-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+    .model-card{padding:14px 12px;border-radius:10px;border:1px solid #222233;background:#0e0e18;cursor:pointer;transition:all .15s;text-align:center}
+    .model-card:hover{border-color:#60a5fa55;background:#0e1a2e}
+    .model-card.selected{border-color:#60a5fa;background:#0e1a2e}
+    .model-card .mc-name{font-size:.8rem;font-weight:600;color:#ccc;margin-bottom:4px}
+    .model-card .mc-price{font-size:.68rem;color:#888;line-height:1.5}
+    .model-card .mc-desc{font-size:.68rem;color:#666;margin-top:4px;line-height:1.4}
+    .model-card.selected .mc-name{color:#60a5fa}
+    .model-card.selected .mc-price{color:#7dc4f5}
+
+    .card{background:#13131a;border:1px solid #222233;border-radius:14px;padding:22px;margin-bottom:16px}
+    .card h3{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#555;margin-bottom:14px}
+
+    label{display:block;font-size:.78rem;color:#999;margin-bottom:5px;margin-top:14px}
+    label:first-of-type{margin-top:0}
+    textarea,input[type=text],select{width:100%;background:#0e0e18;border:1px solid #2a2a3a;border-radius:8px;color:#e0e0e0;font-size:.85rem;padding:8px 11px;outline:none;transition:border-color .2s;font-family:inherit}
+    textarea{resize:vertical;min-height:100px}
+    textarea:focus,input:focus,select:focus{border-color:#60a5fa}
+
+    .row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+    /* Checkbox row */
+    .check-row{display:flex;align-items:center;gap:8px;margin-top:14px}
+    .check-row input[type=checkbox]{width:16px;height:16px;accent-color:#60a5fa;cursor:pointer}
+    .check-row label{margin:0;font-size:.8rem;color:#aaa;cursor:pointer}
+
+    /* Upload / dropzone */
+    .src-tabs{display:flex;gap:6px;margin-bottom:8px}
+    .src-tab{padding:4px 12px;border-radius:6px;border:1px solid #2a2a3a;background:#0e0e18;color:#888;cursor:pointer;font-size:.75rem;transition:all .15s}
+    .src-tab.active{border-color:#60a5fa;color:#60a5fa;background:#0e1a2e}
+    .dropzone{border:1px solid #1e1e2e;border-radius:8px;padding:10px 16px;text-align:center;cursor:pointer;position:relative;transition:all .2s;background:#0c0c18}
+    .dropzone:hover,.dropzone.drag-over{border-color:#60a5fa55;background:#0e1a2e}
+    .dropzone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+    .dropzone p{color:#555;font-size:.78rem;margin:0}
+    .dropzone p span{color:#60a5fa}
+    .preview-wrap{display:none;margin-top:8px}
+    .preview-wrap img{width:100%;border-radius:7px;border:1px solid #222233;max-height:180px;object-fit:cover}
+    .preview-wrap video{width:100%;border-radius:7px;border:1px solid #222233;max-height:180px;background:#000}
+    .preview-bar{display:flex;justify-content:space-between;align-items:center;background:#0e1a2e;border:1px solid #1e2a3e;border-radius:6px;padding:5px 10px;margin-bottom:6px;font-size:.78rem;color:#60a5fa}
+    .preview-bar .rm{cursor:pointer;color:#f87171;font-size:.75rem}
+    .preview-bar .rm:hover{text-decoration:underline}
+    .uploading-ind{display:none;color:#60a5fa;font-size:.78rem;margin-top:6px}
+
+    .submit-btn{margin-top:18px;width:100%;padding:13px;border:none;border-radius:9px;font-size:.95rem;font-weight:600;cursor:pointer;transition:opacity .2s,transform .1s;background:linear-gradient(135deg,#3b7dd8,#60a5fa);color:#fff}
+    .submit-btn:hover{opacity:.9}
+    .submit-btn:active{transform:scale(.98)}
+    .submit-btn:disabled{opacity:.4;cursor:not-allowed}
+    .submit-btn.motion{background:linear-gradient(135deg,#6d5fd6,#3b7dd8)}
+
+    /* Results */
+    .results-title{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#555;margin-bottom:12px}
+    .result-item{background:#0e0e18;border:1px solid #1e1e2e;border-radius:10px;padding:14px;margin-bottom:12px;animation:fadeIn .3s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1}}
+    .result-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+    .result-label{font-size:.8rem;font-weight:600;color:#ccc}
+    .result-sub{font-size:.72rem;color:#666;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px}
+    .badge{font-size:.72rem;padding:2px 9px;border-radius:20px;font-weight:600;white-space:nowrap}
+    .badge.processing{background:#1a2a1a;color:#4ade80}
+    .badge.completed{background:#1a1e2a;color:#60a5fa}
+    .badge.failed{background:#2a1a1a;color:#f87171}
+    video{width:100%;border-radius:8px;margin-top:6px;background:#000}
+    .media-link{font-size:.73rem;color:#60a5fa;margin-top:6px;word-break:break-all}
+    .media-link a{color:inherit}
+    .err-txt{color:#f87171;font-size:.78rem;margin-top:6px}
+    .empty-state{color:#555;font-size:.82rem;padding:10px 0}
+
+    .spinner{display:inline-block;width:8px;height:8px;border:2px solid #4ade8044;border-top-color:#4ade80;border-radius:50%;animation:spin .7s linear infinite;margin-right:4px;vertical-align:middle}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .tip{font-size:.72rem;color:#555;margin-top:5px;line-height:1.5}
+
+    /* Pricing bar */
+    .pricing-bar{margin-top:16px;padding:12px 16px;border-radius:10px;background:#0d1117;border:1px solid #1e2a3a;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+    .pricing-bar .pb-label{font-size:.78rem;color:#555;text-transform:uppercase;letter-spacing:.05em}
+    .pricing-bar .pb-cost{font-size:1.2rem;font-weight:700;color:#4ade80}
+    .pricing-bar .pb-break{font-size:.78rem;color:#666}
+
+    /* History grid */
+    .history-section{width:100%;margin-top:36px}
+    .history-section h2{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#555;margin-bottom:14px}
+    .history-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+    .hist-card{background:#13131a;border:1px solid #222233;border-radius:12px;overflow:hidden;transition:border-color .2s;cursor:pointer}
+    .hist-card:hover{border-color:#60a5fa;box-shadow:0 0 0 1px #60a5fa33}
+
+    /* Video preview modal */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);z-index:1000;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+    .modal-overlay.open{display:flex}
+    .modal-box{background:#13131a;border:1px solid #2a2a3e;border-radius:18px;width:100%;max-width:860px;max-height:calc(100vh - 40px);overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.7);scrollbar-width:thin;scrollbar-color:#2a2a3e transparent}
+    .modal-box::-webkit-scrollbar{width:6px}.modal-box::-webkit-scrollbar-thumb{background:#2a2a3e;border-radius:3px}
+    .modal-head{display:flex;align-items:center;justify-content:space-between;padding:20px 24px 0}
+    .modal-head-title{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#555}
+    .modal-close-btn{background:none;border:none;color:#666;font-size:1.4rem;cursor:pointer;padding:4px 8px;border-radius:8px;transition:all .15s;line-height:1}
+    .modal-close-btn:hover{background:#1e1e2e;color:#ccc}
+    .modal-vid-wrap{margin:16px 24px;background:#0a0a0f;border-radius:12px;display:flex;align-items:center;justify-content:center;min-height:180px;padding:16px}
+    .modal-vid-wrap video{max-width:100%;max-height:58vh;border-radius:8px;display:block}
+    .modal-no-vid{color:#555;font-size:.9rem;text-align:center;padding:40px}
+    .modal-actions{display:flex;gap:10px;padding:0 24px 20px;flex-wrap:wrap}
+    .btn-dl{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#3b7dd8,#60a5fa);color:#fff;border:none;border-radius:9px;padding:9px 18px;font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;transition:opacity .2s}
+    .btn-dl:hover{opacity:.85}
+    .btn-ext{display:inline-flex;align-items:center;gap:6px;background:#1e1e2e;color:#aaa;border:1px solid #2a2a3e;border-radius:9px;padding:9px 18px;font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;transition:all .2s}
+    .btn-ext:hover{color:#fff;border-color:#444}
+    .modal-divider{height:1px;background:#1a1a28;margin:0 24px 20px}
+    .modal-sect{padding:0 24px 20px}
+    .modal-sect-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#555;margin-bottom:8px}
+    .prompt-blk{background:#0e0e18;border:1px solid #1e1e2e;border-radius:10px;padding:14px 16px;position:relative}
+    .prompt-txt{font-size:.87rem;color:#ccc;line-height:1.6;padding-right:68px;white-space:pre-wrap;word-break:break-word}
+    .btn-copy{position:absolute;top:10px;right:10px;background:#1e1e2e;border:1px solid #2a2a3e;color:#888;border-radius:7px;padding:5px 11px;font-size:.75rem;font-weight:600;cursor:pointer;transition:all .15s}
+    .btn-copy:hover{color:#a78bfa;border-color:#a78bfa55}
+    .btn-copy.copied{color:#4ade80;border-color:#4ade8055}
+    .meta-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+    .meta-item{background:#0e0e18;border:1px solid #1a1a28;border-radius:10px;padding:12px 14px}
+    .meta-key{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#555;margin-bottom:5px}
+    .meta-val{font-size:.85rem;color:#ccc;font-weight:500;word-break:break-all}
+    .meta-val.green{color:#4ade80}.meta-val.blue{color:#60a5fa}.meta-val.purple{color:#a78bfa}.meta-val.red{color:#f87171}
+    @media(max-width:600px){.modal-box{border-radius:14px}.modal-vid-wrap{margin:12px}.modal-sect,.modal-actions{padding-left:16px;padding-right:16px}.meta-grid{grid-template-columns:1fr 1fr}}
+    .hist-thumb{width:100%;height:120px;object-fit:cover;display:block;background:#0e0e18;pointer-events:none}
+    .hist-thumb-video{width:100%;height:120px;object-fit:cover;display:block;background:#000;pointer-events:none}
+    .hist-spinner-wrap{width:100%;height:120px;display:flex;align-items:center;justify-content:center;background:#0e0e18}
+    .hist-spinner-lg{width:20px;height:20px;border:3px solid #4ade8044;border-top-color:#4ade80;border-radius:50%;animation:spin .7s linear infinite}
+    .hist-info{padding:8px 10px}
+    .hist-model{font-size:.72rem;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .hist-meta{font-size:.68rem;color:#555;margin-top:2px}
+    .hist-badge{display:inline-block;font-size:.65rem;padding:1px 7px;border-radius:10px;font-weight:600;margin-top:4px}
+    .hist-badge.completed{background:#1a1e2a;color:#60a5fa}
+    .hist-badge.processing{background:#1a2a1a;color:#4ade80}
+    .hist-badge.failed{background:#2a1a1a;color:#f87171}
+    .history-empty{color:#555;font-size:.82rem;padding:16px 0}
+  </style>
+</head>
+<body{% if embed %} class="embed"{% endif %}>
+
+{% if not embed %}
+<nav>
+  <span class="logo">KAMOD AI</span>
+  <div class="nav-grouped">
+    <div class="nav-group has-active">
+      <span class="nav-group-label">CREATE</span>
+      <div class="nav-group-items">
+        <a href="/">Seedance 2.0</a>
+        <a href="/ai-videos">AI Video Tools</a>
+        <a href="/ai-director">Director</a>
+        <a href="/images">AI Images</a>
+        <a href="/storyboard">Storyboard</a>
+        <a href="/ugc-studio">UGC Studio</a>
+      </div>
+    </div>
+    <div class="nav-sep"></div>
+    <div class="nav-group">
+      <span class="nav-group-label">ENHANCE</span>
+      <div class="nav-group-items">
+        <a href="/audio">Audio</a>
+        <a href="/avatars">Avatars</a>
+      </div>
+    </div>
+    <div class="nav-sep"></div>
+    <div class="nav-group">
+      <span class="nav-group-label">DELIVER</span>
+      <div class="nav-group-items">
+        <a href="/analytics">Analytics</a>
+        <a href="/dashboard">Dashboard</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <h1>Kling v3.0</h1>
+  <p>Cinematic AI Video Generation</p>
+</header>
+{% endif %}
+
+<div class="wrapper">
+
+  <div class="section-tabs">
+    <button class="section-tab active" data-section="t2v">Text → Video</button>
+    <button class="section-tab" data-section="i2v">Image → Video</button>
+    <button class="section-tab" data-section="motion">Motion Control</button>
+  </div>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- TEXT TO VIDEO                                    -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="section active" id="section-t2v">
+    <div class="model-grid-2" id="t2v-model-grid">
+      <div class="model-card selected" data-model="kling-v3.0-pro-text-to-video">
+        <div class="mc-name">Kling v3.0 Pro</div>
+        <div class="mc-price">$0.72/gen</div>
+        <div class="mc-desc">Longer clips · smoother motion · complex scenes · natural camera movement · 3–15s</div>
+      </div>
+      <div class="model-card" data-model="kling-v3.0-std-text-to-video">
+        <div class="mc-name">Kling v3.0 Standard</div>
+        <div class="mc-price">Best value</div>
+        <div class="mc-desc">Stable motion · natural behaviour · ideal for simple scenes</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <div class="card">
+          <h3>Generation Settings</h3>
+          <label>Prompt <span style="color:#f87171">*</span></label>
+          <textarea id="t2v-prompt" placeholder="A lone astronaut walks across the surface of Mars at dawn, cinematic wide shot, dust particles floating in the golden light, dramatic score implied…"></textarea>
+
+          <div class="row-2">
+            <div>
+              <label>Aspect Ratio</label>
+              <select id="t2v-aspect">
+                <option value="16:9">16:9 Landscape</option>
+                <option value="9:16">9:16 Portrait</option>
+                <option value="1:1">1:1 Square</option>
+              </select>
+            </div>
+            <div>
+              <label>Duration</label>
+              <select id="t2v-duration">
+                <option value="3">3 seconds</option>
+                <option value="5" selected>5 seconds</option>
+                <option value="7">7 seconds</option>
+                <option value="10">10 seconds</option>
+                <option value="15">15 seconds</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="check-row">
+            <input type="checkbox" id="t2v-audio" checked/>
+            <label for="t2v-audio">Generate Audio</label>
+          </div>
+
+          <div class="pricing-bar" id="t2v-pricing-bar">
+            <div>
+              <div class="pb-label">Estimated Cost</div>
+              <div style="display:flex;align-items:baseline;gap:10px;margin-top:2px">
+                <span class="pb-cost" id="t2v-price-est">$0.70</span>
+                <span class="pb-break" id="t2v-price-break">5s × $0.14/sec · Pro</span>
+              </div>
+            </div>
+          </div>
+
+          <button class="submit-btn" id="btn-t2v">Generate Video</button>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="results-title">Results</div>
+          <div id="t2v-results"><div class="empty-state">Generate a video to see results here.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- IMAGE TO VIDEO                                   -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="section" id="section-i2v">
+    <div class="model-grid-2" id="i2v-model-grid">
+      <div class="model-card selected" data-model="kling-v3.0-pro-image-to-video">
+        <div class="mc-name">Kling v3.0 Pro I2V</div>
+        <div class="mc-price">$0.72/gen</div>
+        <div class="mc-desc">Smooth camera motion · natural physics · strong temporal consistency</div>
+      </div>
+      <div class="model-card" data-model="kling-v3.0-std-image-to-video">
+        <div class="mc-name">Kling v3.0 Standard I2V</div>
+        <div class="mc-price">Best value</div>
+        <div class="mc-desc">Stable motion · natural physics · efficient generation</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <div class="card">
+          <h3>Image to Video Settings</h3>
+
+          <label>Start Image <span style="color:#f87171">*</span></label>
+          <div class="src-tabs" id="i2v-img-src-tabs">
+            <div class="src-tab active" data-src="upload">Upload</div>
+            <div class="src-tab" data-src="url">URL</div>
+          </div>
+          <div id="i2v-img-upload-wrap">
+            <div class="dropzone" id="i2v-img-dropzone">
+              <input type="file" id="i2v-img-file" accept="image/*"/>
+              <p><span>Choose image</span></p>
+            </div>
+            <div class="uploading-ind" id="i2v-img-uploading">Uploading…</div>
+            <div class="preview-wrap" id="i2v-img-preview">
+              <div class="preview-bar"><span id="i2v-img-fname">image.jpg</span><span class="rm" id="i2v-img-rm">✕ Remove</span></div>
+              <img id="i2v-img-thumb" src="" alt="Preview"/>
+            </div>
+          </div>
+          <div id="i2v-img-url-wrap" style="display:none">
+            <input type="text" id="i2v-image-url" placeholder="https://example.com/your-image.jpg"/>
+          </div>
+
+          <label>Prompt <span style="color:#f87171">*</span></label>
+          <textarea id="i2v-prompt" placeholder="The subject turns slowly toward the camera, soft morning light, gentle wind in the hair…"></textarea>
+
+          <label>Last Image (optional) <span class="tip" style="display:inline">— end-frame for transitions</span></label>
+          <div class="src-tabs" id="i2v-last-src-tabs">
+            <div class="src-tab active" data-src="upload">Upload</div>
+            <div class="src-tab" data-src="url">URL</div>
+          </div>
+          <div id="i2v-last-upload-wrap">
+            <div class="dropzone" id="i2v-last-dropzone">
+              <input type="file" id="i2v-last-file" accept="image/*"/>
+              <p><span>Choose image</span></p>
+            </div>
+            <div class="uploading-ind" id="i2v-last-uploading">Uploading…</div>
+            <div class="preview-wrap" id="i2v-last-preview">
+              <div class="preview-bar"><span id="i2v-last-fname">image.jpg</span><span class="rm" id="i2v-last-rm">✕ Remove</span></div>
+              <img id="i2v-last-thumb" src="" alt="Preview"/>
+            </div>
+          </div>
+          <div id="i2v-last-url-wrap" style="display:none">
+            <input type="text" id="i2v-last-image" placeholder="https://example.com/end-frame.jpg (optional)"/>
+          </div>
+
+          <div class="row-2" style="margin-top:14px">
+            <div>
+              <label>Duration</label>
+              <select id="i2v-duration">
+                <option value="3">3 seconds</option>
+                <option value="5" selected>5 seconds</option>
+                <option value="7">7 seconds</option>
+                <option value="10">10 seconds</option>
+                <option value="15">15 seconds</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="check-row">
+            <input type="checkbox" id="i2v-audio" checked/>
+            <label for="i2v-audio">Generate Audio</label>
+          </div>
+
+          <div class="pricing-bar" id="i2v-pricing-bar">
+            <div>
+              <div class="pb-label">Estimated Cost</div>
+              <div style="display:flex;align-items:baseline;gap:10px;margin-top:2px">
+                <span class="pb-cost" id="i2v-price-est">$0.70</span>
+                <span class="pb-break" id="i2v-price-break">5s × $0.14/sec · Pro</span>
+              </div>
+            </div>
+          </div>
+
+          <button class="submit-btn" id="btn-i2v">Generate Video</button>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="results-title">Results</div>
+          <div id="i2v-results"><div class="empty-state">Generate a video to see results here.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- MOTION CONTROL                                   -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="section" id="section-motion">
+    <div class="model-grid-2" id="mc-model-grid">
+      <div class="model-card selected" data-model="kling-v3.0-pro-motion-control">
+        <div class="mc-name">Kling v3.0 Pro Motion</div>
+        <div class="mc-price">$0.16/sec</div>
+        <div class="mc-desc">Highest detail · professional cinematic camera work · advanced dynamics</div>
+      </div>
+      <div class="model-card" data-model="kling-v3.0-std-motion-control">
+        <div class="mc-name">Kling v3.0 Standard Motion</div>
+        <div class="mc-price">More affordable</div>
+        <div class="mc-desc">Precise control · improved temporal consistency · efficient</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <div class="card">
+          <h3>Motion Control Inputs</h3>
+
+          <!-- Reference image -->
+          <label>Reference Image <span style="color:#f87171">*</span> <span class="tip" style="display:inline">(max 300px / 10MB)</span></label>
+          <div class="src-tabs" id="mc-img-src-tabs">
+            <div class="src-tab active" data-src="upload">Upload</div>
+            <div class="src-tab" data-src="url">URL</div>
+          </div>
+          <div id="mc-img-upload-wrap">
+            <div class="dropzone" id="mc-img-dropzone">
+              <input type="file" id="mc-img-file" accept="image/*"/>
+              <p><span>Choose image</span></p>
+            </div>
+            <div class="uploading-ind" id="mc-img-uploading">Uploading…</div>
+            <div class="preview-wrap" id="mc-img-preview">
+              <div class="preview-bar"><span id="mc-img-fname">image.jpg</span><span class="rm" id="mc-img-rm">✕ Remove</span></div>
+              <img id="mc-img-thumb" src="" alt="Preview"/>
+            </div>
+          </div>
+          <div id="mc-img-url-wrap" style="display:none">
+            <input type="text" id="mc-image-url" placeholder="https://example.com/frame.jpg"/>
+          </div>
+
+          <!-- Motion reference video -->
+          <label style="margin-top:18px">Motion Reference Video <span style="color:#f87171">*</span> <span class="tip" style="display:inline">(max 300px / 10MB)</span></label>
+          <div class="src-tabs" id="mc-vid-src-tabs">
+            <div class="src-tab active" data-src="upload">Upload</div>
+            <div class="src-tab" data-src="url">URL</div>
+          </div>
+          <div id="mc-vid-upload-wrap">
+            <div class="dropzone" id="mc-vid-dropzone">
+              <input type="file" id="mc-vid-file" accept="video/*"/>
+              <p><span>Choose video</span></p>
+            </div>
+            <div class="uploading-ind" id="mc-vid-uploading">Uploading…</div>
+            <div class="preview-wrap" id="mc-vid-preview">
+              <div class="preview-bar"><span id="mc-vid-fname">video.mp4</span><span class="rm" id="mc-vid-rm">✕ Remove</span></div>
+              <video id="mc-vid-player" controls muted></video>
+            </div>
+          </div>
+          <div id="mc-vid-url-wrap" style="display:none">
+            <input type="text" id="mc-video-url" placeholder="https://example.com/motion-reference.mp4"/>
+          </div>
+
+          <!-- Prompt -->
+          <label style="margin-top:18px">Motion Prompt <span style="color:#555">(optional)</span></label>
+          <textarea id="mc-prompt" placeholder="Slow dolly forward, gentle pan left, subject walks toward camera with dramatic lighting…"></textarea>
+          <div class="tip">Describe camera movement: pan, tilt, orbit, dolly, zoom. Or describe subject behaviour.</div>
+
+          <div class="row-2" style="margin-top:14px">
+            <div>
+              <label>Character Orientation</label>
+              <select id="mc-orientation">
+                <option value="image">Image (max 10s)</option>
+                <option value="video">Video (max 30s)</option>
+              </select>
+              <div class="tip">Image = orientation derived from reference image. Video = orientation follows reference video.</div>
+            </div>
+          </div>
+
+          <div class="check-row">
+            <input type="checkbox" id="mc-sound" checked/>
+            <label for="mc-sound">Keep Original Sound</label>
+          </div>
+
+          <div class="pricing-bar" id="mc-pricing-bar">
+            <div>
+              <div class="pb-label">Estimated Cost</div>
+              <div style="display:flex;align-items:baseline;gap:10px;margin-top:2px">
+                <span class="pb-cost" id="mc-price-est">$0.80</span>
+                <span class="pb-break" id="mc-price-break">5s × $0.16/sec · Pro Motion</span>
+              </div>
+            </div>
+          </div>
+
+          <button class="submit-btn motion" id="btn-mc">Generate Motion Video</button>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="results-title">Results</div>
+          <div id="mc-results"><div class="empty-state">Submit a motion control job to see results here.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Generation History -->
+  <div class="history-section">
+    <h2>Generation History</h2>
+    <div class="history-grid" id="kling-history-grid">
+      <div class="history-empty">No history yet.</div>
+    </div>
+  </div>
+
+</div><!-- /wrapper -->
+
+<!-- Kling video preview modal -->
+<div class="modal-overlay" id="klingModal">
+  <div class="modal-box" id="klingModalBox">
+    <div class="modal-head">
+      <span class="modal-head-title">Video Preview</span>
+      <button class="modal-close-btn" id="kModalCloseBtn">✕</button>
+    </div>
+    <div class="modal-vid-wrap" id="kModalVidWrap">
+      <div class="modal-no-vid">No video available</div>
+    </div>
+    <div class="modal-actions" id="kModalActions"></div>
+    <div class="modal-divider"></div>
+    <div class="modal-sect">
+      <div class="modal-sect-label">Prompt</div>
+      <div class="prompt-blk">
+        <div class="prompt-txt" id="kModalPromptTxt">—</div>
+        <button class="btn-copy" id="kModalCopyBtn">Copy</button>
+      </div>
+    </div>
+    <div class="modal-divider"></div>
+    <div class="modal-sect">
+      <div class="modal-sect-label">Details</div>
+      <div class="meta-grid" id="kModalMeta"></div>
+    </div>
+    <div style="height:8px"></div>
+  </div>
+</div>
+
+<script>
+// ─── Section tabs ─────────────────────────────────────
+document.querySelectorAll('.section-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.section-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('section-' + tab.dataset.section).classList.add('active');
+  });
+});
+
+// ─── Model pickers ────────────────────────────────────
+let selectedT2VModel = 'kling-v3.0-pro-text-to-video';
+let selectedI2VModel = 'kling-v3.0-pro-image-to-video';
+let selectedMCModel  = 'kling-v3.0-pro-motion-control';
+
+function setupModelGrid(gridId, onSelect) {
+  document.querySelectorAll('#' + gridId + ' .model-card').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('#' + gridId + ' .model-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      onSelect(card.dataset.model);
+    });
+  });
+}
+
+setupModelGrid('t2v-model-grid', m => { selectedT2VModel = m; updateT2VPricing && updateT2VPricing(); });
+setupModelGrid('i2v-model-grid', m => { selectedI2VModel = m; updateI2VPricing && updateI2VPricing(); });
+setupModelGrid('mc-model-grid',  m => { selectedMCModel  = m; updateMCPricing  && updateMCPricing();  });
+
+// ─── Generic uploader ─────────────────────────────────
+function makeUploader({ srcTabsId, uploadWrapId, urlWrapId, dropzoneId, fileInputId, uploadingId, previewId, fnameId, rmId, thumbId, playerEl, onUploaded }) {
+  let uploadedUrl = null;
+  let srcMode = 'upload';
+
+  const srcTabs   = document.querySelectorAll('#' + srcTabsId + ' .src-tab');
+  const upWrap    = document.getElementById(uploadWrapId);
+  const urlWrap   = document.getElementById(urlWrapId);
+  const dropzone  = document.getElementById(dropzoneId);
+  const fileInput = document.getElementById(fileInputId);
+  const uploading = document.getElementById(uploadingId);
+  const preview   = document.getElementById(previewId);
+  const fnameEl   = document.getElementById(fnameId);
+  const rmEl      = document.getElementById(rmId);
+  const thumbEl   = thumbId   ? document.getElementById(thumbId) : null;
+  const playerElm = playerEl  ? document.getElementById(playerEl) : null;
+
+  srcTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      srcTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      srcMode = tab.dataset.src;
+      if (upWrap)  upWrap.style.display  = srcMode === 'upload' ? 'block' : 'none';
+      if (urlWrap) urlWrap.style.display = srcMode === 'url'    ? 'block' : 'none';
+      if (srcMode === 'url') { uploadedUrl = null; onUploaded && onUploaded(null); }
+    });
+  });
+
+  dropzone?.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+  dropzone?.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+  dropzone?.addEventListener('drop', e => { e.preventDefault(); dropzone.classList.remove('drag-over'); const f = e.dataTransfer.files[0]; if (f) doUpload(f); });
+  fileInput?.addEventListener('change', e => { if (e.target.files[0]) doUpload(e.target.files[0]); });
+
+  rmEl?.addEventListener('click', () => {
+    uploadedUrl = null;
+    onUploaded && onUploaded(null);
+    preview.style.display = 'none';
+    fileInput.value = '';
+    dropzone.style.display = 'block';
+    if (thumbEl)  thumbEl.src = '';
+    if (playerElm) playerElm.src = '';
+  });
+
+  async function doUpload(file) {
+    uploading.style.display = 'block';
+    dropzone.style.display  = 'none';
+    const fd = new FormData();
+    fd.append('file', file);
+    try {
+      const res  = await fetch('/upload', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      uploadedUrl = data.url;
+      onUploaded && onUploaded(uploadedUrl);
+      if (fnameEl)  fnameEl.textContent = file.name;
+      if (thumbEl)  thumbEl.src = uploadedUrl;
+      if (playerElm) playerElm.src = uploadedUrl;
+      preview.style.display = 'block';
+    } catch (e) {
+      alert('Upload failed: ' + e.message);
+      dropzone.style.display = 'block';
+    } finally {
+      uploading.style.display = 'none';
+    }
+  }
+
+  return {
+    getUrl: () => {
+      if (srcMode === 'upload') return uploadedUrl;
+      const urlInput = urlWrap?.querySelector('input');
+      return urlInput ? urlInput.value.trim() : null;
+    }
+  };
+}
+
+// I2V start image uploader
+let i2vImgUploaded = null;
+const i2vImgUploader = makeUploader({
+  srcTabsId: 'i2v-img-src-tabs', uploadWrapId: 'i2v-img-upload-wrap', urlWrapId: 'i2v-img-url-wrap',
+  dropzoneId: 'i2v-img-dropzone', fileInputId: 'i2v-img-file', uploadingId: 'i2v-img-uploading',
+  previewId: 'i2v-img-preview', fnameId: 'i2v-img-fname', rmId: 'i2v-img-rm', thumbId: 'i2v-img-thumb',
+  onUploaded: url => { i2vImgUploaded = url; }
+});
+
+// I2V last image uploader
+const i2vLastUploader = makeUploader({
+  srcTabsId: 'i2v-last-src-tabs', uploadWrapId: 'i2v-last-upload-wrap', urlWrapId: 'i2v-last-url-wrap',
+  dropzoneId: 'i2v-last-dropzone', fileInputId: 'i2v-last-file', uploadingId: 'i2v-last-uploading',
+  previewId: 'i2v-last-preview', fnameId: 'i2v-last-fname', rmId: 'i2v-last-rm', thumbId: 'i2v-last-thumb',
+  onUploaded: () => {}
+});
+
+// Motion Control uploaders
+let mcImgUploaded = null;
+let mcVidUploaded = null;
+const mcImgUploader = makeUploader({
+  srcTabsId: 'mc-img-src-tabs', uploadWrapId: 'mc-img-upload-wrap', urlWrapId: 'mc-img-url-wrap',
+  dropzoneId: 'mc-img-dropzone', fileInputId: 'mc-img-file', uploadingId: 'mc-img-uploading',
+  previewId: 'mc-img-preview', fnameId: 'mc-img-fname', rmId: 'mc-img-rm', thumbId: 'mc-img-thumb',
+  onUploaded: url => { mcImgUploaded = url; }
+});
+const mcVidUploader = makeUploader({
+  srcTabsId: 'mc-vid-src-tabs', uploadWrapId: 'mc-vid-upload-wrap', urlWrapId: 'mc-vid-url-wrap',
+  dropzoneId: 'mc-vid-dropzone', fileInputId: 'mc-vid-file', uploadingId: 'mc-vid-uploading',
+  previewId: 'mc-vid-preview', fnameId: 'mc-vid-fname', rmId: 'mc-vid-rm',
+  playerEl: 'mc-vid-player',
+  onUploaded: url => { mcVidUploaded = url; }
+});
+
+// ─── Submit T2V ───────────────────────────────────────
+document.getElementById('btn-t2v').addEventListener('click', async function() {
+  const prompt = document.getElementById('t2v-prompt').value.trim();
+  if (!prompt) { alert('Please enter a prompt.'); return; }
+  setBtn(this, true, 'Generating…');
+  try {
+    const res  = await fetch('/api/kling/t2v', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model:          selectedT2VModel,
+        prompt,
+        aspect_ratio:   document.getElementById('t2v-aspect').value,
+        duration:       parseInt(document.getElementById('t2v-duration').value),
+        generate_audio: document.getElementById('t2v-audio').checked,
+      })
+    });
+    const data = await res.json();
+    if (data.error) { alert('Error: ' + data.error); return; }
+    const label = document.querySelector('#t2v-model-grid .model-card.selected .mc-name')?.textContent || 'Kling T2V';
+    addResultCard('t2v-results', data.request_id, label, prompt);
+    pollVideo('t2v-results', data.request_id);
+  } catch (e) {
+    alert('Request failed: ' + e.message);
+  } finally {
+    setBtn(this, false, 'Generate Video');
+  }
+});
+
+// ─── Submit I2V ───────────────────────────────────────
+document.getElementById('btn-i2v').addEventListener('click', async function() {
+  const prompt   = document.getElementById('i2v-prompt').value.trim();
+  const imageUrl = i2vImgUploader.getUrl();
+  if (!imageUrl) { alert('Please provide a start image.'); return; }
+  if (!prompt)   { alert('Please enter a prompt.'); return; }
+  const lastImg  = i2vLastUploader.getUrl();
+  const payload  = {
+    model:          selectedI2VModel,
+    prompt,
+    image_url:      imageUrl,
+    duration:       parseInt(document.getElementById('i2v-duration').value),
+    generate_audio: document.getElementById('i2v-audio').checked,
+  };
+  if (lastImg) payload.last_image = lastImg;
+  setBtn(this, true, 'Generating…');
+  try {
+    const res  = await fetch('/api/kling/i2v', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.error) { alert('Error: ' + data.error); return; }
+    const label = document.querySelector('#i2v-model-grid .model-card.selected .mc-name')?.textContent || 'Kling I2V';
+    addResultCard('i2v-results', data.request_id, label, prompt);
+    pollVideo('i2v-results', data.request_id);
+  } catch (e) {
+    alert('Request failed: ' + e.message);
+  } finally {
+    setBtn(this, false, 'Generate Video');
+  }
+});
+
+// ─── Submit Motion Control ────────────────────────────
+document.getElementById('btn-mc').addEventListener('click', async function() {
+  const imgUrl  = mcImgUploader.getUrl();
+  const vidUrl  = mcVidUploader.getUrl();
+  const prompt  = document.getElementById('mc-prompt').value.trim();
+  if (!imgUrl) { alert('Please provide a reference image.'); return; }
+  if (!vidUrl) { alert('Please provide a motion reference video.'); return; }
+  setBtn(this, true, 'Processing…');
+  try {
+    const res  = await fetch('/api/kling/motion', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model:                  selectedMCModel,
+        prompt,
+        image_url:              imgUrl,
+        video_url:              vidUrl,
+        character_orientation:  document.getElementById('mc-orientation').value,
+        keep_original_sound:    document.getElementById('mc-sound').checked,
+      })
+    });
+    const data = await res.json();
+    if (data.error) { alert('Error: ' + data.error); return; }
+    const label = document.querySelector('#mc-model-grid .model-card.selected .mc-name')?.textContent || 'Kling Motion';
+    addResultCard('mc-results', data.request_id, label, prompt);
+    pollVideo('mc-results', data.request_id);
+  } catch (e) {
+    alert('Request failed: ' + e.message);
+  } finally {
+    setBtn(this, false, 'Generate Motion Video');
+  }
+});
+
+// ─── Result card ──────────────────────────────────────
+function addResultCard(containerId, requestId, label, desc) {
+  const container = document.getElementById(containerId);
+  container.querySelector('.empty-state')?.remove();
+  const el = document.createElement('div');
+  el.className = 'result-item';
+  el.id = 'res-' + requestId;
+  el.innerHTML = `
+    <div class="result-header">
+      <div>
+        <div class="result-label">${esc(label)}</div>
+        ${desc ? `<div class="result-sub">"${esc(desc)}"</div>` : ''}
+      </div>
+      <span class="badge processing"><span class="spinner"></span> Processing</span>
+    </div>
+    <div class="res-body"></div>`;
+  container.prepend(el);
+}
+
+// ─── Poll video status ────────────────────────────────
+function pollVideo(containerId, requestId) {
+  const interval = setInterval(async () => {
+    try {
+      const res  = await fetch('/api/kling/status/' + requestId, { headers: {} });
+      const data = await res.json();
+      console.log(`[pollVideo] id=${requestId} raw=`, JSON.stringify(data));
+      const el   = document.getElementById('res-' + requestId);
+      if (!el) { clearInterval(interval); return; }
+      const badge = el.querySelector('.badge');
+      const body  = el.querySelector('.res-body');
+
+      if (data.status === 'completed') {
+        console.log(`[pollVideo] id=${requestId} → completed, url=${data.url}`);
+        clearInterval(interval);
+        badge.className = 'badge completed';
+        badge.textContent = '✓ Completed';
+        const url = data.url;
+        body.innerHTML = url
+          ? `<video controls autoplay loop src="${url}"></video>
+             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+               <a class="btn-dl" href="${url}" download target="_blank">↓ Download</a>
+               <a class="btn-ext" href="${url}" target="_blank" rel="noopener">↗ Open in new tab</a>
+             </div>`
+          : `<div class="err-txt">Completed but no video URL found.</div>`;
+      } else if (data.status === 'failed') {
+        console.log(`[pollVideo] id=${requestId} → failed, error=${data.error}`);
+        clearInterval(interval);
+        badge.className = 'badge failed';
+        badge.textContent = '✗ Failed';
+        body.innerHTML = `<div class="err-txt">${esc(data.error || 'Generation failed.')}</div>`;
+      } else {
+        console.log(`[pollVideo] id=${requestId} → still processing`);
+      }
+    } catch (e) { console.error('[pollVideo] Poll error:', e); }
+  }, 5000);
+}
+
+function setBtn(btn, disabled, text) { btn.disabled = disabled; btn.textContent = text; }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ─── Live Pricing ──────────────────────────────────────
+const KLING_RATES = {
+  'kling-v3.0-pro-text-to-video':   0.14,
+  'kling-v3.0-std-text-to-video':   0.07,
+  'kling-v3.0-pro-image-to-video':  0.14,
+  'kling-v3.0-std-image-to-video':  0.07,
+  'kling-v3.0-pro-motion-control':  0.16,
+  'kling-v3.0-std-motion-control':  0.08,
+};
+const KLING_LABELS = {
+  'kling-v3.0-pro-text-to-video':   'Pro T2V',
+  'kling-v3.0-std-text-to-video':   'Standard T2V',
+  'kling-v3.0-pro-image-to-video':  'Pro I2V',
+  'kling-v3.0-std-image-to-video':  'Standard I2V',
+  'kling-v3.0-pro-motion-control':  'Pro Motion',
+  'kling-v3.0-std-motion-control':  'Standard Motion',
+};
+
+function updateT2VPricing() {
+  const dur  = parseInt(document.getElementById('t2v-duration').value) || 5;
+  const rate = KLING_RATES[selectedT2VModel] || 0.14;
+  const cost = (dur * rate).toFixed(2);
+  document.getElementById('t2v-price-est').textContent   = '$' + cost;
+  document.getElementById('t2v-price-break').textContent = `${dur}s × $${rate}/sec · ${KLING_LABELS[selectedT2VModel] || 'Pro'}`;
+}
+function updateI2VPricing() {
+  const dur  = parseInt(document.getElementById('i2v-duration').value) || 5;
+  const rate = KLING_RATES[selectedI2VModel] || 0.14;
+  const cost = (dur * rate).toFixed(2);
+  document.getElementById('i2v-price-est').textContent   = '$' + cost;
+  document.getElementById('i2v-price-break').textContent = `${dur}s × $${rate}/sec · ${KLING_LABELS[selectedI2VModel] || 'Pro'}`;
+}
+function updateMCPricing() {
+  const rate = KLING_RATES[selectedMCModel] || 0.16;
+  // Motion control doesn't expose a duration select, estimate at 5s base
+  const label = KLING_LABELS[selectedMCModel] || 'Pro Motion';
+  document.getElementById('mc-price-est').textContent   = '$' + (5 * rate).toFixed(2) + '+';
+  document.getElementById('mc-price-break').textContent = `$${rate}/sec · ${label}`;
+}
+
+document.getElementById('t2v-duration').addEventListener('change', updateT2VPricing);
+document.getElementById('i2v-duration').addEventListener('change', updateI2VPricing);
+updateT2VPricing();
+updateI2VPricing();
+updateMCPricing();
+
+// ─── Generation History ────────────────────────────────
+let klingHistoryInterval = null;
+
+function renderKlingHistory(items) {
+  const grid = document.getElementById('kling-history-grid');
+  if (!items || !items.length) {
+    grid.innerHTML = '<div class="history-empty">No history yet.</div>';
+    return;
+  }
+  window._klingHistory = items;
+  const hasProcessing = items.some(i => i.status === 'processing');
+  grid.innerHTML = items.map((item, i) => {
+    let thumb = '';
+    if (item.status === 'completed' && item.output_url) {
+      thumb = `<video class="hist-thumb-video" src="${esc(item.output_url)}" autoplay muted loop playsinline></video>`;
+    } else if (item.status === 'processing') {
+      thumb = `<div class="hist-spinner-wrap"><div class="hist-spinner-lg"></div></div>`;
+    } else {
+      thumb = `<div class="hist-spinner-wrap" style="background:#1a0a0a"><span style="color:#f87171;font-size:.7rem">Failed</span></div>`;
+    }
+    const meta = [item.duration ? item.duration + 's' : null, item.aspect_ratio].filter(Boolean).join(' · ');
+    return `<div class="hist-card" data-idx="${i}" title="Click to preview">
+      ${thumb}
+      <div class="hist-info">
+        <div class="hist-model" title="${esc(item.model)}">${esc(item.model)}</div>
+        ${meta ? `<div class="hist-meta">${esc(meta)}</div>` : ''}
+        <span class="hist-badge ${esc(item.status)}">${esc(item.status)}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.querySelectorAll('.hist-card[data-idx]').forEach(card => {
+    card.addEventListener('click', () => {
+      const item = window._klingHistory[parseInt(card.dataset.idx, 10)];
+      if (item) openKlingModal(item);
+    });
+  });
+
+  if (hasProcessing) {
+    if (!klingHistoryInterval) {
+      klingHistoryInterval = setInterval(loadKlingHistory, 8000);
+    }
+  } else {
+    if (klingHistoryInterval) { clearInterval(klingHistoryInterval); klingHistoryInterval = null; }
+  }
+}
+
+async function loadKlingHistory() {
+  try {
+    const res = await fetch('/api/history/kling', { headers: {} });
+    const data = await res.json();
+    renderKlingHistory(data.history || []);
+  } catch (e) { console.error('History load error:', e); }
+}
+
+loadKlingHistory();
+
+// ─── Video preview modal ───────────────────────────────
+const klingOverlay = document.getElementById('klingModal');
+const klingBox     = document.getElementById('klingModalBox');
+
+function openKlingModal(item) {
+  const vidWrap = document.getElementById('kModalVidWrap');
+  if (item.output_url) {
+    vidWrap.innerHTML = `<video src="${esc(item.output_url)}" controls playsinline preload="metadata"></video>`;
+  } else {
+    vidWrap.innerHTML = `<div class="modal-no-vid">No video available for this generation.</div>`;
+  }
+
+  const actions = document.getElementById('kModalActions');
+  if (item.output_url) {
+    actions.innerHTML = `
+      <a class="btn-dl" href="${esc(item.output_url)}" download target="_blank">↓ Download</a>
+      <a class="btn-ext" href="${esc(item.output_url)}" target="_blank" rel="noopener">↗ Open in new tab</a>`;
+  } else {
+    actions.innerHTML = '';
+  }
+
+  document.getElementById('kModalPromptTxt').textContent = item.prompt || '—';
+
+  const copyBtn = document.getElementById('kModalCopyBtn');
+  copyBtn.textContent = 'Copy';
+  copyBtn.classList.remove('copied');
+  copyBtn.onclick = () => {
+    navigator.clipboard.writeText(item.prompt || '').then(() => {
+      copyBtn.textContent = 'Copied!'; copyBtn.classList.add('copied');
+      setTimeout(() => { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('copied'); }, 2000);
+    });
+  };
+
+  const statusColor = {completed:'blue', processing:'green', failed:'red'}[item.status] || '';
+  const dateStr = item.created_at ? item.created_at.replace('T',' ').substring(0,16) + ' UTC' : '—';
+  const meta = [
+    {key:'Status',       val: item.status || '—',                   cls: statusColor},
+    {key:'Model',        val: item.model || '—',                    cls: 'purple'},
+    {key:'Duration',     val: item.duration ? item.duration + 's' : '—'},
+    {key:'Aspect Ratio', val: item.aspect_ratio || '—'},
+    {key:'Quality',      val: item.quality || '—'},
+    {key:'Created',      val: dateStr},
+    {key:'Job ID',       val: item.request_id || '—'},
+  ];
+  document.getElementById('kModalMeta').innerHTML = meta.map(m =>
+    `<div class="meta-item"><div class="meta-key">${m.key}</div><div class="meta-val${m.cls?' '+m.cls:''}">${esc(String(m.val))}</div></div>`
+  ).join('');
+
+  klingOverlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeKlingModal() {
+  klingOverlay.classList.remove('open');
+  document.body.style.overflow = '';
+  const vid = klingOverlay.querySelector('video');
+  if (vid) { vid.pause(); vid.src = ''; }
+}
+
+document.getElementById('kModalCloseBtn').addEventListener('click', closeKlingModal);
+klingOverlay.addEventListener('click', e => { if (e.target === klingOverlay) closeKlingModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeKlingModal(); });
+
+function reportEmbedHeight() {
+  if (window.parent === window) return;
+  const height = Math.max(
+    document.documentElement.scrollHeight,
+    document.body.scrollHeight,
+    document.documentElement.offsetHeight,
+    document.body.offsetHeight
+  );
+  window.parent.postMessage({ type: 'kling-embed-height', height }, '*');
+}
+
+if (window.parent !== window) {
+  window.addEventListener('load', reportEmbedHeight);
+  window.addEventListener('resize', reportEmbedHeight);
+  setTimeout(reportEmbedHeight, 300);
+  setTimeout(reportEmbedHeight, 1200);
+  new MutationObserver(() => reportEmbedHeight()).observe(document.body, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+  });
+}
+</script>
+
+{% if not embed %}
+{% include 'legal_footer.html' %}
+{% endif %}
+</body>
+</html>

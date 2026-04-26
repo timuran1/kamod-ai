@@ -1,0 +1,1682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Images — KAMOD AI</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0a0a0f;color:#e0e0e0;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:36px 20px 80px{% if embed %};padding:0;align-items:stretch{% endif %}}
+
+    nav{width:100%;max-width:1100px;display:flex;flex-direction:column;align-items:center;gap:12px;margin:0 auto 36px}
+    nav .logo{font-size:1.15rem;font-weight:700;background:linear-gradient(135deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.01em}
+    .nav-grouped{display:flex;align-items:flex-end;gap:0;background:#0d0d16;border:1px solid #1c1c2e;border-radius:13px;padding:5px 8px;overflow-x:auto;max-width:100%;scrollbar-width:none}
+    .nav-grouped::-webkit-scrollbar{display:none}
+    .nav-group{display:flex;flex-direction:column;align-items:center;gap:2px;padding:0 2px}
+    .nav-group-label{font-size:.58rem;font-weight:800;letter-spacing:.1em;color:#252535;text-transform:uppercase;transition:color .2s;padding:0 4px;user-select:none}
+    .nav-group.has-active .nav-group-label{color:#6060a0}
+    .nav-group-items{display:flex;gap:1px}
+    .nav-grouped a{color:#555;text-decoration:none;font-size:.77rem;font-weight:500;padding:6px 11px;border-radius:8px;transition:all .15s;white-space:nowrap;letter-spacing:.01em}
+    .nav-grouped a:hover{color:#bbb;background:rgba(255,255,255,0.05)}
+    .nav-grouped a.active{background:linear-gradient(135deg,#6d5fd6,#3b7dd8);color:#fff;font-weight:600;box-shadow:0 0 14px rgba(109,95,214,.45)}
+    .nav-sep{width:1px;height:28px;background:#1c1c2e;margin:0 5px 3px;flex-shrink:0;align-self:flex-end}
+
+    header{text-align:center;margin-bottom:28px}
+    header h1{font-size:2.2rem;font-weight:700;background:linear-gradient(135deg,#f59e0b,#f97316,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    header p{color:#888;margin-top:8px;font-size:.95rem}
+
+    .wrapper{width:100%;max-width:1000px{% if embed %};max-width:none;padding:14px 16px 24px{% endif %}}
+
+    /* Section tabs */
+    .section-tabs{display:flex;gap:4px;margin-bottom:24px;background:#10101a;padding:5px;border-radius:12px;border:1px solid #1e1e2e}
+    .section-tab{flex:1;padding:10px 8px;border-radius:8px;border:none;background:none;color:#888;cursor:pointer;font-size:.85rem;font-weight:500;transition:all .2s;text-align:center}
+    .section-tab.active{background:#1e1e35;color:#f59e0b;font-weight:600}
+    .section-tab:hover:not(.active){color:#ccc}
+    .section{display:none}
+    .section.active{display:block}
+
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+
+    /* Model cards */
+    .model-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+    .model-grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:20px}
+    .model-card{padding:14px 12px;border-radius:10px;border:1px solid #222233;background:#0e0e18;cursor:pointer;transition:all .15s;text-align:center}
+    .model-card:hover{border-color:#f59e0b55;background:#1a1400}
+    .model-card.selected{border-color:#f59e0b;background:#1a1400}
+    .model-card .mc-name{font-size:.8rem;font-weight:600;color:#ccc;margin-bottom:4px}
+    .model-card .mc-price{font-size:.68rem;color:#888;line-height:1.5}
+    .model-card .mc-desc{font-size:.68rem;color:#666;margin-top:4px;line-height:1.4}
+    .model-card.selected .mc-name{color:#f59e0b}
+    .model-card.selected .mc-price{color:#d4a44c}
+
+    .card{background:#13131a;border:1px solid #222233;border-radius:14px;padding:22px;margin-bottom:16px{% if embed %};padding:18px{% endif %}}
+    .card h3{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#555;margin-bottom:14px}
+
+    .info-box{background:#1a1400;border:1px solid #3d2e00;border-radius:8px;padding:10px 13px;font-size:.78rem;color:#c8956a;margin-bottom:14px;line-height:1.6}
+    .info-box b{color:#f59e0b}
+
+    label{display:block;font-size:.78rem;color:#999;margin-bottom:5px;margin-top:14px}
+    label:first-of-type{margin-top:0}
+    textarea,input[type=text],select{width:100%;background:#0e0e18;border:1px solid #2a2a3a;border-radius:8px;color:#e0e0e0;font-size:.85rem;padding:8px 11px;outline:none;transition:border-color .2s;font-family:inherit}
+    textarea{resize:vertical;min-height:90px}
+    textarea:focus,input:focus,select:focus{border-color:#f59e0b}
+
+    .row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+
+    /* Checkbox row */
+    .check-row{display:flex;align-items:center;gap:8px;margin-top:14px}
+    .check-row input[type=checkbox]{width:16px;height:16px;accent-color:#f59e0b;cursor:pointer}
+    .check-row label{margin:0;font-size:.8rem;color:#aaa;cursor:pointer}
+
+    /* Options group visibility */
+    .opt-group{display:none}
+    .opt-group.visible{display:block}
+
+    /* Upload / dropzone */
+    .src-tabs{display:flex;gap:6px;margin-bottom:8px}
+    .src-tab{padding:4px 12px;border-radius:6px;border:1px solid #2a2a3a;background:#0e0e18;color:#888;cursor:pointer;font-size:.75rem;transition:all .15s}
+    .src-tab.active{border-color:#f59e0b;color:#f59e0b;background:#1a1400}
+    .dropzone{border:1px solid #1e1e2e;border-radius:8px;padding:10px 16px;text-align:center;cursor:pointer;position:relative;transition:all .2s;background:#0c0c18}
+    .dropzone:hover,.dropzone.drag-over{border-color:#f59e0b55;background:#1a1400}
+    .dropzone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+    .dropzone p{color:#555;font-size:.78rem;margin:0}
+    .dropzone p span{color:#f59e0b}
+    .preview-wrap{display:none;margin-top:8px}
+    .preview-wrap img{width:100%;border-radius:7px;border:1px solid #222233;max-height:200px;object-fit:cover}
+    .preview-bar{display:flex;justify-content:space-between;align-items:center;background:#1a1400;border:1px solid #3d2e00;border-radius:6px;padding:5px 10px;margin-bottom:6px;font-size:.78rem;color:#f59e0b}
+    .preview-bar .rm{cursor:pointer;color:#f87171;font-size:.75rem}
+    .preview-bar .rm:hover{text-decoration:underline}
+    .uploading-ind{display:none;color:#f59e0b;font-size:.78rem;margin-top:6px}
+
+    .submit-btn{margin-top:18px;width:100%;padding:13px;border:none;border-radius:9px;font-size:.95rem;font-weight:600;cursor:pointer;transition:opacity .2s,transform .1s;background:linear-gradient(135deg,#f59e0b,#f97316);color:#fff}
+    .submit-btn:hover{opacity:.9}
+    .submit-btn:active{transform:scale(.98)}
+    .submit-btn:disabled{opacity:.4;cursor:not-allowed}
+
+    /* Results */
+    .results-title{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#555;margin-bottom:12px}
+    .result-item{background:#0e0e18;border:1px solid #1e1e2e;border-radius:10px;padding:14px;margin-bottom:12px;animation:fadeIn .3s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1}}
+    .result-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+    .result-label{font-size:.8rem;font-weight:600;color:#ccc}
+    .result-sub{font-size:.72rem;color:#666;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px}
+    .badge{font-size:.72rem;padding:2px 9px;border-radius:20px;font-weight:600;white-space:nowrap}
+    .badge.processing{background:#1a2a1a;color:#4ade80}
+    .badge.completed{background:#1a1e2a;color:#60a5fa}
+    .badge.failed{background:#2a1a1a;color:#f87171}
+    .res-img{width:100%;border-radius:8px;margin-top:6px;display:block}
+    .err-txt{color:#f87171;font-size:.78rem;margin-top:6px}
+    .empty-state{color:#555;font-size:.82rem;padding:10px 0}
+
+    .spinner{display:inline-block;width:8px;height:8px;border:2px solid #4ade8044;border-top-color:#4ade80;border-radius:50%;animation:spin .7s linear infinite;margin-right:4px;vertical-align:middle}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .tip{font-size:.72rem;color:#555;margin-top:5px;line-height:1.5}
+
+    /* History grid */
+    .history-section{width:100%;margin-top:36px}
+    .history-section h2{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#555;margin-bottom:14px}
+    .history-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+    .hist-card{background:#13131a;border:1px solid #222233;border-radius:12px;overflow:hidden;transition:border-color .2s}
+    .hist-card:hover{border-color:#f59e0b44}
+    .hist-thumb{width:100%;height:120px;object-fit:cover;display:block;background:#0e0e18}
+    .hist-spinner-wrap{width:100%;height:120px;display:flex;align-items:center;justify-content:center;background:#0e0e18}
+    .hist-spinner-lg{width:20px;height:20px;border:3px solid #f59e0b44;border-top-color:#f59e0b;border-radius:50%;animation:spin .7s linear infinite}
+    .hist-info{padding:8px 10px}
+    .hist-model{font-size:.72rem;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .hist-meta{font-size:.68rem;color:#555;margin-top:2px}
+    .hist-badge{display:inline-block;font-size:.65rem;padding:1px 7px;border-radius:10px;font-weight:600;margin-top:4px}
+    .hist-badge.completed{background:#1a1e2a;color:#60a5fa}
+    .hist-badge.processing{background:#1a2a1a;color:#4ade80}
+    .hist-badge.failed{background:#2a1a1a;color:#f87171}
+    .history-empty{color:#555;font-size:.82rem;padding:16px 0}
+    .hist-card{cursor:pointer}
+    .hist-card:hover{border-color:#60a5fa;box-shadow:0 0 0 1px #60a5fa33}
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);z-index:1000;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+    .modal-overlay.open{display:flex}
+    .modal-box{background:#13131a;border:1px solid #2a2a3e;border-radius:18px;width:100%;max-width:860px;max-height:calc(100vh - 40px);overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.7);scrollbar-width:thin;scrollbar-color:#2a2a3e transparent}
+    .modal-box::-webkit-scrollbar{width:6px}.modal-box::-webkit-scrollbar-thumb{background:#2a2a3e;border-radius:3px}
+    .modal-head{display:flex;align-items:center;justify-content:space-between;padding:20px 24px 0}
+    .modal-head-title{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#555}
+    .modal-close-btn{background:none;border:none;color:#666;font-size:1.4rem;cursor:pointer;padding:4px 8px;border-radius:8px;transition:all .15s;line-height:1}
+    .modal-close-btn:hover{background:#1e1e2e;color:#ccc}
+    .modal-img-wrap{margin:16px 24px;background:#0a0a0f;border-radius:12px;display:flex;align-items:center;justify-content:center;min-height:180px;padding:16px}
+    .modal-img-wrap img{max-width:100%;max-height:70vh;border-radius:8px;display:block;object-fit:contain}
+    .modal-no-vid{color:#555;font-size:.9rem;text-align:center;padding:40px}
+    .modal-actions{display:flex;gap:10px;padding:0 24px 20px;flex-wrap:wrap}
+    .btn-dl{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#3b7dd8,#60a5fa);color:#fff;border:none;border-radius:9px;padding:9px 18px;font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;transition:opacity .2s}
+    .btn-dl:hover{opacity:.85}
+    .btn-ext{display:inline-flex;align-items:center;gap:6px;background:#1e1e2e;color:#aaa;border:1px solid #2a2a3e;border-radius:9px;padding:9px 18px;font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;transition:all .2s}
+    .btn-ext:hover{color:#fff;border-color:#444}
+    .modal-divider{height:1px;background:#1a1a28;margin:0 24px 20px}
+    .modal-sect{padding:0 24px 20px}
+    .modal-sect-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#555;margin-bottom:8px}
+    .prompt-blk{background:#0e0e18;border:1px solid #1e1e2e;border-radius:10px;padding:14px 16px;position:relative}
+    .prompt-txt{font-size:.87rem;color:#ccc;line-height:1.6;padding-right:68px;white-space:pre-wrap;word-break:break-word}
+    .btn-copy{position:absolute;top:10px;right:10px;background:#1e1e2e;border:1px solid #2a2a3e;color:#888;border-radius:7px;padding:5px 11px;font-size:.75rem;font-weight:600;cursor:pointer;transition:all .15s}
+    .btn-copy:hover{color:#a78bfa;border-color:#a78bfa55}
+    .btn-copy.copied{color:#4ade80;border-color:#4ade8055}
+    .meta-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+    .meta-item{background:#0e0e18;border:1px solid #1a1a28;border-radius:10px;padding:12px 14px}
+    .meta-key{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#555;margin-bottom:5px}
+    .meta-val{font-size:.85rem;color:#ccc;font-weight:500;word-break:break-all}
+    .meta-val.green{color:#4ade80}.meta-val.blue{color:#60a5fa}.meta-val.purple{color:#a78bfa}.meta-val.red{color:#f87171}
+
+    /* Skin Enhancer button */
+    .prompt-label-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+    .prompt-label-row label{margin-bottom:0}
+    .skin-btn{background:none;border:1px solid #2a2a3a;color:#888;border-radius:6px;padding:3px 10px;font-size:.72rem;cursor:pointer;transition:all .15s;white-space:nowrap}
+    .skin-btn:hover{border-color:#a78bfa55;color:#a78bfa;background:#1a1430}
+
+    /* Result action buttons (replaces raw URL) */
+    .img-result-actions{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+    .btn-dl-img,.btn-view-img{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:7px;font-size:.78rem;font-weight:600;cursor:pointer;text-decoration:none;transition:all .15s;border:none}
+    .btn-dl-img{background:linear-gradient(135deg,#3b7dd8,#60a5fa);color:#fff}
+    .btn-dl-img:hover{opacity:.85}
+    .btn-view-img{background:#1e1e2e;color:#aaa;border:1px solid #2a2a3e}
+    .btn-view-img:hover{color:#fff;border-color:#444}
+
+    /* Multi-image upload */
+    .multi-upload-wrap{margin-top:12px}
+    .multi-upload-label{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+    .multi-upload-label label{margin-bottom:0}
+    .multi-upload-label span{font-size:.68rem;color:#555}
+    .multi-dropzone{border:1px dashed #2a2a3a;border-radius:8px;padding:10px 14px;text-align:center;cursor:pointer;transition:all .2s;background:#0c0c18}
+    .multi-dropzone:hover,.multi-dropzone.drag-over{border-color:#a78bfa55;background:#1a1430}
+    .multi-dropzone p{color:#555;font-size:.78rem;margin:0}
+    .multi-dropzone p span{color:#a78bfa;cursor:pointer}
+    .multi-thumb-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+    .multi-thumb-item{position:relative;width:52px;height:52px;border-radius:6px;overflow:hidden;border:1px solid #2a2a3a}
+    .multi-thumb-item img{width:100%;height:100%;object-fit:cover;display:block}
+    .multi-thumb-rm{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.7);border:none;color:#f87171;font-size:.65rem;cursor:pointer;border-radius:3px;padding:0 4px;line-height:1.6}
+    .multi-uploading{font-size:.72rem;color:#a78bfa;margin-top:4px;display:none}
+    {% if embed %}
+    :root{
+      --kamod-bg:#090d18;
+      --kamod-panel:#0d1220;
+      --kamod-card:rgba(10,14,25,.78);
+      --kamod-card-strong:rgba(16,22,36,.94);
+      --kamod-border:rgba(255,255,255,.075);
+      --kamod-border-soft:rgba(255,255,255,.055);
+      --kamod-text:#f5f7ff;
+      --kamod-soft:#b5bed2;
+      --kamod-dim:#7d879d;
+      --kamod-blue:#8ea7ff;
+      --kamod-pink:#f3a6d2;
+      --kamod-amber:#f4a33a;
+    }
+
+    body{
+      background:transparent;
+      color:var(--kamod-text);
+      overflow-x:hidden;
+    }
+
+    .wrapper{
+      padding:0;
+      background:transparent;
+    }
+
+    .section-tabs{
+      position:relative;
+      display:grid;
+      grid-template-columns:repeat(3, minmax(0,1fr));
+      gap:8px;
+      margin:0 0 20px;
+      padding:8px;
+      border-radius:20px;
+      background:rgba(7,10,19,.94);
+      border:1px solid var(--kamod-border);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.035);
+    }
+
+    .section-tab{
+      min-height:48px;
+      border-radius:14px;
+      color:var(--kamod-dim);
+      font-size:.9rem;
+      font-weight:700;
+      letter-spacing:-.01em;
+    }
+
+    .section-tab.active{
+      background:linear-gradient(135deg, rgba(111,134,255,.26), rgba(88,183,255,.12));
+      border:1px solid rgba(142,167,255,.24);
+      color:#fff;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+    }
+
+    .section-tab:hover:not(.active){
+      color:var(--kamod-soft);
+      background:rgba(255,255,255,.025);
+    }
+
+    .model-grid-3,
+    .model-grid-2{
+      gap:12px;
+      margin-bottom:20px;
+    }
+
+    .model-card{
+      min-height:116px;
+      padding:18px 16px;
+      border-radius:18px;
+      border:1px solid var(--kamod-border);
+      background:linear-gradient(180deg, rgba(255,255,255,.018), rgba(255,255,255,.006));
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+    }
+
+    .model-card:hover{
+      border-color:rgba(142,167,255,.28);
+      background:rgba(142,167,255,.045);
+    }
+
+    .model-card.selected{
+      border-color:rgba(244,163,58,.72);
+      background:linear-gradient(180deg, rgba(244,163,58,.13), rgba(244,163,58,.035));
+      box-shadow:0 0 0 1px rgba(244,163,58,.12), inset 0 1px 0 rgba(255,255,255,.04);
+    }
+
+    .model-card .mc-name{
+      color:var(--kamod-text);
+      font-size:.9rem;
+      font-weight:750;
+      letter-spacing:-.01em;
+    }
+
+    .model-card .mc-price{
+      color:var(--kamod-dim);
+      font-size:.73rem;
+      font-weight:650;
+    }
+
+    .model-card .mc-desc{
+      color:rgba(181,190,210,.58);
+      font-size:.72rem;
+      line-height:1.45;
+    }
+
+    .model-card.selected .mc-name{
+      color:var(--kamod-amber);
+    }
+
+    .model-card.selected .mc-price{
+      color:#f3c676;
+    }
+
+    .grid-2{
+      gap:18px;
+      align-items:stretch;
+    }
+
+    .card{
+      height:100%;
+      margin-bottom:0;
+      padding:20px;
+      border-radius:20px;
+      border:1px solid var(--kamod-border);
+      background:linear-gradient(180deg, var(--kamod-card-strong), var(--kamod-card));
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+    }
+
+    .card h3,
+    .results-title,
+    .history-section h2,
+    .modal-head-title,
+    .modal-sect-label{
+      color:var(--kamod-dim);
+      font-size:.76rem;
+      font-weight:800;
+      letter-spacing:.13em;
+    }
+
+    label,
+    .prompt-label-row label{
+      color:var(--kamod-soft);
+      font-size:.84rem;
+      font-weight:650;
+    }
+
+    textarea,
+    input[type=text],
+    select{
+      background:#0d1220;
+      border:1px solid rgba(255,255,255,.085);
+      border-radius:14px;
+      color:var(--kamod-text);
+      font-size:.92rem;
+      padding:12px 13px;
+    }
+
+    textarea{
+      min-height:124px;
+      line-height:1.55;
+    }
+
+    textarea:focus,
+    input:focus,
+    select:focus{
+      border-color:rgba(142,167,255,.42);
+      box-shadow:0 0 0 4px rgba(142,167,255,.10);
+    }
+
+    .row-2,
+    .row-3{
+      gap:12px;
+    }
+
+    .info-box{
+      margin-top:12px;
+      padding:14px 16px;
+      border-radius:16px;
+      background:rgba(142,167,255,.085);
+      border:1px solid rgba(142,167,255,.18);
+      color:#d5def8;
+      font-size:.86rem;
+      line-height:1.65;
+    }
+
+    .info-box b{
+      color:#f7c56d;
+    }
+
+    .src-tabs{
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    .src-tab,
+    .skin-btn,
+    .res-btn{
+      border-radius:999px;
+      border:1px solid var(--kamod-border);
+      background:rgba(255,255,255,.025);
+      color:var(--kamod-dim);
+      font-weight:750;
+      padding:7px 13px;
+    }
+
+    .src-tab:hover,
+    .skin-btn:hover,
+    .res-btn:hover{
+      color:var(--kamod-soft);
+      border-color:rgba(142,167,255,.25);
+      background:rgba(142,167,255,.06);
+    }
+
+    .src-tab.active,
+    .res-btn.active{
+      color:var(--kamod-pink);
+      border-color:rgba(236,72,153,.38);
+      background:rgba(236,72,153,.14);
+    }
+
+    .dropzone,
+    .multi-dropzone{
+      min-height:50px;
+      border-radius:14px;
+      border:1px dashed rgba(142,167,255,.24);
+      background:rgba(9,13,24,.62);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .dropzone:hover,
+    .dropzone.drag-over,
+    .multi-dropzone:hover,
+    .multi-dropzone.drag-over{
+      border-color:rgba(142,167,255,.46);
+      background:rgba(142,167,255,.075);
+    }
+
+    .dropzone p,
+    .multi-dropzone p{
+      color:var(--kamod-dim);
+      font-size:.84rem;
+    }
+
+    .dropzone p span,
+    .multi-dropzone p span{
+      color:#b7a7ff;
+      font-weight:700;
+    }
+
+    .preview-bar{
+      border-radius:12px;
+      border-color:rgba(142,167,255,.20);
+      background:rgba(142,167,255,.08);
+      color:#abc1ff;
+    }
+
+    .preview-wrap img,
+    .res-img{
+      border-radius:16px;
+      border:1px solid var(--kamod-border);
+      background:#070a13;
+    }
+
+    .multi-thumb-item{
+      width:58px;
+      height:58px;
+      border-radius:12px;
+      border-color:rgba(142,167,255,.18);
+    }
+
+    .submit-btn{
+      min-height:58px;
+      margin-top:18px;
+      border-radius:16px;
+      background:linear-gradient(135deg, #f3a532, #f56f2d);
+      box-shadow:0 12px 32px rgba(245,111,45,.16);
+      font-size:1rem;
+      font-weight:750;
+    }
+
+    .submit-btn:hover{
+      opacity:1;
+      transform:translateY(-1px);
+      box-shadow:0 16px 38px rgba(245,111,45,.22);
+    }
+
+    .submit-btn:disabled{
+      transform:none;
+      box-shadow:none;
+    }
+
+    .empty-state{
+      min-height:168px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      border:1px dashed rgba(255,255,255,.065);
+      border-radius:18px;
+      color:var(--kamod-dim);
+      line-height:1.6;
+      padding:24px;
+      background:rgba(7,10,19,.38);
+    }
+
+    .result-item{
+      border-radius:18px;
+      border-color:var(--kamod-border);
+      background:rgba(9,13,24,.82);
+      padding:16px;
+    }
+
+    .result-label{
+      color:var(--kamod-text);
+      font-size:.9rem;
+      font-weight:750;
+    }
+
+    .result-sub,
+    .tip,
+    .hist-meta{
+      color:var(--kamod-dim);
+    }
+
+    .history-section{
+      margin-top:30px;
+      padding-top:24px;
+      border-top:1px solid rgba(255,255,255,.06);
+    }
+
+    .history-grid{
+      grid-template-columns:repeat(auto-fill,minmax(190px,1fr));
+      gap:14px;
+    }
+
+    .hist-card{
+      border-radius:18px;
+      border-color:var(--kamod-border);
+      background:linear-gradient(180deg, rgba(16,22,36,.9), rgba(10,14,25,.88));
+    }
+
+    .hist-card:hover{
+      border-color:rgba(142,167,255,.42);
+      box-shadow:0 0 0 1px rgba(142,167,255,.12), 0 18px 34px rgba(0,0,0,.22);
+      transform:translateY(-1px);
+    }
+
+    .hist-thumb,
+    .hist-spinner-wrap{
+      height:145px;
+      background:#070a13;
+    }
+
+    .hist-info{
+      padding:11px 12px 13px;
+    }
+
+    .hist-model{
+      color:var(--kamod-text);
+      font-weight:750;
+      font-size:.82rem;
+    }
+
+    .hist-badge{
+      padding:3px 9px;
+      font-size:.68rem;
+    }
+
+    .hist-badge.completed,
+    .badge.completed{
+      background:rgba(111,134,255,.18);
+      color:#b9c7ff;
+    }
+
+    .hist-badge.processing,
+    .badge.processing{
+      background:rgba(74,222,128,.16);
+      color:#8ef0b4;
+    }
+
+    .hist-badge.failed,
+    .badge.failed{
+      background:rgba(248,113,113,.16);
+      color:#ff9b9b;
+    }
+
+    .modal-overlay{
+      left:0;
+      right:0;
+      background:rgba(3,5,10,.78);
+      backdrop-filter:blur(10px);
+    }
+
+    .modal-box{
+      max-width:min(1080px,calc(100vw - 40px));
+      border-radius:22px;
+      border-color:rgba(255,255,255,.08);
+      background:linear-gradient(180deg, rgba(18,22,33,.98), rgba(10,14,25,.98));
+      box-shadow:0 28px 90px rgba(0,0,0,.72);
+    }
+
+    .modal-img-wrap,
+    .prompt-blk,
+    .meta-item{
+      border-radius:16px;
+      border-color:var(--kamod-border);
+      background:#0b101d;
+    }
+
+    .modal-img-wrap{
+      min-height:220px;
+    }
+
+    .prompt-txt,
+    .meta-val{
+      color:var(--kamod-soft);
+    }
+
+    .btn-copy,
+    .btn-ext,
+    .btn-view-img{
+      border-radius:12px;
+      border-color:var(--kamod-border);
+      background:rgba(255,255,255,.045);
+      color:var(--kamod-soft);
+    }
+
+    .btn-dl,
+    .btn-dl-img{
+      border-radius:12px;
+      background:linear-gradient(135deg,#6f86ff,#58b7ff);
+      box-shadow:0 10px 28px rgba(88,183,255,.14);
+    }
+
+    .check-row input[type=checkbox]{
+      accent-color:#8ea7ff;
+    }
+
+    .check-row label{
+      color:var(--kamod-soft);
+    }
+
+    @media (max-width: 980px){
+      .grid-2{grid-template-columns:1fr}
+      .model-grid-3{grid-template-columns:1fr}
+      .row-2,.row-3{grid-template-columns:1fr}
+      .history-grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
+    }
+
+    @media (max-width: 720px){
+      .section-tabs{grid-template-columns:1fr}
+      .card{padding:16px}
+      .history-grid{grid-template-columns:1fr 1fr}
+      .modal-box{max-width:calc(100vw - 24px)}
+      .modal-actions,.modal-sect,.modal-head{padding-left:18px;padding-right:18px}
+      .modal-img-wrap{margin-left:18px;margin-right:18px}
+    }
+
+    @media (max-width: 480px){
+      .history-grid{grid-template-columns:1fr}
+    }
+    {% endif %}
+  </style>
+</head>
+<body>
+
+{% if not embed %}
+<nav>
+  <span class="logo">KAMOD AI</span>
+  <div class="nav-grouped">
+    <div class="nav-group has-active">
+      <span class="nav-group-label">CREATE</span>
+      <div class="nav-group-items">
+        <a href="/">Seedance 2.0</a>
+        <a href="/ai-videos">AI Video Tools</a>
+        <a href="/ai-director">Director</a>
+        <a href="/images" class="active">AI Images</a>
+        <a href="/storyboard">Storyboard</a>
+        <a href="/ugc-studio">UGC Studio</a>
+      </div>
+    </div>
+    <div class="nav-sep"></div>
+    <div class="nav-group">
+      <span class="nav-group-label">ENHANCE</span>
+      <div class="nav-group-items">
+        <a href="/audio">Audio</a>
+        <a href="/avatars">Avatars</a>
+      </div>
+    </div>
+    <div class="nav-sep"></div>
+    <div class="nav-group">
+      <span class="nav-group-label">DELIVER</span>
+      <div class="nav-group-items">
+        <a href="/analytics">Analytics</a>
+        <a href="/dashboard">Dashboard</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <h1>AI Images</h1>
+  <p>Generate, edit, and build character sheets with cutting-edge AI models</p>
+</header>
+{% endif %}
+
+<div class="wrapper">
+
+  <div class="section-tabs">
+    <button class="section-tab active" data-section="t2i">Text → Image</button>
+    <button class="section-tab" data-section="edit">Image Editing</button>
+    <button class="section-tab" data-section="character">Character Sheet</button>
+  </div>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- TEXT TO IMAGE                                    -->
+  <!-- ════════════════════════════════════════════════ -->
+    <div class="section active" id="section-t2i">
+    <div class="model-grid-3" id="t2i-model-grid">
+      <div class="model-card selected" data-model="nano-banana-pro">
+        <div class="mc-name">Seedream 5.0 Lite</div>
+        <div class="mc-price">$0.12/gen</div>
+        <div class="mc-desc">BytePlus official image model · fast creative generation</div>
+      </div>
+      <div class="model-card" data-model="gpt-image-2-text-to-image">
+        <div class="mc-name">Seedream 5.0 Lite</div>
+        <div class="mc-price">Prompt-only</div>
+        <div class="mc-desc">OpenAI · detailed prompt following · up to 20k characters</div>
+      </div>
+      <div class="model-card" data-model="seedream-5.0">
+        <div class="mc-name">Seedream 5.0</div>
+        <div class="mc-price">$0.0325/gen</div>
+        <div class="mc-desc">ByteDance · visual reasoning · real-time knowledge</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Left: form -->
+      <div>
+        <div class="card">
+          <h3>Generation Settings</h3>
+
+          <div class="prompt-label-row">
+            <label>Prompt <span style="color:#f87171">*</span></label>
+            <button id="skinEnhancerBtn" class="skin-btn">✦ Skin Enhancer</button>
+          </div>
+          <textarea id="t2i-prompt" placeholder="A photorealistic portrait of a golden retriever wearing sunglasses on a tropical beach at sunset, cinematic lighting…"></textarea>
+
+          <!-- nano-banana-pro options -->
+          <div class="opt-group visible" id="opts-nano-banana-pro">
+            <div class="row-2">
+              <div>
+                <label>Aspect Ratio</label>
+                <select id="nbp-aspect">
+                  <option value="1:1">1:1 Square</option>
+                  <option value="16:9">16:9 Landscape</option>
+                  <option value="9:16">9:16 Portrait</option>
+                  <option value="4:3">4:3</option>
+                  <option value="3:4">3:4</option>
+                  <option value="3:2">3:2</option>
+                  <option value="2:3">2:3</option>
+                  <option value="5:4">5:4</option>
+                  <option value="4:5">4:5</option>
+                  <option value="21:9">21:9 Ultrawide</option>
+                </select>
+              </div>
+              <div>
+                <label>Resolution</label>
+                <select id="nbp-resolution">
+                  <option value="1k">1K</option>
+                  <option value="2k">2K</option>
+                  <option value="4k">4K</option>
+                </select>
+              </div>
+            </div>
+            <div class="multi-upload-wrap">
+              <div class="multi-upload-label">
+                <label>Reference Images</label>
+                <span>optional · up to 14</span>
+              </div>
+              <div class="multi-dropzone" id="nbp-multi-dropzone">
+                <input type="file" id="nbp-multi-file" accept="image/*" multiple style="display:none"/>
+                <p>Drop images or <span onclick="document.getElementById('nbp-multi-file').click()">browse</span></p>
+              </div>
+              <div class="multi-uploading" id="nbp-multi-uploading">Uploading…</div>
+              <div class="multi-thumb-grid" id="nbp-multi-thumbs"></div>
+            </div>
+          </div>
+
+          <!-- gpt-image-2-text-to-image options -->
+          <div class="opt-group" id="opts-gpt-image-2-text-to-image">
+            <div class="row-2">
+              <div>
+                <label>Aspect Ratio</label>
+                <select id="gpt2-aspect">
+                  <option value="auto">Auto</option>
+                  <option value="1:1">1:1 Square</option>
+                  <option value="16:9">16:9 Landscape</option>
+                  <option value="9:16">9:16 Portrait</option>
+                  <option value="3:2">3:2 Landscape</option>
+                  <option value="2:3">2:3 Portrait</option>
+                  <option value="4:3">4:3 Landscape</option>
+                  <option value="3:4">3:4 Portrait</option>
+                </select>
+              </div>
+              <div>
+                <label>Quality</label>
+                <select id="gpt2-quality">
+                  <option value="high">High</option>
+                  <option value="medium">Medium</option>
+                  <option value="low">Low</option>
+                </select>
+              </div>
+            </div>
+            <div class="info-box">
+              <b>Seedream 5.0 Lite</b> supports prompt-only generation here. Aspect ratio and quality are exposed directly in the form.
+            </div>
+          </div>
+
+          <!-- seedream-5.0 options -->
+          <div class="opt-group" id="opts-seedream-5.0">
+            <div class="row-2">
+              <div>
+                <label>Aspect Ratio</label>
+                <select id="sd-aspect">
+                  <option value="1:1">1:1 Square</option>
+                  <option value="16:9">16:9 Landscape</option>
+                  <option value="9:16">9:16 Portrait</option>
+                  <option value="4:3">4:3</option>
+                  <option value="3:4">3:4</option>
+                  <option value="2:3">2:3</option>
+                  <option value="3:2">3:2</option>
+                  <option value="21:9">21:9 Ultrawide</option>
+                </select>
+              </div>
+              <div>
+                <label>Quality</label>
+                <select id="sd-quality">
+                  <option value="basic">Basic</option>
+                  <option value="high">High</option>
+                </select>
+              </div>
+            </div>
+            <div class="multi-upload-wrap">
+              <div class="multi-upload-label">
+                <label>Reference Images</label>
+                <span>optional · up to 14</span>
+              </div>
+              <div class="multi-dropzone" id="sd-multi-dropzone">
+                <input type="file" id="sd-multi-file" accept="image/*" multiple style="display:none"/>
+                <p>Drop images or <span onclick="document.getElementById('sd-multi-file').click()">browse</span></p>
+              </div>
+              <div class="multi-uploading" id="sd-multi-uploading">Uploading…</div>
+              <div class="multi-thumb-grid" id="sd-multi-thumbs"></div>
+            </div>
+          </div>
+
+          <button class="submit-btn" id="btn-t2i">Generate Image</button>
+        </div>
+      </div>
+
+      <!-- Right: results -->
+      <div>
+        <div class="card">
+          <div class="results-title">Results</div>
+          <div id="t2i-results"><div class="empty-state">Generate an image to see results here.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- IMAGE EDITING                                    -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="section" id="section-edit">
+    <div class="model-grid-3" id="edit-model-grid">
+      <div class="model-card selected" data-model="nano-banana-2-edit">
+        <div class="mc-name">Seedream 5.0 Lite Edit</div>
+        <div class="mc-price">$0.06/1k &middot; $0.09/2k &middot; $0.12/4k</div>
+        <div class="mc-desc">BytePlus official image editing · reference-aware generation</div>
+      </div>
+      <div class="model-card" data-model="gpt-image-2-image-to-image">
+        <div class="mc-name">Seedream Reference Edit</div>
+        <div class="mc-price">1-16 images</div>
+        <div class="mc-desc">OpenAI · prompt-driven edits · multi-image transformation</div>
+      </div>
+      <div class="model-card" data-model="seedream-5.0-edit">
+        <div class="mc-name">Seedream 5.0 Edit</div>
+        <div class="mc-price">$0.0325/gen</div>
+        <div class="mc-desc">ByteDance · precise edits · style transfer</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Left: form -->
+      <div>
+        <div class="card">
+          <h3>Edit Settings</h3>
+
+          <!-- Source image -->
+          <label>Source Image <span style="color:#f87171">*</span></label>
+          <div class="src-tabs" id="edit-img-src-tabs">
+            <div class="src-tab active" data-src="upload">Upload</div>
+            <div class="src-tab" data-src="url">URL</div>
+          </div>
+          <div id="edit-img-upload-wrap">
+            <div class="dropzone" id="edit-img-dropzone">
+              <input type="file" id="edit-img-file" accept="image/*"/>
+              <p><span>Choose image</span></p>
+            </div>
+            <div class="uploading-ind" id="edit-img-uploading">Uploading…</div>
+            <div class="preview-wrap" id="edit-img-preview">
+              <div class="preview-bar"><span id="edit-img-fname">image.jpg</span><span class="rm" id="edit-img-rm">✕ Remove</span></div>
+              <img id="edit-img-thumb" src="" alt="Preview"/>
+            </div>
+          </div>
+          <div id="edit-img-url-wrap" style="display:none">
+            <input type="text" id="edit-image-url" placeholder="https://example.com/your-image.jpg"/>
+          </div>
+
+          <label>Edit Prompt <span style="color:#f87171">*</span></label>
+          <textarea id="edit-prompt" placeholder="Change the background to a snowy mountain landscape, keep the subject the same…"></textarea>
+
+          <!-- nano-banana-2-edit options -->
+          <div class="opt-group visible" id="edit-opts-nano-banana-2-edit">
+            <div class="row-2">
+              <div>
+                <label>Aspect Ratio</label>
+                <select id="edit-nb2-aspect">
+                  <option value="Auto">Auto</option>
+                  <option value="1:1">1:1 Square</option>
+                  <option value="16:9">16:9 Landscape</option>
+                  <option value="9:16">9:16 Portrait</option>
+                  <option value="4:3">4:3</option>
+                  <option value="3:4">3:4</option>
+                  <option value="4:5">4:5</option>
+                  <option value="5:4">5:4</option>
+                  <option value="3:2">3:2</option>
+                  <option value="2:3">2:3</option>
+                  <option value="21:9">21:9 Ultrawide</option>
+                  <option value="1:4">1:4</option>
+                  <option value="4:1">4:1</option>
+                  <option value="1:8">1:8</option>
+                  <option value="8:1">8:1</option>
+                </select>
+              </div>
+              <div>
+                <label>Resolution</label>
+                <select id="edit-nb2-resolution">
+                  <option value="1k">1K</option>
+                  <option value="2k">2K</option>
+                  <option value="4k">4K</option>
+                </select>
+              </div>
+            </div>
+            <div class="row-2">
+              <div>
+                <label>Output Format</label>
+                <select id="edit-nb2-format">
+                  <option value="jpg">JPG</option>
+                </select>
+              </div>
+            </div>
+            <div class="check-row">
+              <input type="checkbox" id="edit-nb2-gsearch"/>
+              <label for="edit-nb2-gsearch">Enable Google Search</label>
+            </div>
+
+            <div class="multi-upload-wrap" style="margin-top:14px">
+              <div class="multi-upload-label">
+                <label>Additional Reference Images</label><span>optional · up to 13 more</span>
+              </div>
+              <div class="multi-dropzone" id="nb2edit-multi-dropzone">
+                <input type="file" id="nb2edit-multi-file" accept="image/*" multiple style="display:none"/>
+                <p>Drop images or <span onclick="document.getElementById('nb2edit-multi-file').click()">browse</span></p>
+              </div>
+              <div class="multi-uploading" id="nb2edit-multi-uploading">Uploading…</div>
+              <div class="multi-thumb-grid" id="nb2edit-multi-thumbs"></div>
+            </div>
+          </div>
+
+          <!-- gpt-image-2-image-to-image options -->
+          <div class="opt-group" id="edit-opts-gpt-image-2-image-to-image">
+            <div class="row-2">
+              <div>
+                <label>Aspect Ratio</label>
+                <select id="edit-gpt2-aspect">
+                  <option value="auto">Auto</option>
+                  <option value="1:1">1:1 Square</option>
+                  <option value="16:9">16:9 Landscape</option>
+                  <option value="9:16">9:16 Portrait</option>
+                  <option value="3:2">3:2 Landscape</option>
+                  <option value="2:3">2:3 Portrait</option>
+                  <option value="4:3">4:3 Landscape</option>
+                  <option value="3:4">3:4 Portrait</option>
+                </select>
+              </div>
+              <div>
+                <label>Quality</label>
+                <select id="edit-gpt2-quality">
+                  <option value="high">High</option>
+                  <option value="medium">Medium</option>
+                  <option value="low">Low</option>
+                </select>
+              </div>
+            </div>
+            <div class="info-box">
+              <b>Seedream Reference Edit</b> accepts your source image plus optional extra references. This flow sends up to 16 input images total.
+            </div>
+            <div class="multi-upload-wrap" style="margin-top:14px">
+              <div class="multi-upload-label">
+                <label>Additional Reference Images</label><span>optional · up to 15 more</span>
+              </div>
+              <div class="multi-dropzone" id="gpti2i-multi-dropzone">
+                <input type="file" id="gpti2i-multi-file" accept="image/*" multiple style="display:none"/>
+                <p>Drop images or <span onclick="document.getElementById('gpti2i-multi-file').click()">browse</span></p>
+              </div>
+              <div class="multi-uploading" id="gpti2i-multi-uploading">Uploading…</div>
+              <div class="multi-thumb-grid" id="gpti2i-multi-thumbs"></div>
+            </div>
+          </div>
+
+          <!-- seedream-5.0-edit options -->
+          <div class="opt-group" id="edit-opts-seedream-5.0-edit">
+            <div class="row-2">
+              <div>
+                <label>Aspect Ratio</label>
+                <select id="edit-sd-aspect">
+                  <option value="1:1">1:1 Square</option>
+                  <option value="16:9">16:9 Landscape</option>
+                  <option value="9:16">9:16 Portrait</option>
+                  <option value="4:3">4:3</option>
+                  <option value="3:4">3:4</option>
+                  <option value="2:3">2:3</option>
+                  <option value="3:2">3:2</option>
+                  <option value="21:9">21:9 Ultrawide</option>
+                </select>
+              </div>
+              <div>
+                <label>Quality</label>
+                <select id="edit-sd-quality">
+                  <option value="basic">Basic</option>
+                  <option value="high">High</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <button class="submit-btn" id="btn-edit">Edit Image</button>
+        </div>
+      </div>
+
+      <!-- Right: results -->
+      <div>
+        <div class="card">
+          <div class="results-title">Results</div>
+          <div id="edit-results"><div class="empty-state">Edit an image to see results here.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- CHARACTER SHEET                                  -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="section" id="section-character">
+    <div class="info-box">
+      Upload any face or character photo. KAMOD AI generates a professional <b>7-panel reference sheet</b>: 4 full-body views (front, left, right, back) + 3 close-up portraits — perfect for keeping your character consistent across generations. Uses <b>Seedream 5.0 Lite Edit</b> · ~$0.09.
+    </div>
+    <div class="grid-2">
+      <!-- Left: upload -->
+      <div>
+        <div class="card">
+          <h3>Reference Photo</h3>
+          <div class="src-tabs" id="char-src-tabs">
+            <div class="src-tab active" data-src="upload">Upload</div>
+            <div class="src-tab" data-src="url">URL</div>
+          </div>
+          <div id="char-upload-wrap">
+            <div class="dropzone" id="char-dropzone">
+              <input type="file" id="char-file" accept="image/*"/>
+              <p><span>Choose image</span></p>
+            </div>
+            <div class="uploading-ind" id="char-uploading">Uploading…</div>
+            <div class="preview-wrap" id="char-preview">
+              <div class="preview-bar"><span id="char-fname">image.jpg</span><span class="rm" id="char-rm">✕ Remove</span></div>
+              <img id="char-thumb" src="" alt="Preview"/>
+            </div>
+          </div>
+          <div id="char-url-wrap" style="display:none">
+            <input type="text" id="char-image-url" placeholder="https://example.com/character-photo.jpg"/>
+          </div>
+          <button class="submit-btn" id="btn-character" style="margin-top:18px">👤 Generate Character Sheet</button>
+        </div>
+      </div>
+      <!-- Right: result -->
+      <div>
+        <div class="card">
+          <div class="results-title">Character Sheet</div>
+          <div id="char-results"><div class="empty-state">Upload a photo to generate your 7-panel character reference sheet.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Generation History -->
+  <div class="history-section">
+    <h2>Generation History</h2>
+    <div class="history-grid" id="images-history-grid">
+      <div class="history-empty">No history yet.</div>
+    </div>
+  </div>
+
+</div><!-- /wrapper -->
+
+<!-- Image preview modal -->
+<div class="modal-overlay" id="imgModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <span class="modal-head-title">Image Preview</span>
+      <button class="modal-close-btn" id="imgModalClose">✕</button>
+    </div>
+    <div class="modal-img-wrap" id="imgModalImgWrap">
+      <div class="modal-no-vid">No image available</div>
+    </div>
+    <div class="modal-actions" id="imgModalActions"></div>
+    <div class="modal-divider"></div>
+    <div class="modal-sect">
+      <div class="modal-sect-label">Prompt</div>
+      <div class="prompt-blk">
+        <div class="prompt-txt" id="imgModalPrompt">—</div>
+        <button class="btn-copy" id="imgModalCopy">Copy</button>
+      </div>
+    </div>
+    <div class="modal-divider"></div>
+    <div class="modal-sect">
+      <div class="modal-sect-label">Details</div>
+      <div class="meta-grid" id="imgModalMeta"></div>
+    </div>
+    <div style="height:8px"></div>
+  </div>
+</div>
+
+<script>
+// ─── Section tabs ────────────────────────────────────
+document.querySelectorAll('.section-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.section-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('section-' + tab.dataset.section).classList.add('active');
+  });
+});
+
+// ─── T2I Model picker ─────────────────────────────────
+let selectedT2IModel = 'nano-banana-pro';
+document.querySelectorAll('#t2i-model-grid .model-card').forEach(card => {
+  card.addEventListener('click', () => {
+    document.querySelectorAll('#t2i-model-grid .model-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    selectedT2IModel = card.dataset.model;
+    // Show/hide option groups
+    document.querySelectorAll('#section-t2i .opt-group').forEach(g => g.classList.remove('visible'));
+    const target = document.getElementById('opts-' + selectedT2IModel);
+    if (target) target.classList.add('visible');
+  });
+});
+
+// ─── Edit Model picker ────────────────────────────────
+let selectedEditModel = 'nano-banana-2-edit';
+document.querySelectorAll('#edit-model-grid .model-card').forEach(card => {
+  card.addEventListener('click', () => {
+    document.querySelectorAll('#edit-model-grid .model-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    selectedEditModel = card.dataset.model;
+    document.querySelectorAll('#section-edit .opt-group').forEach(g => g.classList.remove('visible'));
+    const target = document.getElementById('edit-opts-' + selectedEditModel);
+    if (target) target.classList.add('visible');
+  });
+});
+
+// ─── Generic uploader ─────────────────────────────────
+function makeUploader({ srcTabsId, uploadWrapId, urlWrapId, dropzoneId, fileInputId, uploadingId, previewId, fnameId, rmId, thumbId, onUploaded }) {
+  let uploadedUrl = null;
+  let srcMode = 'upload';
+
+  const srcTabs   = document.querySelectorAll('#' + srcTabsId + ' .src-tab');
+  const upWrap    = document.getElementById(uploadWrapId);
+  const urlWrap   = document.getElementById(urlWrapId);
+  const dropzone  = document.getElementById(dropzoneId);
+  const fileInput = document.getElementById(fileInputId);
+  const uploading = document.getElementById(uploadingId);
+  const preview   = document.getElementById(previewId);
+  const fnameEl   = document.getElementById(fnameId);
+  const rmEl      = document.getElementById(rmId);
+  const thumbEl   = thumbId ? document.getElementById(thumbId) : null;
+
+  srcTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      srcTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      srcMode = tab.dataset.src;
+      if (upWrap)  upWrap.style.display  = srcMode === 'upload' ? 'block' : 'none';
+      if (urlWrap) urlWrap.style.display = srcMode === 'url'    ? 'block' : 'none';
+      if (srcMode === 'url') { uploadedUrl = null; onUploaded && onUploaded(null); }
+    });
+  });
+
+  dropzone?.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+  dropzone?.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+  dropzone?.addEventListener('drop', e => { e.preventDefault(); dropzone.classList.remove('drag-over'); const f = e.dataTransfer.files[0]; if (f) doUpload(f); });
+  fileInput?.addEventListener('change', e => { if (e.target.files[0]) doUpload(e.target.files[0]); });
+
+  rmEl?.addEventListener('click', () => {
+    uploadedUrl = null;
+    onUploaded && onUploaded(null);
+    preview.style.display = 'none';
+    fileInput.value = '';
+    dropzone.style.display = 'block';
+    if (thumbEl) thumbEl.src = '';
+  });
+
+  async function doUpload(file) {
+    uploading.style.display = 'block';
+    dropzone.style.display  = 'none';
+    const fd = new FormData();
+    fd.append('file', file);
+    try {
+      const res  = await fetch('/upload', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      uploadedUrl = data.url;
+      onUploaded && onUploaded(uploadedUrl);
+      if (fnameEl)  fnameEl.textContent = file.name;
+      if (thumbEl)  thumbEl.src = uploadedUrl;
+      preview.style.display = 'block';
+    } catch (e) {
+      alert('Upload failed: ' + e.message);
+      dropzone.style.display = 'block';
+    } finally {
+      uploading.style.display = 'none';
+    }
+  }
+
+  return {
+    getUrl: () => {
+      if (srcMode === 'upload') return uploadedUrl;
+      const urlInput = urlWrap?.querySelector('input');
+      return urlInput ? urlInput.value.trim() : null;
+    }
+  };
+}
+
+// Edit image uploader
+let editImgUploaded = null;
+const editImgUploader = makeUploader({
+  srcTabsId: 'edit-img-src-tabs',
+  uploadWrapId: 'edit-img-upload-wrap',
+  urlWrapId: 'edit-img-url-wrap',
+  dropzoneId: 'edit-img-dropzone',
+  fileInputId: 'edit-img-file',
+  uploadingId: 'edit-img-uploading',
+  previewId: 'edit-img-preview',
+  fnameId: 'edit-img-fname',
+  rmId: 'edit-img-rm',
+  thumbId: 'edit-img-thumb',
+  onUploaded: url => { editImgUploaded = url; }
+});
+
+// ─── Skin Enhancer ────────────────────────────────────
+document.getElementById('skinEnhancerBtn').addEventListener('click', () => {
+  const ta = document.getElementById('t2i-prompt');
+  const enhancement = 'ultra realistic skin texture, visible pores, subtle imperfections, micro skin details, natural skin tone, soft natural lighting, volumetric cinematic lighting, soft shadows, highly detailed realistic eyes, sharp iris detail, natural catchlight, photorealistic portrait, 8k, lifelike';
+  const current = ta.value.trim();
+  ta.value = current ? current + ', ' + enhancement : enhancement;
+  ta.focus();
+});
+
+// ─── Multi-image uploader factory ────────────────────
+function makeMultiUploader({ dropzoneId, fileInputId, uploadingId, thumbsId, refsKey, maxFiles }) {
+  maxFiles = maxFiles || 14;
+  window[refsKey] = [];
+  const dropzone  = document.getElementById(dropzoneId);
+  const fileInput = document.getElementById(fileInputId);
+  const uploading = document.getElementById(uploadingId);
+  const thumbsEl  = document.getElementById(thumbsId);
+
+  dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+  dropzone.addEventListener('drop', e => {
+    e.preventDefault(); dropzone.classList.remove('drag-over');
+    uploadFiles(Array.from(e.dataTransfer.files));
+  });
+  fileInput.addEventListener('change', e => {
+    if (e.target.files.length) uploadFiles(Array.from(e.target.files));
+    e.target.value = '';
+  });
+
+  async function uploadFiles(files) {
+    const remaining = maxFiles - window[refsKey].length;
+    if (remaining <= 0) { alert(`Maximum ${maxFiles} reference images allowed.`); return; }
+    const batch = files.slice(0, remaining);
+    uploading.style.display = 'block';
+    for (const file of batch) {
+      if (!file.type.startsWith('image/')) continue;
+      try {
+        const fd = new FormData();
+        fd.append('file', file);
+        const res  = await fetch('/upload', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+        window[refsKey].push(data.url);
+        addThumb(data.url);
+      } catch (e) { console.error('Multi-upload error:', e); }
+    }
+    uploading.style.display = 'none';
+  }
+
+  function addThumb(url) {
+    const item = document.createElement('div');
+    item.className = 'multi-thumb-item';
+    item.innerHTML = `<img src="${url}" alt="ref"/><button class="multi-thumb-rm" title="Remove">✕</button>`;
+    item.querySelector('.multi-thumb-rm').addEventListener('click', () => {
+      window[refsKey] = window[refsKey].filter(u => u !== url);
+      item.remove();
+    });
+    thumbsEl.appendChild(item);
+  }
+}
+
+window._nbpRefs     = [];
+window._sdRefs      = [];
+window._nb2EditRefs = [];
+window._gptImage2EditRefs = [];
+
+makeMultiUploader({ dropzoneId:'nbp-multi-dropzone', fileInputId:'nbp-multi-file', uploadingId:'nbp-multi-uploading', thumbsId:'nbp-multi-thumbs', refsKey:'_nbpRefs', maxFiles:14 });
+makeMultiUploader({ dropzoneId:'sd-multi-dropzone',  fileInputId:'sd-multi-file',  uploadingId:'sd-multi-uploading',  thumbsId:'sd-multi-thumbs',  refsKey:'_sdRefs',  maxFiles:14 });
+makeMultiUploader({ dropzoneId:'nb2edit-multi-dropzone', fileInputId:'nb2edit-multi-file', uploadingId:'nb2edit-multi-uploading', thumbsId:'nb2edit-multi-thumbs', refsKey:'_nb2EditRefs', maxFiles:13 });
+makeMultiUploader({ dropzoneId:'gpti2i-multi-dropzone', fileInputId:'gpti2i-multi-file', uploadingId:'gpti2i-multi-uploading', thumbsId:'gpti2i-multi-thumbs', refsKey:'_gptImage2EditRefs', maxFiles:15 });
+
+// ─── Build T2I payload ────────────────────────────────
+function getT2IPayload(prompt) {
+  const m = selectedT2IModel;
+  if (m === 'nano-banana-pro') {
+    const payload = {
+      model: m,
+      prompt,
+      aspect_ratio: document.getElementById('nbp-aspect').value,
+      resolution:   document.getElementById('nbp-resolution').value,
+    };
+    const refs = window._nbpRefs || [];
+    if (refs.length) payload.images_list = refs;
+    return payload;
+  } else if (m === 'seedream-5.0') {
+    const payload = {
+      model: m,
+      prompt,
+      aspect_ratio: document.getElementById('sd-aspect').value,
+      quality:      document.getElementById('sd-quality').value,
+    };
+    const refs = window._sdRefs || [];
+    if (refs.length) payload.images_list = refs;
+    return payload;
+  } else if (m === 'gpt-image-2-text-to-image') {
+    return {
+      model: m,
+      prompt,
+      aspect_ratio: document.getElementById('gpt2-aspect').value,
+      quality: document.getElementById('gpt2-quality').value,
+    };
+  }
+  return { model: m, prompt };
+}
+
+// ─── Submit T2I ───────────────────────────────────────
+document.getElementById('btn-t2i').addEventListener('click', async function() {
+  const prompt = document.getElementById('t2i-prompt').value.trim();
+  if (!prompt) { alert('Please enter a prompt.'); return; }
+  const payload = getT2IPayload(prompt);
+
+  setBtn(this, true, 'Generating…');
+  try {
+    const res  = await fetch('/api/images/generate', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.error) { alert('Error: ' + data.error); return; }
+    const modelName = document.querySelector('#t2i-model-grid .model-card.selected .mc-name')?.textContent || selectedT2IModel;
+    addResultCard('t2i-results', data.request_id, modelName, prompt);
+    pollImage('t2i-results', data.request_id, {
+      prompt,
+      model: modelName,
+      aspect_ratio: payload.aspect_ratio || '',
+      quality: payload.quality || '',
+      request_id: data.request_id,
+    });
+  } catch (e) {
+    alert('Request failed: ' + e.message);
+  } finally {
+    setBtn(this, false, 'Generate Image');
+  }
+});
+
+// ─── Submit Edit ──────────────────────────────────────
+document.getElementById('btn-edit').addEventListener('click', async function() {
+  const prompt   = document.getElementById('edit-prompt').value.trim();
+  const imageUrl = editImgUploader.getUrl();
+  if (!imageUrl)  { alert('Please provide a source image.'); return; }
+  if (!prompt)    { alert('Please enter an edit prompt.'); return; }
+
+  const m = selectedEditModel;
+  let payload = { model: m, prompt, image_url: imageUrl };
+
+  if (m === 'nano-banana-2-edit') {
+    payload.aspect_ratio  = document.getElementById('edit-nb2-aspect').value;
+    payload.resolution    = document.getElementById('edit-nb2-resolution').value;
+    payload.output_format = document.getElementById('edit-nb2-format').value;
+    payload.google_search = document.getElementById('edit-nb2-gsearch').checked;
+    const extras = window._nb2EditRefs || [];
+    if (extras.length) payload.extra_images = extras;
+  } else if (m === 'gpt-image-2-image-to-image') {
+    payload.aspect_ratio = document.getElementById('edit-gpt2-aspect').value;
+    payload.quality = document.getElementById('edit-gpt2-quality').value;
+    const extras = window._gptImage2EditRefs || [];
+    if (extras.length) payload.extra_images = extras;
+  } else if (m === 'seedream-5.0-edit') {
+    payload.aspect_ratio = document.getElementById('edit-sd-aspect').value;
+    payload.quality      = document.getElementById('edit-sd-quality').value;
+  }
+
+  setBtn(this, true, 'Processing…');
+  try {
+    const res  = await fetch('/api/images/edit', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.error) { alert('Error: ' + data.error); return; }
+    const modelName = document.querySelector('#edit-model-grid .model-card.selected .mc-name')?.textContent || m;
+    addResultCard('edit-results', data.request_id, modelName, prompt);
+    pollImage('edit-results', data.request_id, {
+      prompt,
+      model: modelName,
+      aspect_ratio: payload.aspect_ratio || '',
+      quality: payload.quality || '',
+      request_id: data.request_id,
+    });
+  } catch (e) {
+    alert('Request failed: ' + e.message);
+  } finally {
+    setBtn(this, false, 'Edit Image');
+  }
+});
+
+// ─── Result card ──────────────────────────────────────
+function addResultCard(containerId, requestId, label, desc) {
+  const container = document.getElementById(containerId);
+  container.querySelector('.empty-state')?.remove();
+  const el = document.createElement('div');
+  el.className = 'result-item';
+  el.id = 'res-' + requestId;
+  el.innerHTML = `
+    <div class="result-header">
+      <div>
+        <div class="result-label">${esc(label)}</div>
+        ${desc ? `<div class="result-sub">"${esc(desc)}"</div>` : ''}
+      </div>
+      <span class="badge processing"><span class="spinner"></span> Processing</span>
+    </div>
+    <div class="res-body"></div>`;
+  container.prepend(el);
+}
+
+// ─── Poll image status ────────────────────────────────
+function pollImage(containerId, requestId, meta = {}) {
+  const interval = setInterval(async () => {
+    try {
+      const res  = await fetch('/api/images/status/' + requestId, { headers: {} });
+      const data = await res.json();
+      const el   = document.getElementById('res-' + requestId);
+      if (!el) { clearInterval(interval); return; }
+      const badge = el.querySelector('.badge');
+      const body  = el.querySelector('.res-body');
+
+      if (data.status === 'completed') {
+        clearInterval(interval);
+        badge.className = 'badge completed';
+        badge.textContent = '✓ Completed';
+        const url = data.url;
+        if (url) {
+          body.innerHTML = `<img class="res-img" src="${esc(url)}" alt="Generated image" style="cursor:pointer"/>
+            <div class="img-result-actions">
+              <a href="${esc(url)}" download="kamod-image.jpg" class="btn-dl-img">↓ Download</a>
+              <button class="btn-view-img">⤢ View</button>
+            </div>`;
+          const modalItem = {
+            output_url: url,
+            prompt: meta.prompt || '',
+            status: 'completed',
+            model: meta.model || '',
+            aspect_ratio: meta.aspect_ratio || '',
+            quality: meta.quality || '',
+            request_id: meta.request_id || requestId,
+          };
+          body.querySelector('.res-img').addEventListener('click', () =>
+            openImgModal(modalItem));
+          body.querySelector('.btn-view-img').addEventListener('click', () =>
+            openImgModal(modalItem));
+        } else {
+          body.innerHTML = `<div class="err-txt">Completed but no image URL found.</div>`;
+        }
+      } else if (data.status === 'failed') {
+        clearInterval(interval);
+        badge.className = 'badge failed';
+        badge.textContent = '✗ Failed';
+        body.innerHTML = `<div class="err-txt">${esc(data.error || 'Generation failed.')}</div>`;
+      }
+    } catch (e) { console.error('Poll error:', e); }
+  }, 4000);
+}
+
+function setBtn(btn, disabled, text) { btn.disabled = disabled; btn.textContent = text; }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ─── Generation History ────────────────────────────────
+let imagesHistoryInterval = null;
+
+function renderImagesHistory(items) {
+  const grid = document.getElementById('images-history-grid');
+  if (!items || !items.length) {
+    grid.innerHTML = '<div class="history-empty">No history yet.</div>';
+    return;
+  }
+  window._imagesHistory = items;
+  const hasProcessing = items.some(i => i.status === 'processing');
+  grid.innerHTML = items.map((item, i) => {
+    let thumb = '';
+    if (item.status === 'completed' && item.output_url) {
+      thumb = `<img class="hist-thumb" src="${esc(item.output_url)}" alt="Generated image" loading="lazy"/>`;
+    } else if (item.status === 'processing') {
+      thumb = `<div class="hist-spinner-wrap"><div class="hist-spinner-lg"></div></div>`;
+    } else {
+      thumb = `<div class="hist-spinner-wrap" style="background:#1a0a0a"><span style="color:#f87171;font-size:.7rem">Failed</span></div>`;
+    }
+    const meta = [item.aspect_ratio, item.quality].filter(Boolean).join(' · ');
+    return `<div class="hist-card" data-idx="${i}" title="Click to preview">
+      ${thumb}
+      <div class="hist-info">
+        <div class="hist-model" title="${esc(item.model)}">${esc(item.model)}</div>
+        ${meta ? `<div class="hist-meta">${esc(meta)}</div>` : ''}
+        <span class="hist-badge ${esc(item.status)}">${esc(item.status)}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.querySelectorAll('#images-history-grid .hist-card[data-idx]').forEach(card => {
+    card.addEventListener('click', () => {
+      const item = window._imagesHistory[parseInt(card.dataset.idx, 10)];
+      if (item) openImgModal(item);
+    });
+  });
+
+  if (hasProcessing) {
+    if (!imagesHistoryInterval) {
+      imagesHistoryInterval = setInterval(loadImagesHistory, 8000);
+    }
+  } else {
+    if (imagesHistoryInterval) { clearInterval(imagesHistoryInterval); imagesHistoryInterval = null; }
+  }
+}
+
+async function loadImagesHistory() {
+  try {
+    const res = await fetch('/api/history/images', { headers: {} });
+    const data = await res.json();
+    renderImagesHistory(data.history || []);
+  } catch (e) { console.error('History load error:', e); }
+}
+
+loadImagesHistory();
+
+// ─── Character Sheet ──────────────────────────────────
+const charUploader = makeUploader({
+  srcTabsId:    'char-src-tabs',
+  uploadWrapId: 'char-upload-wrap',
+  urlWrapId:    'char-url-wrap',
+  dropzoneId:   'char-dropzone',
+  fileInputId:  'char-file',
+  uploadingId:  'char-uploading',
+  previewId:    'char-preview',
+  fnameId:      'char-fname',
+  rmId:         'char-rm',
+  thumbId:      'char-thumb',
+});
+
+const CHARACTER_SHEET_PROMPT = `Create a professional character reference sheet based strictly on the uploaded reference image. Use a clean, neutral plain background and present the sheet as a technical model turnaround while matching the exact realistic visual style of the reference (same realism level, rendering approach, texture, color treatment, and overall aesthetic). Arrange the composition into two horizontal rows. Top row: four full-body standing views placed side-by-side in this order: front view, left profile view (facing left), right profile view (facing right), back view. Bottom row: three highly detailed close-up portraits aligned beneath the full-body row in this order: front portrait, left profile portrait (facing left), right profile portrait (facing right). Maintain perfect identity consistency across every panel. Keep the subject in a relaxed A-pose and with consistent scale and alignment between views, accurate anatomy, and clear silhouette; ensure even spacing and clean panel separation, with uniform framing and consistent head height across the full-body lineup and consistent facial scale across the portraits. Lighting should be consistent across all panels (same direction, intensity, and softness), with natural, controlled shadows that preserve detail without dramatic mood shifts. Output a crisp, print-ready reference sheet look, sharp details.`;
+
+document.getElementById('btn-character').addEventListener('click', async function() {
+  const imageUrl = charUploader.getUrl();
+  if (!imageUrl) { alert('Please upload a reference photo first.'); return; }
+
+  setBtn(this, true, 'Generating Sheet…');
+  try {
+    const res = await fetch('/api/images/edit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model:        'nano-banana-2-edit',
+        prompt:       CHARACTER_SHEET_PROMPT,
+        image_url:    imageUrl,
+        aspect_ratio: '16:9',
+        resolution:   '2k',
+        output_format:'png',
+      })
+    });
+    const data = await res.json();
+    if (data.error) { alert('Error: ' + data.error); return; }
+    addResultCard('char-results', data.request_id, 'Character Sheet', '7-panel · Seedream 5.0 Lite Edit');
+    pollImage('char-results', data.request_id, {
+      prompt: CHARACTER_SHEET_PROMPT,
+      model: 'Character Sheet',
+      aspect_ratio: '16:9',
+      request_id: data.request_id,
+    });
+  } catch (e) {
+    alert('Request failed: ' + e.message);
+  } finally {
+    setBtn(this, false, '👤 Generate Character Sheet');
+  }
+});
+
+// ─── Image Preview Modal ───────────────────────────────
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function openImgModal(item) {
+  const url = item.output_url || '';
+  const imgWrap = document.getElementById('imgModalImgWrap');
+  imgWrap.innerHTML = url
+    ? `<img src="${escHtml(url)}" alt="Generated image"/>`
+    : `<div class="modal-no-vid">No image available.</div>`;
+  const actions = document.getElementById('imgModalActions');
+  actions.innerHTML = url
+    ? `<a class="btn-dl" href="${escHtml(url)}" download target="_blank">↓ Download</a>
+       <a class="btn-ext" href="${escHtml(url)}" target="_blank" rel="noopener">↗ Open in new tab</a>`
+    : '';
+  document.getElementById('imgModalPrompt').textContent = item.prompt || '—';
+  const copyBtn = document.getElementById('imgModalCopy');
+  copyBtn.textContent = 'Copy'; copyBtn.classList.remove('copied');
+  copyBtn.onclick = () => {
+    navigator.clipboard.writeText(item.prompt || '').then(() => {
+      copyBtn.textContent = 'Copied!'; copyBtn.classList.add('copied');
+      setTimeout(() => { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('copied'); }, 2000);
+    });
+  };
+  const statusCls = {completed:'blue',processing:'green',failed:'red'}[item.status]||'';
+  const dateStr = item.created_at ? item.created_at.replace('T',' ').substring(0,16)+' UTC' : '—';
+  const metaItems = [
+    {k:'Status', v:item.status||'—', c:statusCls},
+    {k:'Model', v:item.model||'—', c:'purple'},
+    {k:'Aspect Ratio', v:item.aspect_ratio||'—'},
+    {k:'Quality', v:item.quality||'—'},
+    {k:'Created', v:dateStr},
+    {k:'Job ID', v:item.request_id||'—'},
+  ];
+  document.getElementById('imgModalMeta').innerHTML = metaItems.map(m =>
+    `<div class="meta-item"><div class="meta-key">${m.k}</div><div class="meta-val${m.c?' '+m.c:''}">${escHtml(String(m.v))}</div></div>`
+  ).join('');
+  document.getElementById('imgModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeImgModal() {
+  document.getElementById('imgModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('imgModalClose').addEventListener('click', closeImgModal);
+document.getElementById('imgModal').addEventListener('click', e => { if (e.target.id === 'imgModal') closeImgModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeImgModal(); });
+</script>
+
+{% if not embed %}
+{% include 'legal_footer.html' %}
+{% endif %}
+</body>
+</html>

@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Director — KAMOD AI</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0a0a0f;color:#e0e0e0;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:36px 20px 80px}
+
+    nav{width:100%;max-width:1100px;display:flex;flex-direction:column;align-items:center;gap:12px;margin:0 auto 36px}
+    nav .logo{font-size:1.15rem;font-weight:700;background:linear-gradient(135deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.01em}
+    .nav-grouped{display:flex;align-items:flex-end;gap:0;background:#0d0d16;border:1px solid #1c1c2e;border-radius:13px;padding:5px 8px;overflow-x:auto;max-width:100%;scrollbar-width:none}
+    .nav-grouped::-webkit-scrollbar{display:none}
+    .nav-group{display:flex;flex-direction:column;align-items:center;gap:2px;padding:0 2px}
+    .nav-group-label{font-size:.58rem;font-weight:800;letter-spacing:.1em;color:#252535;text-transform:uppercase;transition:color .2s;padding:0 4px;user-select:none}
+    .nav-group.has-active .nav-group-label{color:#6060a0}
+    .nav-group-items{display:flex;gap:1px}
+    .nav-grouped a{color:#555;text-decoration:none;font-size:.77rem;font-weight:500;padding:6px 11px;border-radius:8px;transition:all .15s;white-space:nowrap;letter-spacing:.01em}
+    .nav-grouped a:hover{color:#bbb;background:rgba(255,255,255,0.05)}
+    .nav-grouped a.active{background:linear-gradient(135deg,#6d5fd6,#3b7dd8);color:#fff;font-weight:600;box-shadow:0 0 14px rgba(109,95,214,.45)}
+    .nav-sep{width:1px;height:28px;background:#1c1c2e;margin:0 5px 3px;flex-shrink:0;align-self:flex-end}
+
+    header{text-align:center;margin-bottom:32px}
+    header h1{font-size:2.2rem;font-weight:700;background:linear-gradient(135deg,#ec4899,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    header p{color:#888;margin-top:8px;font-size:.95rem}
+
+    .wrapper{width:100%;max-width:1100px}
+    .layout{display:grid;grid-template-columns:340px 1fr;gap:24px;align-items:start}
+    @media(max-width:800px){.layout{grid-template-columns:1fr}}
+
+    .card{background:#13131a;border:1px solid #222233;border-radius:14px;padding:22px;margin-bottom:16px}
+    .card-title{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#555;margin-bottom:14px}
+
+    label{display:block;font-size:.78rem;color:#999;margin-bottom:5px;margin-top:14px}
+    label:first-of-type{margin-top:0}
+    textarea,select{width:100%;background:#0e0e18;border:1px solid #2a2a3a;border-radius:8px;color:#e0e0e0;font-size:.85rem;padding:8px 11px;outline:none;transition:border-color .2s;font-family:inherit}
+    textarea{resize:vertical;min-height:110px;line-height:1.5}
+    textarea:focus,select:focus{border-color:#ec4899}
+
+    .row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+    .dropzone{border:1px solid #1e1e2e;border-radius:8px;padding:10px 16px;text-align:center;cursor:pointer;position:relative;transition:all .2s;margin-top:6px;background:#0c0c18}
+    .dropzone:hover,.dropzone.drag-over{border-color:#ec489955;background:#1a0010}
+    .dropzone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+    .dropzone p{color:#555;font-size:.78rem;margin:0}
+    .dropzone p span{color:#ec4899}
+    .preview-wrap{display:none;margin-top:8px;position:relative}
+    .preview-wrap img{width:100%;border-radius:6px;max-height:160px;object-fit:cover}
+    .preview-wrap .remove-btn{position:absolute;top:4px;right:4px;background:#0a0a0f99;border:1px solid #444;color:#ccc;border-radius:50%;width:22px;height:22px;font-size:.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+    .analyze-btn{width:100%;padding:13px;background:linear-gradient(135deg,#ec4899,#a78bfa);border:none;border-radius:10px;color:#fff;font-size:.95rem;font-weight:600;cursor:pointer;transition:opacity .2s;margin-top:6px}
+    .analyze-btn:disabled{opacity:.5;cursor:not-allowed}
+    .analyze-btn:hover:not(:disabled){opacity:.9}
+
+    /* Script card */
+    .script-card{background:#13131a;border:1px solid #2a1a30;border-radius:14px;padding:20px;margin-bottom:20px;display:none}
+    .script-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#a78bfa;margin-bottom:10px}
+    .script-text{font-size:.88rem;color:#ccc;line-height:1.7;white-space:pre-wrap}
+
+    /* Shot grid */
+    .shots-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+    @media(max-width:600px){.shots-grid{grid-template-columns:1fr}}
+
+    .shot-card{background:#13131a;border:1px solid #222233;border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:10px;transition:border-color .2s}
+    .shot-card:hover{border-color:#2a2a4a}
+    .shot-header{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .scene-badge{font-size:.68rem;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:.06em}
+    .badge-broll {background:#1a1e2a;color:#60a5fa;border:1px solid #60a5fa44}
+    .badge-hero  {background:#1a1600;color:#facc15;border:1px solid #facc1544}
+    .badge-ad    {background:#0f1f12;color:#4ade80;border:1px solid #4ade8044}
+    .badge-mood  {background:#1e1a2a;color:#a78bfa;border:1px solid #a78bfa44}
+
+    .shot-title{font-size:.92rem;font-weight:700;color:#e0e0e0;line-height:1.3}
+    .shot-reasoning{font-size:.8rem;color:#888;line-height:1.6}
+
+    /* Director's Notes expandable */
+    .notes-toggle{display:flex;align-items:center;gap:6px;font-size:.73rem;color:#555;cursor:pointer;user-select:none;transition:color .15s;padding:6px 0;border-top:1px solid #1a1a2a;border-bottom:1px solid #1a1a2a;margin:2px 0}
+    .notes-toggle:hover{color:#a78bfa}
+    .notes-toggle .arrow{transition:transform .2s;display:inline-block}
+    .notes-toggle.open .arrow{transform:rotate(90deg)}
+    .notes-panel{display:none;background:#0e0e18;border:1px solid #1e1e2e;border-radius:8px;padding:12px 14px;font-size:.75rem;line-height:1.65;color:#999}
+    .notes-panel.open{display:block}
+    .notes-panel .nl{color:#a78bfa;font-weight:600;font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;margin-top:8px}
+    .notes-panel .nl:first-child{margin-top:0}
+    .notes-panel .nv{color:#ccc}
+
+    /* Spec pills */
+    .spec-row{display:flex;gap:6px;flex-wrap:wrap}
+    .spec-pill{font-size:.65rem;font-weight:600;padding:2px 8px;border-radius:20px;background:#0e0e18;border:1px solid #2a2a3a;color:#666;letter-spacing:.03em}
+    .spec-pill.hi{border-color:#a78bfa44;color:#a78bfa}
+
+    /* Generate button */
+    .gen-img-btn{width:100%;padding:9px;background:rgba(168,139,250,0.12);border:1px solid rgba(168,139,250,0.35);border-radius:9px;color:#a78bfa;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px}
+    .gen-img-btn:hover:not(:disabled){background:rgba(168,139,250,0.25);border-color:rgba(168,139,250,0.6)}
+    .gen-img-btn:disabled{opacity:.5;cursor:not-allowed}
+
+    /* Image result */
+    .shot-image-wrap{display:none;flex-direction:column;gap:8px}
+    .shot-image-wrap.show{display:flex}
+    .shot-image-wrap img{width:100%;border-radius:9px;display:block;border:1px solid #2a2a3a}
+    .img-actions{display:flex;gap:8px}
+    .dl-btn{flex:1;padding:8px;background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.3);border-radius:8px;color:#4ade80;font-size:.78rem;font-weight:600;cursor:pointer;text-align:center;text-decoration:none;transition:all .2s}
+    .dl-btn:hover{background:rgba(74,222,128,0.22)}
+    .send-video-btn{flex:1;padding:8px;background:linear-gradient(135deg,#ec4899,#a78bfa);border:none;border-radius:8px;color:#fff;font-size:.78rem;font-weight:600;cursor:pointer;transition:opacity .2s;text-align:center}
+    .send-video-btn:hover{opacity:.88}
+
+    /* Progress bar */
+    .gen-progress{display:none;padding:10px 0 4px}
+    .gen-progress.show{display:block}
+    .prog-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+    .prog-label{font-size:.72rem;color:#a78bfa;display:flex;align-items:center;gap:5px}
+    .prog-pct{font-size:.78rem;font-weight:700;color:#a78bfa}
+    .prog-time{font-size:.68rem;color:#555}
+    .prog-track{height:5px;background:#1a1a2e;border-radius:10px;overflow:hidden}
+    .prog-bar{height:100%;border-radius:10px;background:linear-gradient(90deg,#7c3aed,#a78bfa,#60a5fa);width:0%;transition:width .8s ease;background-size:200% 100%;animation:shimmer 2s linear infinite}
+    @keyframes shimmer{0%{background-position:100% 0}100%{background-position:-100% 0}}
+    .gen-error{font-size:.75rem;color:#f87171;padding:4px 0;display:none}
+    .gen-error.show{display:block}
+
+    .placeholder{color:#555;text-align:center;padding:60px 20px;font-size:.9rem;border:1px dashed #1e1e2e;border-radius:14px}
+    .placeholder span{display:block;font-size:2rem;margin-bottom:10px}
+
+    .spinner-inline{display:inline-block;width:12px;height:12px;border:2px solid #ec489955;border-top-color:#ec4899;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle}
+    .spinner-sm{display:inline-block;width:10px;height:10px;border:2px solid #a78bfa44;border-top-color:#a78bfa;border-radius:50%;animation:spin .7s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* Generation history */
+    .history-section{width:100%;margin-top:40px}
+    .history-section h2{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#555;margin-bottom:14px}
+    .history-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+    .hist-card{background:#13131a;border:1px solid #222233;border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color .2s,box-shadow .2s}
+    .hist-card:hover{border-color:#a78bfa;box-shadow:0 0 0 1px #a78bfa33}
+    .hist-thumb{width:100%;height:120px;object-fit:cover;display:block}
+    .hist-spinner-wrap{width:100%;height:120px;display:flex;align-items:center;justify-content:center;background:#0e0e18}
+    .hist-spinner-lg{width:20px;height:20px;border:3px solid #a78bfa44;border-top-color:#a78bfa;border-radius:50%;animation:spin .7s linear infinite}
+    .hist-info{padding:8px 10px}
+    .hist-model{font-size:.72rem;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .hist-meta{font-size:.68rem;color:#555;margin-top:2px}
+    .hist-badge{display:inline-block;font-size:.65rem;padding:1px 7px;border-radius:10px;font-weight:600;margin-top:4px}
+    .hist-badge.completed{background:#1e1a2a;color:#a78bfa}
+    .hist-badge.processing{background:#1a2a1a;color:#4ade80}
+    .hist-badge.failed{background:#2a1a1a;color:#f87171}
+    .history-empty{color:#555;font-size:.82rem;padding:16px 0}
+
+    /* Preview modal */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);z-index:1000;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+    .modal-overlay.open{display:flex}
+    .modal-box{background:#13131a;border:1px solid #2a2a3e;border-radius:18px;width:100%;max-width:860px;max-height:calc(100vh - 40px);overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.7);scrollbar-width:thin;scrollbar-color:#2a2a3e transparent}
+    .modal-box::-webkit-scrollbar{width:6px}.modal-box::-webkit-scrollbar-thumb{background:#2a2a3e;border-radius:3px}
+    .modal-head{display:flex;align-items:center;justify-content:space-between;padding:20px 24px 0}
+    .modal-head-title{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#555}
+    .modal-close-btn{background:none;border:none;color:#666;font-size:1.4rem;cursor:pointer;padding:4px 8px;border-radius:8px;transition:all .15s;line-height:1}
+    .modal-close-btn:hover{background:#1e1e2e;color:#ccc}
+    .modal-img-wrap{margin:16px 24px;background:#0a0a0f;border-radius:12px;display:flex;align-items:center;justify-content:center;min-height:180px;padding:16px}
+    .modal-img-wrap img{max-width:100%;max-height:72vh;border-radius:8px;display:block;object-fit:contain}
+    .modal-no-content{color:#555;font-size:.9rem;text-align:center;padding:40px}
+    .modal-actions{display:flex;gap:10px;padding:0 24px 20px;flex-wrap:wrap}
+    .btn-dl{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;border:none;border-radius:9px;padding:9px 18px;font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;transition:opacity .2s}
+    .btn-dl:hover{opacity:.85}
+    .btn-ext{display:inline-flex;align-items:center;gap:6px;background:#1e1e2e;color:#aaa;border:1px solid #2a2a3e;border-radius:9px;padding:9px 18px;font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;transition:all .2s}
+    .btn-ext:hover{color:#fff;border-color:#444}
+    .modal-divider{height:1px;background:#1a1a28;margin:0 24px 20px}
+    .modal-sect{padding:0 24px 20px}
+    .modal-sect-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#555;margin-bottom:8px}
+    .prompt-blk{background:#0e0e18;border:1px solid #1e1e2e;border-radius:10px;padding:14px 16px;position:relative}
+    .prompt-txt{font-size:.87rem;color:#ccc;line-height:1.6;padding-right:68px;white-space:pre-wrap;word-break:break-word}
+    .btn-copy{position:absolute;top:10px;right:10px;background:#1e1e2e;border:1px solid #2a2a3e;color:#888;border-radius:7px;padding:5px 11px;font-size:.75rem;font-weight:600;cursor:pointer;transition:all .15s}
+    .btn-copy:hover{color:#a78bfa;border-color:#a78bfa55}
+    .btn-copy.copied{color:#4ade80;border-color:#4ade8055}
+    .meta-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+    .meta-item{background:#0e0e18;border:1px solid #1a1a28;border-radius:10px;padding:12px 14px}
+    .meta-key{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#555;margin-bottom:5px}
+    .meta-val{font-size:.85rem;color:#ccc;font-weight:500;word-break:break-all}
+    .meta-val.purple{color:#a78bfa}.meta-val.green{color:#4ade80}.meta-val.blue{color:#60a5fa}.meta-val.red{color:#f87171}
+    @media(max-width:600px){.meta-grid{grid-template-columns:1fr 1fr}}
+  </style>
+</head>
+<body>
+
+<nav>
+  <span class="logo">KAMOD AI</span>
+  <div class="nav-grouped">
+    <div class="nav-group has-active">
+      <span class="nav-group-label">CREATE</span>
+      <div class="nav-group-items">
+        <a href="/">Seedance 2.0</a>
+        <a href="/ai-videos">AI Video Tools</a>
+        <a href="/ai-director" class="active">Director</a>
+        <a href="/images">AI Images</a>
+        <a href="/storyboard">Storyboard</a>
+        <a href="/ugc-studio">UGC Studio</a>
+      </div>
+    </div>
+    <div class="nav-sep"></div>
+    <div class="nav-group">
+      <span class="nav-group-label">ENHANCE</span>
+      <div class="nav-group-items">
+        <a href="/audio">Audio</a>
+        <a href="/avatars">Avatars</a>
+      </div>
+    </div>
+    <div class="nav-sep"></div>
+    <div class="nav-group">
+      <span class="nav-group-label">DELIVER</span>
+      <div class="nav-group-items">
+        <a href="/analytics">Analytics</a>
+        <a href="/dashboard">Dashboard</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <h1>AI Director</h1>
+  <p>Transform your idea into 4 cinematic shot directions — generate 2K images with Seedream 5.0 Lite</p>
+</header>
+
+<div class="wrapper">
+  <div class="layout">
+
+    <!-- LEFT: Input Panel -->
+    <div>
+      <div class="card">
+        <div class="card-title">Scene Idea</div>
+
+        <label>Describe your story or scene idea</label>
+        <textarea id="storyInput" placeholder="A lone astronaut discovers an ancient alien artifact on Mars at sunset, dust storms rising in the distance..."></textarea>
+
+        <label>Reference Image (optional)</label>
+        <div class="dropzone" id="dropzone">
+          <input type="file" id="imgFile" accept="image/*"/>
+          <p><span>Click or drag</span> to upload reference image</p>
+        </div>
+        <div class="preview-wrap" id="previewWrap">
+          <img id="previewImg" src="" alt=""/>
+          <button class="remove-btn" id="removeImg">✕</button>
+        </div>
+
+        <div class="row-2" style="margin-top:14px">
+          <div>
+            <label>Language</label>
+            <select id="langSelect">
+              <option value="EN">🇬🇧 English</option>
+              <option value="RU">🇷🇺 Russian</option>
+              <option value="UZ">🇺🇿 Uzbek</option>
+            </select>
+          </div>
+          <div>
+            <label>Aspect Ratio</label>
+            <select id="aspectSelect">
+              <option value="16:9">16:9 Landscape</option>
+              <option value="9:16">9:16 Portrait</option>
+              <option value="1:1">1:1 Square</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="analyze-btn" id="analyzeBtn" style="margin-top:18px">✦ Analyze with AI Director</button>
+      </div>
+    </div>
+
+    <!-- RIGHT: Results Panel -->
+    <div>
+      <div class="script-card" id="scriptCard">
+        <div class="script-label">Generated Script</div>
+        <div class="script-text" id="scriptText"></div>
+      </div>
+
+      <div id="shotsContainer">
+        <div class="placeholder">
+          <span>🎬</span>
+          Describe your scene idea and click<br><strong>Analyze with AI Director</strong>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Generation History -->
+<div class="wrapper" style="margin-top:0">
+  <div class="history-section">
+    <h2>Generation History</h2>
+    <div class="history-grid" id="director-history-grid">
+      <div class="history-empty">No history yet.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Image preview modal -->
+<div class="modal-overlay" id="directorModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <span class="modal-head-title">Image Preview</span>
+      <button class="modal-close-btn" id="directorModalClose">✕</button>
+    </div>
+    <div class="modal-img-wrap" id="directorModalImgWrap">
+      <div class="modal-no-content">No image available</div>
+    </div>
+    <div class="modal-actions" id="directorModalActions"></div>
+    <div class="modal-divider"></div>
+    <div class="modal-sect">
+      <div class="modal-sect-label">Prompt</div>
+      <div class="prompt-blk">
+        <div class="prompt-txt" id="directorModalPrompt">—</div>
+        <button class="btn-copy" id="directorModalCopy">Copy</button>
+      </div>
+    </div>
+    <div class="modal-divider"></div>
+    <div class="modal-sect">
+      <div class="modal-sect-label">Details</div>
+      <div class="meta-grid" id="directorModalMeta"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let refImageB64  = "";   // base64 for BytePlus analysis
+  let refImageUrl  = "";   // hosted URL for nano-banana generation
+  let currentAspect = "16:9";
+  let shotData = [];
+
+  // Image upload
+  const dropzone   = document.getElementById("dropzone");
+  const imgFile    = document.getElementById("imgFile");
+  const previewWrap= document.getElementById("previewWrap");
+  const previewImg = document.getElementById("previewImg");
+
+  async function handleImageFile(file) {
+    if (!file) return;
+    // Show preview immediately from local file
+    const reader = new FileReader();
+    reader.onload = ev => {
+      refImageB64 = ev.target.result;
+      previewImg.src = refImageB64;
+      previewWrap.style.display = "block";
+      dropzone.style.display = "none";
+    };
+    reader.readAsDataURL(file);
+    // Upload in background to get a hosted URL for nano-banana-2-edit
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res  = await fetch("/upload", { method: "POST", body: fd });
+      const data = await res.json();
+      if (data.url) refImageUrl = data.url;
+    } catch (e) {
+      console.warn("Reference image upload failed:", e.message);
+    }
+  }
+
+  imgFile.addEventListener("change", e => handleImageFile(e.target.files[0]));
+  document.getElementById("removeImg").addEventListener("click", () => {
+    refImageB64 = "";
+    refImageUrl = "";
+    imgFile.value = "";
+    previewWrap.style.display = "none";
+    dropzone.style.display = "block";
+  });
+  dropzone.addEventListener("dragover", e => { e.preventDefault(); dropzone.classList.add("drag-over"); });
+  dropzone.addEventListener("dragleave", () => dropzone.classList.remove("drag-over"));
+  dropzone.addEventListener("drop", e => {
+    e.preventDefault(); dropzone.classList.remove("drag-over");
+    handleImageFile(e.dataTransfer.files[0]);
+  });
+
+  document.getElementById("aspectSelect").addEventListener("change", e => {
+    currentAspect = e.target.value;
+  });
+
+  // Analyze
+  document.getElementById("analyzeBtn").addEventListener("click", async () => {
+    const story = document.getElementById("storyInput").value.trim();
+    if (!story) { alert("Please describe your scene idea."); return; }
+    const lang  = document.getElementById("langSelect").value;
+    currentAspect = document.getElementById("aspectSelect").value;
+
+    const btn = document.getElementById("analyzeBtn");
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-inline"></span> Analyzing…';
+
+    try {
+      const res  = await fetch("/api/ai-director/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ story, language: lang, image_base64: refImageB64 })
+      });
+      const data = await res.json();
+      if (data.error) { alert("Error: " + data.error); return; }
+      renderResults(data);
+    } catch (e) {
+      alert("Request failed: " + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = "✦ Analyze with AI Director";
+    }
+  });
+
+  function badgeClass(type) {
+    return { "B-ROLL": "badge-broll", "HERO": "badge-hero", "AD": "badge-ad", "MOOD": "badge-mood" }[type] || "badge-broll";
+  }
+
+  function renderResults(data) {
+    // Script
+    const scriptCard = document.getElementById("scriptCard");
+    document.getElementById("scriptText").textContent = data.script || "";
+    scriptCard.style.display = data.script ? "block" : "none";
+
+    // Shots
+    const container = document.getElementById("shotsContainer");
+    if (!data.suggestions || data.suggestions.length === 0) {
+      container.innerHTML = '<div class="placeholder"><span>⚠️</span>No shots returned.</div>';
+      return;
+    }
+    shotData = data.suggestions;
+    container.innerHTML = '<div class="shots-grid" id="shotsGrid"></div>';
+    const grid = document.getElementById("shotsGrid");
+
+    data.suggestions.forEach((shot, idx) => {
+      const card = document.createElement("div");
+      card.className = "shot-card";
+      card.id = "shot-" + idx;
+
+      const vizEsc = esc(shot.visualDescription || "");
+      const reasonEsc = esc(shot.reasoning || "");
+      const cameraEsc = esc(shot.camera || shot.cameraDirection || "");
+
+      card.innerHTML = `
+        <div class="shot-header">
+          <span class="scene-badge ${badgeClass(shot.sceneType)}">${esc(shot.sceneType)}</span>
+          <span style="font-size:.65rem;color:#444">Shot ${idx+1} of 4</span>
+        </div>
+        <div class="shot-title">${esc(shot.sceneTitle)}</div>
+        <div class="shot-reasoning">${reasonEsc}</div>
+
+        <!-- Director's Notes -->
+        <div class="notes-toggle" id="ntog-${idx}" onclick="toggleNotes(${idx})">
+          <span class="arrow">▶</span>
+          <span>Director's Notes</span>
+        </div>
+        <div class="notes-panel" id="npanel-${idx}">
+          ${vizEsc ? `<div class="nl">Visual Description</div><div class="nv">${vizEsc}</div>` : ""}
+          ${cameraEsc ? `<div class="nl">Camera Direction</div><div class="nv">${cameraEsc}</div>` : ""}
+          <div class="nl">Image Specs</div>
+          <div class="nv">2K Resolution · ${currentAspect} · ${refImageUrl ? "Seedream 5.0 Lite Edit (reference)" : "Seedream 5.0 Lite"}</div>
+        </div>
+
+        <!-- Spec pills -->
+        <div class="spec-row">
+          <span class="spec-pill hi">2K</span>
+          <span class="spec-pill">${currentAspect}</span>
+          <span class="spec-pill">${refImageUrl ? "NB2 + Reference" : "Seedream 5.0 Lite"}</span>
+          <span class="spec-pill">${esc(shot.sceneType)}</span>
+        </div>
+
+        <!-- Generate button -->
+        <button class="gen-img-btn" id="genBtn-${idx}" onclick="generateImage(${idx})">
+          🎨 Generate Image
+        </button>
+        <div class="gen-progress" id="genProgress-${idx}">
+          <div class="prog-header">
+            <span class="prog-label"><span class="spinner-sm"></span> Generating 2K image…</span>
+            <span class="prog-pct" id="progPct-${idx}">0%</span>
+          </div>
+          <div class="prog-track"><div class="prog-bar" id="progBar-${idx}"></div></div>
+          <div class="prog-time" id="progTime-${idx}">Estimating…</div>
+        </div>
+        <div class="gen-error" id="genError-${idx}"></div>
+
+        <!-- Image result -->
+        <div class="shot-image-wrap" id="imgWrap-${idx}">
+          <img id="shotImg-${idx}" src="" alt="Generated shot"/>
+          <div class="img-actions">
+            <a class="dl-btn" id="dlBtn-${idx}" href="#" download="shot-${idx+1}.jpg">⬇ Download 2K</a>
+            <button class="send-video-btn" onclick="sendToVideo(${idx})">▶ Send to Seedance 2.0</button>
+          </div>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  function toggleNotes(idx) {
+    const tog   = document.getElementById("ntog-" + idx);
+    const panel = document.getElementById("npanel-" + idx);
+    tog.classList.toggle("open");
+    panel.classList.toggle("open");
+  }
+
+  async function generateImage(idx) {
+    const shot   = shotData[idx];
+    if (!shot) return;
+    const btn      = document.getElementById("genBtn-" + idx);
+    const progress = document.getElementById("genProgress-" + idx);
+    const errEl    = document.getElementById("genError-" + idx);
+    const wrap     = document.getElementById("imgWrap-" + idx);
+
+    btn.disabled = true;
+    btn.textContent = "Generating…";
+    progress.classList.add("show");
+    errEl.classList.remove("show");
+    wrap.classList.remove("show");
+
+    // Start progress ticker
+    const startTime = Date.now();
+    const TOTAL_EST = 180_000; // ~3 min asymptote
+    const ticker = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const pct = Math.round(95 * (1 - Math.exp(-elapsed / TOTAL_EST)));
+      const secsLeft = Math.max(0, Math.round((TOTAL_EST - elapsed) / 1000));
+      const minsLeft = Math.floor(secsLeft / 60);
+      const sLeft    = secsLeft % 60;
+      const timeStr  = minsLeft > 0 ? `~${minsLeft}m ${sLeft}s remaining` : `~${sLeft}s remaining`;
+      document.getElementById("progBar-" + idx).style.width = pct + "%";
+      document.getElementById("progPct-" + idx).textContent = pct + "%";
+      document.getElementById("progTime-" + idx).textContent = elapsed < 5000 ? "Warming up…" : timeStr;
+    }, 800);
+
+    try {
+      const res = await fetch("/api/ai-director/generate-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          visual_description: shot.visualDescription,
+          aspect_ratio: currentAspect,
+          image_url: refImageUrl   // empty string if no reference uploaded
+        })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+
+      // Poll for completion
+      const url = await pollImageStatus(data.request_id, idx);
+
+      // Snap to 100% before hiding
+      document.getElementById("progBar-" + idx).style.width = "100%";
+      document.getElementById("progPct-" + idx).textContent = "100%";
+      document.getElementById("progTime-" + idx).textContent = "Done!";
+      await new Promise(r => setTimeout(r, 500));
+
+      showImage(idx, url);
+      btn.textContent = "🔄 Regenerate";
+    } catch (e) {
+      errEl.textContent = "⚠ " + e.message;
+      errEl.classList.add("show");
+      btn.textContent = "🎨 Generate Image";
+    } finally {
+      clearInterval(ticker);
+      btn.disabled = false;
+      progress.classList.remove("show");
+    }
+  }
+
+  async function pollImageStatus(requestId, idx) {
+    const maxWait = 360_000; // 6 min
+    const start   = Date.now();
+    while (Date.now() - start < maxWait) {
+      await new Promise(r => setTimeout(r, 4000));
+      const res  = await fetch(`/api/ai-director/image-status/${requestId}`, {
+        headers: {}
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      if (data.status === "completed" && data.url) return data.url;
+      if (data.status === "failed") throw new Error("Image generation failed");
+    }
+    throw new Error("Timed out waiting for image (6 min exceeded)");
+  }
+
+  function showImage(idx, url) {
+    const wrap  = document.getElementById("imgWrap-" + idx);
+    const img   = document.getElementById("shotImg-" + idx);
+    const dlBtn = document.getElementById("dlBtn-" + idx);
+    img.src   = url;
+    // /download-url removed (SSRF risk). Link directly; browser opens image in new tab.
+    dlBtn.href = url;
+    dlBtn.target = '_blank';
+    dlBtn.rel = 'noopener noreferrer';
+    wrap.classList.add("show");
+  }
+
+  function sendToVideo(idx) {
+    const shot = shotData[idx];
+    if (!shot) return;
+    localStorage.setItem("kamod_prefill_prompt", shot.visualDescription || shot.sceneTitle);
+    localStorage.setItem("kamod_prefill_aspect", currentAspect);
+    window.location.href = "/";
+  }
+
+  function esc(s) {
+    if (!s) return "";
+    return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+
+  // ─── Generation History ───────────────────────────────
+  let directorHistoryInterval = null;
+
+  function renderDirectorHistory(items) {
+    const grid = document.getElementById('director-history-grid');
+    if (!items || !items.length) {
+      grid.innerHTML = '<div class="history-empty">No history yet.</div>';
+      return;
+    }
+    window._directorHistory = items;
+    const hasProcessing = items.some(i => i.status === 'processing');
+    grid.innerHTML = items.map((item, i) => {
+      let thumb = '';
+      if (item.status === 'completed' && item.output_url) {
+        thumb = `<img class="hist-thumb" src="${esc(item.output_url)}" alt="Generated image" loading="lazy"/>`;
+      } else if (item.status === 'processing') {
+        thumb = `<div class="hist-spinner-wrap"><div class="hist-spinner-lg"></div></div>`;
+      } else {
+        thumb = `<div class="hist-spinner-wrap" style="background:#1a0a0a"><span style="color:#f87171;font-size:.7rem">Failed</span></div>`;
+      }
+      const meta = [item.aspect_ratio].filter(Boolean).join(' · ');
+      return `<div class="hist-card" data-idx="${i}" title="Click to preview">
+        ${thumb}
+        <div class="hist-info">
+          <div class="hist-model" title="${esc(item.model)}">${esc(item.model)}</div>
+          ${meta ? `<div class="hist-meta">${esc(meta)}</div>` : ''}
+          <span class="hist-badge ${esc(item.status)}">${esc(item.status)}</span>
+        </div>
+      </div>`;
+    }).join('');
+
+    document.querySelectorAll('#director-history-grid .hist-card[data-idx]').forEach(card => {
+      card.addEventListener('click', () => {
+        const item = window._directorHistory[parseInt(card.dataset.idx, 10)];
+        if (item) openDirectorModal(item);
+      });
+    });
+
+    if (hasProcessing) {
+      if (!directorHistoryInterval) {
+        directorHistoryInterval = setInterval(loadDirectorHistory, 8000);
+      }
+    } else {
+      if (directorHistoryInterval) { clearInterval(directorHistoryInterval); directorHistoryInterval = null; }
+    }
+  }
+
+  async function loadDirectorHistory() {
+    try {
+      const res = await fetch('/api/history/ai-director', { headers: {} });
+      const data = await res.json();
+      renderDirectorHistory(data.history || []);
+    } catch (e) { console.error('History load error:', e); }
+  }
+
+  loadDirectorHistory();
+
+  // ─── Image Preview Modal ──────────────────────────────
+  function openDirectorModal(item) {
+    const url = item.output_url || '';
+    const imgWrap = document.getElementById('directorModalImgWrap');
+    imgWrap.innerHTML = url
+      ? `<img src="${esc(url)}" alt="Generated image"/>`
+      : `<div class="modal-no-content">No image available.</div>`;
+    const actions = document.getElementById('directorModalActions');
+    actions.innerHTML = url
+      ? `<a class="btn-dl" href="${esc(url)}" download target="_blank">↓ Download</a>
+         <a class="btn-ext" href="${esc(url)}" target="_blank" rel="noopener">↗ Open in new tab</a>`
+      : '';
+    document.getElementById('directorModalPrompt').textContent = item.prompt || '—';
+    const copyBtn = document.getElementById('directorModalCopy');
+    copyBtn.textContent = 'Copy'; copyBtn.classList.remove('copied');
+    copyBtn.onclick = () => {
+      navigator.clipboard.writeText(item.prompt || '').then(() => {
+        copyBtn.textContent = 'Copied!'; copyBtn.classList.add('copied');
+        setTimeout(() => { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('copied'); }, 2000);
+      });
+    };
+    const statusCls = {completed:'purple',processing:'green',failed:'red'}[item.status] || '';
+    const dateStr = item.created_at ? item.created_at.replace('T',' ').substring(0,16)+' UTC' : '—';
+    const metaItems = [
+      {k:'Status', v:item.status||'—', c:statusCls},
+      {k:'Model', v:item.model||'—', c:'purple'},
+      {k:'Aspect Ratio', v:item.aspect_ratio||'—'},
+      {k:'Created', v:dateStr},
+      {k:'Job ID', v:item.request_id||'—'},
+    ];
+    document.getElementById('directorModalMeta').innerHTML = metaItems.map(m =>
+      `<div class="meta-item"><div class="meta-key">${esc(m.k)}</div><div class="meta-val${m.c?' '+m.c:''}">${esc(String(m.v))}</div></div>`
+    ).join('');
+    document.getElementById('directorModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeDirectorModal() {
+    document.getElementById('directorModal').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  document.getElementById('directorModalClose').addEventListener('click', closeDirectorModal);
+  document.getElementById('directorModal').addEventListener('click', e => { if (e.target.id === 'directorModal') closeDirectorModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDirectorModal(); });
+</script>
+
+{% include 'legal_footer.html' %}
+</body>
+</html>

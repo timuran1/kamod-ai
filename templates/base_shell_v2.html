@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}KAMOD AI{% endblock %}</title>
+  <style>
+    :root{
+      --bg:#0c0f1a;
+      --bg-soft:#101526;
+      --surface:#131726;
+      --surface-2:#171c2d;
+      --surface-3:#0f1320;
+      --border:#232b42;
+      --border-soft:#1b2234;
+      --text:#f4f7fb;
+      --text-soft:#a9b4cb;
+      --text-dim:#6f7a93;
+      --accent:#8ea7ff;
+      --accent-2:#6f86ff;
+      --accent-soft:rgba(142,167,255,.16);
+      --success:#6de6a6;
+      --radius-xl:24px;
+      --radius-lg:18px;
+      --radius-md:14px;
+      --shadow:0 30px 80px rgba(0,0,0,.35);
+    }
+
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{min-height:100%}
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(142,167,255,.14), transparent 34%),
+        radial-gradient(circle at bottom right, rgba(109,230,166,.08), transparent 28%),
+        linear-gradient(180deg, #0c0f1a 0%, #0a0d16 100%);
+      color:var(--text);
+    }
+
+    .kamod-shell{
+      display:grid;
+      grid-template-columns:280px minmax(0,1fr);
+      min-height:100vh;
+    }
+
+    .kamod-shell-sidebar{
+      position:sticky;
+      top:0;
+      height:100vh;
+      overflow-y:auto;
+      scrollbar-width:thin;
+      scrollbar-color:rgba(255,255,255,.08) transparent;
+      padding:28px 20px 22px;
+      background:rgba(12,15,26,.86);
+      backdrop-filter:blur(18px);
+      border-right:1px solid var(--border-soft);
+      display:flex;
+      flex-direction:column;
+      gap:24px;
+    }
+    .kamod-shell-sidebar::-webkit-scrollbar{width:4px}
+    .kamod-shell-sidebar::-webkit-scrollbar-track{background:transparent}
+    .kamod-shell-sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:4px}
+
+    .shell-brand{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      padding:10px 8px 18px;
+      border-bottom:1px solid rgba(255,255,255,.05);
+    }
+
+    .shell-brand-mark{
+      width:44px;
+      height:44px;
+      border-radius:14px;
+      display:grid;
+      place-items:center;
+      background:linear-gradient(135deg,var(--accent-2),#58b7ff);
+      color:white;
+      font-size:1.2rem;
+      font-weight:800;
+      box-shadow:0 16px 38px rgba(111,134,255,.28);
+    }
+
+    .shell-brand-name{
+      font-size:1.02rem;
+      font-weight:700;
+      letter-spacing:.02em;
+    }
+
+    .shell-brand-sub{
+      margin-top:3px;
+      color:var(--text-dim);
+      font-size:.74rem;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
+    .shell-nav-section{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    .shell-nav-label{
+      padding:0 10px;
+      font-size:.7rem;
+      color:var(--text-dim);
+      text-transform:uppercase;
+      letter-spacing:.16em;
+      font-weight:700;
+    }
+
+    .shell-nav-list{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+
+    .shell-nav-link{
+      text-decoration:none;
+      color:var(--text-soft);
+      padding:12px 14px;
+      border-radius:14px;
+      border:1px solid transparent;
+      background:transparent;
+      transition:all .18s ease;
+      font-size:.93rem;
+      font-weight:500;
+    }
+
+    .shell-nav-link:hover{
+      color:var(--text);
+      background:rgba(255,255,255,.03);
+      border-color:rgba(255,255,255,.05);
+    }
+
+    .shell-nav-link.active{
+      color:#fff;
+      background:linear-gradient(135deg, rgba(111,134,255,.36), rgba(88,183,255,.18));
+      border-color:rgba(142,167,255,.35);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.08), 0 10px 28px rgba(88,117,255,.15);
+    }
+
+    .shell-sidebar-note{
+      margin-top:auto;
+      padding:14px 14px 16px;
+      border-radius:16px;
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
+      border:1px solid rgba(255,255,255,.05);
+      color:var(--text-soft);
+      font-size:.8rem;
+      line-height:1.5;
+    }
+
+    .shell-sidebar-note span{
+      display:block;
+      margin-top:6px;
+      color:var(--text-dim);
+      font-size:.74rem;
+    }
+
+    .kamod-shell-main{
+      min-width:0;
+      padding:28px;
+    }
+
+    .shell-topbar{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:18px;
+      margin-bottom:24px;
+    }
+
+    .shell-page-title{
+      font-size:2.45rem;
+      font-weight:750;
+      letter-spacing:-.04em;
+      color:#f7fbff;
+    }
+
+    .shell-page-sub{
+      margin-top:10px;
+      max-width:760px;
+      color:var(--text-soft);
+      font-size:1rem;
+      line-height:1.65;
+    }
+
+    .shell-status{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 14px;
+      border-radius:999px;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.06);
+      color:var(--text-soft);
+      font-size:.82rem;
+      white-space:nowrap;
+    }
+
+    .shell-status-dot{
+      width:9px;
+      height:9px;
+      border-radius:50%;
+      background:var(--success);
+      box-shadow:0 0 0 5px rgba(109,230,166,.12);
+    }
+
+    .shell-stage{
+      background:linear-gradient(180deg, rgba(19,23,38,.98), rgba(14,18,31,.98));
+      border:1px solid var(--border);
+      border-radius:var(--radius-xl);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .shell-stage-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:18px;
+      padding:22px 24px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0));
+    }
+
+    .shell-stage-title{
+      font-size:1rem;
+      font-weight:700;
+      letter-spacing:.01em;
+    }
+
+    .shell-stage-meta{
+      margin-top:6px;
+      color:var(--text-dim);
+      font-size:.82rem;
+    }
+
+    .shell-pill{
+      padding:8px 12px;
+      border-radius:999px;
+      background:var(--accent-soft);
+      border:1px solid rgba(142,167,255,.24);
+      color:var(--accent);
+      font-size:.76rem;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+
+    .shell-content{
+      padding:20px;
+    }
+
+    .shell-embed{
+      width:100%;
+      min-height:2200px;
+      border:none;
+      display:block;
+      border-radius:18px;
+      background:#0a0a0f;
+    }
+
+    @media (max-width: 1120px){
+      .kamod-shell{grid-template-columns:1fr}
+      .kamod-shell-sidebar{
+        position:relative;
+        height:auto;
+        border-right:none;
+        border-bottom:1px solid var(--border-soft);
+      }
+      .kamod-shell-main{padding:20px}
+      .shell-topbar{flex-direction:column}
+    }
+
+    @media (max-width: 640px){
+      .kamod-shell-sidebar{
+        padding:18px 14px 16px;
+        gap:18px;
+      }
+
+      .shell-brand{
+        padding:6px 4px 14px;
+      }
+
+      .shell-brand-mark{
+        width:40px;
+        height:40px;
+        border-radius:12px;
+      }
+
+      .shell-nav-link{
+        padding:11px 12px;
+        font-size:.9rem;
+      }
+
+      .kamod-shell-main{
+        padding:14px;
+      }
+
+      .shell-page-title{
+        font-size:2rem;
+      }
+
+      .shell-page-sub{
+        font-size:.94rem;
+      }
+
+      .shell-stage-head{
+        padding:18px 16px;
+      }
+
+      .shell-content{
+        padding:14px;
+      }
+    }
+  </style>
+  {% block head_extra %}{% endblock %}
+</head>
+<body>
+  <div class="kamod-shell">
+    {% include '_sidebar_v2.html' %}
+    <main class="kamod-shell-main">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

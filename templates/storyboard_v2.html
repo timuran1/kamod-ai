@@ -1,0 +1,1818 @@
+{% extends "base_shell_v2.html" %}
+
+{% set active_page = "storyboard" %}
+
+{% block title %}Storyboard — KAMOD AI{% endblock %}
+
+{% block head_extra %}
+<style>
+  .storyboard-shell{
+    display:flex;
+    flex-direction:column;
+    gap:22px;
+  }
+
+  .storyboard-stage{
+    display:grid;
+    grid-template-columns:minmax(420px, .95fr) minmax(520px, 1.05fr);
+    gap:20px;
+    align-items:start;
+  }
+
+  .storyboard-card,
+  .storyboard-panel,
+  .storyboard-history{
+    background:linear-gradient(180deg, rgba(16,22,36,.97), rgba(10,14,25,.92));
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:22px;
+    overflow:hidden;
+  }
+
+  .storyboard-card-body,
+  .storyboard-panel-body,
+  .storyboard-history-body{
+    padding:20px;
+  }
+
+  .storyboard-section-label{
+    margin-bottom:14px;
+    color:var(--text-dim);
+    font-size:.76rem;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.13em;
+  }
+
+  .storyboard-intro{
+    padding:14px 16px;
+    border-radius:18px;
+    background:rgba(142,167,255,.09);
+    border:1px solid rgba(142,167,255,.18);
+    color:#d5def8;
+    font-size:.94rem;
+    line-height:1.72;
+  }
+
+  .storyboard-ref-note{
+    margin-top:14px;
+    color:var(--text-dim);
+    font-size:.8rem;
+    line-height:1.6;
+  }
+
+  .storyboard-ref-note strong{color:var(--text-soft)}
+
+  .storyboard-pill-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:16px;
+  }
+
+  .storyboard-pill{
+    padding:7px 11px;
+    border-radius:999px;
+    background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.06);
+    color:var(--text-soft);
+    font-size:.75rem;
+    font-weight:700;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+  }
+
+  .storyboard-grid-right{
+    display:contents;
+  }
+
+  .storyboard-field{margin-top:16px}
+  .storyboard-field:first-child{margin-top:0}
+
+  .storyboard-label{
+    display:block;
+    margin-bottom:8px;
+    color:var(--text-soft);
+    font-size:.84rem;
+    font-weight:600;
+  }
+
+  .storyboard-input,
+  .storyboard-textarea{
+    width:100%;
+    background:#0d1220;
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:16px;
+    color:var(--text);
+    font-size:.93rem;
+    padding:13px 14px;
+    outline:none;
+    transition:border-color .18s ease, box-shadow .18s ease;
+    font-family:inherit;
+  }
+
+  .storyboard-textarea{
+    min-height:170px;
+    resize:vertical;
+    line-height:1.7;
+  }
+
+  .storyboard-input:focus,
+  .storyboard-textarea:focus{
+    border-color:rgba(142,167,255,.38);
+    box-shadow:0 0 0 4px rgba(142,167,255,.10);
+  }
+
+  .ref-slots{
+    display:grid;
+    grid-template-columns:repeat(3, minmax(0, 1fr));
+    gap:12px;
+  }
+
+  .ref-slot{
+    position:relative;
+    min-height:152px;
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:18px;
+    background:linear-gradient(180deg, rgba(255,255,255,.018), rgba(255,255,255,.01));
+    cursor:pointer;
+    overflow:hidden;
+    transition:border-color .18s ease, background .18s ease;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    gap:8px;
+    padding:18px 14px;
+    text-align:center;
+  }
+
+  .ref-slot:hover{
+    border-color:rgba(142,167,255,.34);
+    background:rgba(142,167,255,.05);
+  }
+
+  .ref-slot.has-image{
+    border-color:rgba(142,167,255,.28);
+    background:rgba(142,167,255,.06);
+  }
+
+  .ref-slot input[type=file]{
+    position:absolute;
+    inset:0;
+    opacity:0;
+    cursor:pointer;
+    width:100%;
+    height:100%;
+  }
+
+  .ref-slot img{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+  }
+
+  .slot-icon{
+    width:42px;
+    height:42px;
+    border-radius:14px;
+    display:grid;
+    place-items:center;
+    background:rgba(142,167,255,.10);
+    color:var(--accent);
+    font-size:1.1rem;
+    z-index:1;
+    pointer-events:none;
+  }
+
+  .slot-label{
+    color:var(--text-soft);
+    font-size:.8rem;
+    font-weight:700;
+    line-height:1.45;
+    z-index:1;
+    pointer-events:none;
+  }
+
+  .slot-sub{
+    color:var(--text-dim);
+    font-size:.74rem;
+    line-height:1.5;
+    z-index:1;
+    pointer-events:none;
+  }
+
+  .remove-btn{
+    position:absolute;
+    top:10px;
+    right:10px;
+    z-index:10;
+    background:rgba(9,12,22,.86);
+    border:1px solid rgba(255,255,255,.12);
+    color:#ffb5c8;
+    border-radius:999px;
+    width:28px;
+    height:28px;
+    font-size:.78rem;
+    cursor:pointer;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    line-height:1;
+    padding:0;
+  }
+
+  .ref-slot.has-image .remove-btn{display:flex}
+
+  .generate-btn{
+    width:100%;
+    padding:14px 18px;
+    border:none;
+    border-radius:16px;
+    background:linear-gradient(135deg, #6f86ff, #58b7ff);
+    color:#fff;
+    font-size:.96rem;
+    font-weight:700;
+    cursor:pointer;
+    transition:transform .14s ease, opacity .18s ease;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    margin-top:18px;
+  }
+
+  .generate-btn:hover:not(:disabled){opacity:.92}
+  .generate-btn:active{transform:scale(.985)}
+  .generate-btn:disabled{opacity:.55;cursor:not-allowed}
+
+  .btn-spinner,
+  .extract-spin{
+    width:16px;
+    height:16px;
+    border:2px solid rgba(255,255,255,.28);
+    border-top-color:#fff;
+    border-radius:50%;
+    animation:spin .7s linear infinite;
+    display:none;
+  }
+
+  .generate-btn.loading .btn-spinner,
+  .extract-btn.loading .extract-spin{display:inline-block}
+
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  .error-box,
+  .extractor-error{
+    display:none;
+    margin-top:14px;
+    padding:12px 14px;
+    border-radius:14px;
+    background:rgba(239,68,68,.08);
+    border:1px solid rgba(239,68,68,.18);
+    color:#ffb2b2;
+    font-size:.82rem;
+    line-height:1.6;
+  }
+
+  .error-box.visible,
+  .extractor-error.visible{display:block}
+
+  .progress-box{
+    display:none;
+    margin-top:16px;
+    padding:16px 18px;
+    border-radius:18px;
+    border:1px solid rgba(255,255,255,.06);
+    background:#0d1220;
+  }
+
+  .progress-box.visible{display:block}
+
+  .progress-steps{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+
+  .progress-step{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:.82rem;
+    color:#4f5a72;
+    transition:color .25s ease;
+  }
+
+  .progress-step.active{color:#8ea7ff}
+  .progress-step.done{color:#6de6a6}
+
+  .step-dot{
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:#2a3248;
+    flex-shrink:0;
+    transition:background .25s ease;
+  }
+
+  .progress-step.active .step-dot{
+    background:#8ea7ff;
+    animation:pulse 1.4s ease-in-out infinite;
+  }
+
+  .progress-step.done .step-dot{background:#6de6a6}
+
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+  .result-section{display:none}
+  .result-section.visible{
+    display:block;
+    grid-column:1 / -1;
+  }
+
+  .result-section .storyboard-panel-body{
+    display:grid;
+    grid-template-columns:minmax(420px, .95fr) minmax(520px, 1.05fr);
+    gap:20px;
+    align-items:start;
+  }
+
+  .result-section .storyboard-section-label{
+    grid-column:1 / -1;
+    margin-bottom:-4px;
+  }
+
+  .result-section .storyboard-field{
+    margin-top:0 !important;
+  }
+
+  .storyboard-media{
+    border-radius:18px;
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,.06);
+    background:#0d1220;
+    align-self:start;
+  }
+
+  .storyboard-media.has-preview{
+    cursor:zoom-in;
+    transition:border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+  }
+
+  .storyboard-media.has-preview:hover{
+    border-color:rgba(142,167,255,.34);
+    box-shadow:0 18px 38px rgba(0,0,0,.22);
+    transform:translateY(-1px);
+  }
+
+  .storyboard-media img{
+    width:100%;
+    display:block;
+  }
+
+  .img-actions{
+    display:flex;
+    gap:10px;
+    padding:12px 14px;
+    border-top:1px solid rgba(255,255,255,.06);
+    background:#0b101c;
+  }
+
+  .dl-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:9px 15px;
+    border-radius:10px;
+    background:#1a2237;
+    border:1px solid rgba(142,167,255,.2);
+    color:#a9bcff;
+    font-size:.82rem;
+    font-weight:600;
+    text-decoration:none;
+    transition:all .16s ease;
+  }
+
+  .dl-btn:hover{
+    border-color:rgba(142,167,255,.36);
+    color:#fff;
+  }
+
+  .shot-grid{
+    display:grid;
+    grid-template-columns:repeat(3, minmax(0,1fr));
+    gap:12px;
+  }
+
+  .shot-item{
+    background:#0d1220;
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:16px;
+    padding:14px;
+  }
+
+  .shot-num{
+    font-size:.68rem;
+    font-weight:800;
+    color:#a9bcff;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    margin-bottom:6px;
+  }
+
+  .shot-arc{
+    font-size:.62rem;
+    font-weight:700;
+    padding:3px 8px;
+    border-radius:999px;
+    margin-bottom:8px;
+    display:inline-block;
+  }
+
+  .shot-arc.setup{background:rgba(96,165,250,.12);color:#60a5fa}
+  .shot-arc.rising{background:rgba(251,191,36,.12);color:#fbbf24}
+  .shot-arc.climax{background:rgba(248,113,113,.12);color:#f87171}
+  .shot-arc.resolution{background:rgba(74,222,128,.12);color:#4ade80}
+
+  .shot-text{
+    font-size:.8rem;
+    color:#ced6e8;
+    line-height:1.65;
+  }
+
+  .extractor-header{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:14px;
+    margin-bottom:8px;
+  }
+
+  .extractor-badge{
+    font-size:.68rem;
+    font-weight:700;
+    padding:7px 12px;
+    border-radius:999px;
+    background:rgba(109,230,166,.08);
+    border:1px solid rgba(109,230,166,.18);
+    color:#95efbf;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+  }
+
+  .extractor-sub{
+    color:var(--text-dim);
+    font-size:.82rem;
+    line-height:1.65;
+    margin-bottom:16px;
+  }
+
+  .sb-upload-slot{
+    position:relative;
+    border:1px dashed rgba(142,167,255,.24);
+    border-radius:18px;
+    padding:22px 16px;
+    text-align:center;
+    background:linear-gradient(180deg, rgba(255,255,255,.018), rgba(255,255,255,.01));
+    transition:all .18s ease;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    gap:8px;
+    min-height:150px;
+    overflow:hidden;
+  }
+
+  .sb-upload-slot:hover,
+  .sb-upload-slot.has-image{
+    border-color:rgba(142,167,255,.34);
+    background:rgba(142,167,255,.05);
+  }
+
+  .sb-upload-slot input[type=file]{
+    position:absolute;
+    inset:0;
+    opacity:0;
+    cursor:pointer;
+    width:100%;
+    height:100%;
+  }
+
+  .sb-upload-slot img{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    background:#090d18;
+  }
+
+  .up-icon{
+    width:44px;
+    height:44px;
+    border-radius:14px;
+    display:grid;
+    place-items:center;
+    background:rgba(142,167,255,.10);
+    color:#8ea7ff;
+    font-size:1.2rem;
+    z-index:1;
+    pointer-events:none;
+  }
+
+  .up-label{
+    color:var(--text-soft);
+    font-size:.84rem;
+    font-weight:600;
+    z-index:1;
+    pointer-events:none;
+  }
+
+  .up-rm{
+    position:absolute;
+    top:10px;
+    right:10px;
+    z-index:10;
+    background:rgba(9,12,22,.86);
+    border:1px solid rgba(255,255,255,.12);
+    color:#ffb5c8;
+    border-radius:999px;
+    width:28px;
+    height:28px;
+    font-size:.78rem;
+    cursor:pointer;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:0;
+  }
+
+  .sb-upload-slot.has-image .up-rm{display:flex}
+
+  .frame-selector-label{
+    font-size:.8rem;
+    color:var(--text-soft);
+    margin-bottom:10px;
+  }
+
+  .frame-grid{
+    display:grid;
+    grid-template-columns:repeat(3, minmax(0,1fr));
+    gap:8px;
+    max-width:260px;
+    margin-bottom:18px;
+  }
+
+  .frame-btn{
+    aspect-ratio:16/9;
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:10px;
+    background:#0d1220;
+    color:var(--text-dim);
+    font-size:.86rem;
+    font-weight:700;
+    cursor:pointer;
+    transition:all .16s ease;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .frame-btn:hover{
+    border-color:rgba(142,167,255,.28);
+    color:var(--text);
+  }
+
+  .frame-btn.selected{
+    border-color:#8ea7ff;
+    background:rgba(142,167,255,.10);
+    color:#8ea7ff;
+  }
+
+  .extractor-controls{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+
+  .res-group{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+
+  .res-group label{
+    font-size:.76rem;
+    color:var(--text-dim);
+    margin:0;
+  }
+
+  .res-btns{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+
+  .res-btn{
+    padding:8px 14px;
+    border-radius:10px;
+    border:1px solid rgba(255,255,255,.08);
+    background:#0d1220;
+    color:var(--text-dim);
+    font-size:.78rem;
+    font-weight:700;
+    cursor:pointer;
+    transition:all .16s ease;
+  }
+
+  .res-btn:hover{
+    border-color:rgba(142,167,255,.28);
+    color:var(--text);
+  }
+
+  .res-btn.selected{
+    border-color:#8ea7ff;
+    color:#8ea7ff;
+    background:rgba(142,167,255,.10);
+  }
+
+  .extract-btn{
+    padding:11px 22px;
+    border:none;
+    border-radius:14px;
+    background:linear-gradient(135deg, #ea580c, #ef4444);
+    color:#fff;
+    font-size:.88rem;
+    font-weight:700;
+    cursor:pointer;
+    transition:transform .14s ease, opacity .18s ease;
+    white-space:nowrap;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+
+  .extract-btn:hover:not(:disabled){opacity:.92}
+  .extract-btn:active{transform:scale(.985)}
+  .extract-btn:disabled{opacity:.55;cursor:not-allowed}
+
+  .extracted-results{display:none;margin-top:18px}
+  .extracted-results.visible{display:block}
+
+  .extracted-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(220px,1fr));
+    gap:14px;
+  }
+
+  .extracted-card{
+    background:#0d1220;
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:16px;
+    overflow:hidden;
+  }
+
+  .extracted-card img{
+    width:100%;
+    display:block;
+    aspect-ratio:16/9;
+    object-fit:cover;
+  }
+
+  .extracted-card-info{
+    padding:12px 14px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+  }
+
+  .extracted-label{
+    font-size:.8rem;
+    color:var(--text-soft);
+    font-weight:700;
+  }
+
+  .extracted-res{
+    font-size:.7rem;
+    color:var(--text-dim);
+  }
+
+  .history-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:16px;
+  }
+
+  .history-title{
+    font-size:1rem;
+    font-weight:700;
+  }
+
+  .history-sub{
+    margin-top:6px;
+    color:var(--text-dim);
+    font-size:.82rem;
+  }
+
+  .refresh-btn{
+    background:#101624;
+    border:1px solid rgba(255,255,255,.08);
+    color:var(--text-soft);
+    padding:9px 13px;
+    border-radius:12px;
+    cursor:pointer;
+    font-size:.8rem;
+    font-weight:700;
+    transition:all .16s ease;
+  }
+
+  .refresh-btn:hover{
+    color:var(--text);
+    border-color:rgba(142,167,255,.24);
+  }
+
+  .history-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(230px,1fr));
+    gap:14px;
+  }
+
+  .hist-card{
+    background:#0d1220;
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:18px;
+    overflow:hidden;
+    cursor:pointer;
+    transition:border-color .18s ease, transform .16s ease;
+  }
+
+  .hist-card:hover{
+    border-color:rgba(142,167,255,.26);
+    transform:translateY(-2px);
+  }
+
+  .hist-thumb{
+    width:100%;
+    aspect-ratio:16/9;
+    object-fit:cover;
+    display:block;
+    background:#090d18;
+  }
+
+  .hist-thumb-placeholder{
+    width:100%;
+    aspect-ratio:16/9;
+    background:#090d18;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:1.5rem;
+    color:#2a3248;
+  }
+
+  .hist-info{
+    padding:12px 14px 14px;
+  }
+
+  .hist-prompt{
+    font-size:.82rem;
+    color:#e6edf8;
+    overflow:hidden;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    line-height:1.52;
+    margin-bottom:7px;
+    min-height:2.5em;
+  }
+
+  .hist-meta{
+    font-size:.72rem;
+    color:var(--text-dim);
+  }
+
+  .history-empty{
+    color:var(--text-dim);
+    font-size:.86rem;
+    padding:12px 0;
+  }
+
+  .modal-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.85);
+    backdrop-filter:blur(6px);
+    z-index:1000;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    overflow-y:auto;
+  }
+
+  .modal-overlay.open{display:flex}
+
+  .modal-box{
+    background:#131726;
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:22px;
+    width:100%;
+    max-width:920px;
+    max-height:calc(100vh - 40px);
+    overflow-y:auto;
+    box-shadow:0 24px 80px rgba(0,0,0,.7);
+  }
+
+  .modal-head{
+    position:sticky;
+    top:0;
+    z-index:2;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:20px 24px 12px;
+    background:linear-gradient(180deg,#131726 75%,rgba(19,23,38,.9));
+    border-radius:22px 22px 0 0;
+  }
+
+  .modal-head-title{
+    font-size:.8rem;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.12em;
+    color:var(--text-dim);
+  }
+
+  .modal-close-btn{
+    background:none;
+    border:none;
+    color:#75819d;
+    font-size:1.4rem;
+    cursor:pointer;
+    padding:4px 8px;
+    border-radius:8px;
+    line-height:1;
+  }
+
+  .modal-close-btn:hover{
+    background:#1a2030;
+    color:#fff;
+  }
+
+  .modal-img-wrap{
+    margin:12px 24px 16px;
+    background:#090d18;
+    border-radius:16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:180px;
+    max-height:calc(100vh - 260px);
+    overflow:hidden;
+    padding:16px;
+  }
+
+  .modal-img-wrap img{
+    max-width:100%;
+    max-height:calc(100vh - 292px);
+    border-radius:10px;
+    display:block;
+    object-fit:contain;
+  }
+
+  .modal-no-vid{
+    color:var(--text-dim);
+    font-size:.9rem;
+    text-align:center;
+    padding:40px;
+  }
+
+  .modal-actions{
+    display:flex;
+    gap:10px;
+    padding:0 24px 20px;
+    flex-wrap:wrap;
+  }
+
+  .btn-dl{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background:linear-gradient(135deg,#3b7dd8,#60a5fa);
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    padding:10px 18px;
+    font-size:.84rem;
+    font-weight:700;
+    cursor:pointer;
+    text-decoration:none;
+  }
+
+  .btn-ext{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background:#1a2030;
+    color:var(--text-soft);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:10px;
+    padding:10px 18px;
+    font-size:.84rem;
+    font-weight:700;
+    cursor:pointer;
+    text-decoration:none;
+  }
+
+  .modal-divider{
+    height:1px;
+    background:rgba(255,255,255,.06);
+    margin:0 24px 20px;
+  }
+
+  .modal-sect{padding:0 24px 20px}
+
+  .modal-sect-label{
+    font-size:.72rem;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.12em;
+    color:var(--text-dim);
+    margin-bottom:8px;
+  }
+
+  .prompt-blk{
+    background:#0d1220;
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:14px;
+    padding:14px 16px;
+    position:relative;
+  }
+
+  .prompt-txt{
+    font-size:.88rem;
+    color:#dbe4f8;
+    line-height:1.7;
+    padding-right:68px;
+    white-space:pre-wrap;
+    word-break:break-word;
+  }
+
+  .btn-copy{
+    position:absolute;
+    top:10px;
+    right:10px;
+    background:#1a2030;
+    border:1px solid rgba(255,255,255,.08);
+    color:#8f9ab3;
+    border-radius:8px;
+    padding:6px 11px;
+    font-size:.75rem;
+    font-weight:700;
+    cursor:pointer;
+  }
+
+  .btn-copy:hover{
+    color:#fff;
+    border-color:rgba(142,167,255,.28);
+  }
+
+  .btn-copy.copied{
+    color:#6de6a6;
+    border-color:rgba(109,230,166,.28);
+  }
+
+  .meta-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(180px,1fr));
+    gap:10px;
+  }
+
+  .meta-item{
+    background:#0d1220;
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:14px;
+    padding:12px 14px;
+  }
+
+  .meta-key{
+    font-size:.7rem;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.09em;
+    color:var(--text-dim);
+    margin-bottom:6px;
+  }
+
+  .meta-val{
+    font-size:.85rem;
+    color:#dbe4f8;
+    font-weight:600;
+    word-break:break-word;
+  }
+
+  .meta-val.green{color:#6de6a6}
+  .meta-val.blue{color:#8ea7ff}
+  .meta-val.purple{color:#c4a2ff}
+  .meta-val.red{color:#ff9898}
+
+  @media (max-width: 1260px){
+    .storyboard-stage{
+      grid-template-columns:1fr;
+    }
+
+    .storyboard-grid-right{
+      display:flex;
+      flex-direction:column;
+      gap:20px;
+    }
+
+    .result-section.visible{
+      grid-column:auto;
+    }
+
+    .result-section .storyboard-panel-body{
+      display:block;
+    }
+
+    .result-section .storyboard-section-label{
+      margin-bottom:14px;
+    }
+
+    .result-section .storyboard-field{
+      margin-top:18px !important;
+    }
+  }
+
+  @media (max-width: 920px){
+    .ref-slots,
+    .shot-grid{
+      grid-template-columns:1fr;
+    }
+
+    .extractor-controls{
+      align-items:stretch;
+    }
+  }
+
+  @media (max-width: 640px){
+    .storyboard-card-body,
+    .storyboard-panel-body,
+    .storyboard-history-body{
+      padding:16px;
+    }
+
+    .history-header,
+    .extractor-header{
+      flex-direction:column;
+      align-items:flex-start;
+    }
+
+    .frame-grid{
+      max-width:none;
+    }
+
+    .modal-head,
+    .modal-actions,
+    .modal-sect{
+      padding-left:16px;
+      padding-right:16px;
+    }
+
+    .modal-img-wrap,
+    .modal-divider{
+      margin-left:16px;
+      margin-right:16px;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="shell-topbar">
+  <div>
+    <h1 class="shell-page-title">Storyboard</h1>
+    <p class="shell-page-sub">Turn a story concept and optional references into a cinematic 3x3 storyboard, then regenerate individual frames at higher resolution without changing the underlying workflow.</p>
+  </div>
+  <div class="shell-status">
+    <span class="shell-status-dot"></span>
+    KAMOD pipeline
+  </div>
+</div>
+
+<section class="shell-stage storyboard-shell">
+  <div class="shell-stage-head">
+    <div>
+      <div class="shell-stage-title">Storyboard Workspace</div>
+      <div class="shell-stage-meta" style="display:inline-flex;align-items:center;gap:8px">
+        <span style="background:linear-gradient(135deg,#7c3aed22,#4f46e522);border:1px solid #7c3aed55;color:#a78bfa;font-size:.72rem;font-weight:700;letter-spacing:.04em;padding:3px 10px;border-radius:20px">⚡ Powered by Seedream 5.0</span>
+      </div>
+    </div>
+    <div class="shell-pill">Create</div>
+  </div>
+
+  <div class="shell-content">
+    <div class="storyboard-stage">
+      <section class="storyboard-card">
+        <div class="storyboard-card-body">
+          <div class="storyboard-section-label">Reference Inputs</div>
+          <div class="storyboard-intro">Upload up to three optional references to anchor character, wardrobe, or setting continuity. The storyboard plan and final 3x3 image still come from the same existing generation flow.</div>
+          <div class="storyboard-ref-note"><strong>Tip:</strong> you can leave references empty and generate directly from the story concept, or provide a few stills to steer the visual language more tightly.</div>
+          <div class="storyboard-pill-row">
+            <span class="storyboard-pill">3x3 Grid</span>
+            <span class="storyboard-pill">16:9 Output</span>
+            <span class="storyboard-pill">Motion Shot List</span>
+          </div>
+
+          <div class="storyboard-field" style="margin-top:18px">
+            <div class="ref-slots">
+              <div class="ref-slot" id="slot-0">
+                <input type="file" accept="image/*" onchange="handleSlotFile(0,this)"/>
+                <span class="slot-icon">✦</span>
+                <span class="slot-label">Reference 1</span>
+                <span class="slot-sub">Primary look or main subject</span>
+                <button class="remove-btn" onclick="removeSlot(event,0)">✕</button>
+              </div>
+              <div class="ref-slot" id="slot-1">
+                <input type="file" accept="image/*" onchange="handleSlotFile(1,this)"/>
+                <span class="slot-icon">✦</span>
+                <span class="slot-label">Reference 2</span>
+                <span class="slot-sub">Optional styling or location cue</span>
+                <button class="remove-btn" onclick="removeSlot(event,1)">✕</button>
+              </div>
+              <div class="ref-slot" id="slot-2">
+                <input type="file" accept="image/*" onchange="handleSlotFile(2,this)"/>
+                <span class="slot-icon">✦</span>
+                <span class="slot-label">Reference 3</span>
+                <span class="slot-sub">Optional secondary continuity cue</span>
+                <button class="remove-btn" onclick="removeSlot(event,2)">✕</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="storyboard-grid-right">
+        <section class="storyboard-panel">
+          <div class="storyboard-panel-body">
+            <div class="storyboard-section-label">Story Input</div>
+            <div class="storyboard-field">
+              <label class="storyboard-label" for="story-input">Describe your scene or story concept</label>
+              <textarea class="storyboard-textarea" id="story-input" placeholder="e.g. A lone astronaut discovers an ancient alien artifact on Mars. As she examines it, the device activates, revealing a holographic star map pointing to a distant galaxy…"></textarea>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+              <span style="font-size:.75rem;color:#6f7a93;font-weight:600;text-transform:uppercase;letter-spacing:.08em">Grid Quality</span>
+              <div style="display:flex;gap:6px" id="sb-res-group">
+                <button class="sb-res-btn" data-res="1K" onclick="selectSbRes('1K',this)" style="padding:5px 14px;border-radius:20px;border:1px solid #2a2a3a;background:#0e0e18;color:#666;cursor:pointer;font-size:.75rem;font-weight:600;transition:all .18s">1K</button>
+                <button class="sb-res-btn sb-res-active" data-res="2K" onclick="selectSbRes('2K',this)" style="padding:5px 14px;border-radius:20px;border:1px solid #a78bfa55;background:#130f22;color:#a78bfa;cursor:pointer;font-size:.75rem;font-weight:600;transition:all .18s">2K ✓</button>
+                <button class="sb-res-btn" data-res="4K" onclick="selectSbRes('4K',this)" style="padding:5px 14px;border-radius:20px;border:1px solid #2a2a3a;background:#0e0e18;color:#666;cursor:pointer;font-size:.75rem;font-weight:600;transition:all .18s">4K</button>
+              </div>
+              <span style="font-size:.68rem;color:#444">Seedream 5.0 · 4K takes ~2× longer</span>
+            </div>
+
+            <button class="generate-btn" id="gen-btn" onclick="generate()">
+              <div class="btn-spinner"></div>
+              <span id="gen-label">Generate Storyboard</span>
+            </button>
+            <div class="error-box" id="error-box"></div>
+
+            <div class="progress-box" id="progress-box">
+              <div class="progress-steps">
+                <div class="progress-step" id="step-think">
+                  <div class="step-dot"></div>
+                  <span>Analyzing story and reference images…</span>
+                </div>
+                <div class="progress-step" id="step-img">
+                  <div class="step-dot"></div>
+                  <span id="step-img-label">Generating storyboard grid (16:9 · 2K)…</span>
+                </div>
+                <div class="progress-step" id="step-done">
+                  <div class="step-dot"></div>
+                  <span>Building motion shot list…</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="storyboard-panel result-section" id="result-section">
+          <div class="storyboard-panel-body">
+            <div class="storyboard-section-label">Storyboard Output</div>
+            <div class="storyboard-media" id="img-wrap">
+              <img id="storyboard-img" src="" alt="Storyboard"/>
+              <div class="img-actions">
+                <a id="dl-btn" class="dl-btn" href="#" download="storyboard.png">⬇ Download Storyboard</a>
+              </div>
+            </div>
+
+            <div class="storyboard-field" style="margin-top:18px">
+              <div class="storyboard-section-label" style="margin-bottom:12px">Motion Shot List</div>
+              <div class="shot-grid" id="shot-grid"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <section class="storyboard-panel" style="margin-top:20px">
+      <div class="storyboard-panel-body">
+        <div class="extractor-header">
+          <div>
+            <div class="storyboard-section-label" style="margin-bottom:8px">Frame Extractor</div>
+            <p class="extractor-sub">Upload a storyboard grid, choose which frame numbers to regenerate, and save higher-resolution stills for downstream creative work.</p>
+          </div>
+          <span class="extractor-badge">KAMOD Extractor</span>
+        </div>
+
+        <div class="extractor-error" id="ext-error"></div>
+
+        <div class="sb-upload-slot" id="sb-upload-slot">
+          <input type="file" accept="image/*" onchange="handleSbUpload(this)"/>
+          <span class="up-icon">⬆</span>
+          <span class="up-label">Upload storyboard grid image</span>
+          <button class="up-rm" onclick="clearSbUpload(event)">✕</button>
+        </div>
+
+        <div class="frame-selector-label">Select frame(s) to extract</div>
+        <div class="frame-grid" id="frame-grid">
+          <button class="frame-btn" data-frame="1" onclick="toggleFrame(1)">1</button>
+          <button class="frame-btn" data-frame="2" onclick="toggleFrame(2)">2</button>
+          <button class="frame-btn" data-frame="3" onclick="toggleFrame(3)">3</button>
+          <button class="frame-btn" data-frame="4" onclick="toggleFrame(4)">4</button>
+          <button class="frame-btn" data-frame="5" onclick="toggleFrame(5)">5</button>
+          <button class="frame-btn" data-frame="6" onclick="toggleFrame(6)">6</button>
+          <button class="frame-btn" data-frame="7" onclick="toggleFrame(7)">7</button>
+          <button class="frame-btn" data-frame="8" onclick="toggleFrame(8)">8</button>
+          <button class="frame-btn" data-frame="9" onclick="toggleFrame(9)">9</button>
+        </div>
+
+        <div class="extractor-controls">
+          <div class="res-group">
+            <label>Output resolution</label>
+            <div class="res-btns">
+              <button class="res-btn" data-res="1K" onclick="selectRes('1K')">1K</button>
+              <button class="res-btn selected" data-res="2K" onclick="selectRes('2K')">2K</button>
+              <button class="res-btn" data-res="4K" onclick="selectRes('4K')">4K</button>
+            </div>
+          </div>
+          <button class="extract-btn" id="extract-btn" onclick="extractFrames()">
+            <div class="extract-spin"></div>
+            <span id="extract-label">Extract Frames</span>
+          </button>
+        </div>
+
+        <div class="extracted-results" id="extracted-results">
+          <div class="extracted-grid" id="extracted-grid"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="storyboard-history" style="margin-top:20px">
+      <div class="storyboard-history-body">
+        <div class="history-header">
+          <div>
+            <div class="history-title">Recent Storyboards</div>
+            <div class="history-sub">Saved storyboard generations from the existing history table, reopened with a native preview modal.</div>
+          </div>
+          <button class="refresh-btn" onclick="loadHistory()">↻ Refresh</button>
+        </div>
+        <div class="history-grid" id="history-grid">
+          <div class="history-empty">No storyboards yet.</div>
+        </div>
+      </div>
+    </section>
+  </div>
+</section>
+
+<div class="modal-overlay" id="sbModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <span class="modal-head-title">Storyboard Preview</span>
+      <button class="modal-close-btn" id="sbModalClose">✕</button>
+    </div>
+    <div class="modal-img-wrap" id="sbModalImgWrap">
+      <div class="modal-no-vid">No image available</div>
+    </div>
+    <div class="modal-actions" id="sbModalActions"></div>
+    <div class="modal-divider"></div>
+    <div class="modal-sect">
+      <div class="modal-sect-label">Prompt</div>
+      <div class="prompt-blk">
+        <div class="prompt-txt" id="sbModalPrompt">—</div>
+        <button class="btn-copy" id="sbModalCopy">Copy</button>
+      </div>
+    </div>
+    <div class="modal-divider"></div>
+    <div class="modal-sect">
+      <div class="modal-sect-label">Details</div>
+      <div class="meta-grid" id="sbModalMeta"></div>
+    </div>
+    <div style="height:8px"></div>
+  </div>
+</div>
+
+{% include 'legal_footer.html' %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const refImages = [null, null, null];
+  let currentStoryboardPreview = null;
+
+  const arcLabel = [
+    {text:'Setup',cls:'setup'},{text:'Setup',cls:'setup'},
+    {text:'Rising',cls:'rising'},{text:'Rising',cls:'rising'},{text:'Rising',cls:'rising'},
+    {text:'Climax',cls:'climax'},{text:'Climax',cls:'climax'},
+    {text:'Resolution',cls:'resolution'},{text:'Resolution',cls:'resolution'},
+  ];
+
+  function handleSlotFile(idx, input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      refImages[idx] = e.target.result;
+      const slot = document.getElementById('slot-' + idx);
+      slot.classList.add('has-image');
+      const old = slot.querySelector('img.preview');
+      if (old) old.remove();
+      const img = document.createElement('img');
+      img.className = 'preview';
+      img.src = e.target.result;
+      slot.appendChild(img);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function removeSlot(e, idx) {
+    e.stopPropagation();
+    refImages[idx] = null;
+    const slot = document.getElementById('slot-' + idx);
+    slot.classList.remove('has-image');
+    const img = slot.querySelector('img.preview');
+    if (img) img.remove();
+    const fi = slot.querySelector('input[type=file]');
+    if (fi) fi.value = '';
+  }
+
+  function setStep(n) {
+    const ids = ['step-think','step-img','step-done'];
+    ids.forEach((id, i) => {
+      const el = document.getElementById(id);
+      el.classList.remove('active','done');
+      if (i < n) el.classList.add('done');
+      else if (i === n) el.classList.add('active');
+    });
+  }
+
+  function showError(msg) {
+    const b = document.getElementById('error-box');
+    b.textContent = msg;
+    b.classList.add('visible');
+  }
+
+  function renderShotList(shots) {
+    const grid = document.getElementById('shot-grid');
+    grid.innerHTML = '';
+    shots.forEach((text, i) => {
+      const arc = arcLabel[i] || {text:'',cls:''};
+      const div = document.createElement('div');
+      div.className = 'shot-item';
+
+      const numEl = document.createElement('div');
+      numEl.className = 'shot-num';
+      numEl.textContent = 'Frame ' + (i + 1);
+
+      const arcEl = document.createElement('span');
+      arcEl.className = 'shot-arc ' + arc.cls;
+      arcEl.textContent = arc.text;
+
+      const textEl = document.createElement('div');
+      textEl.className = 'shot-text';
+      textEl.textContent = (text + '').replace(/^Frame \d+:\s*/i, '');
+
+      div.appendChild(numEl);
+      div.appendChild(arcEl);
+      div.appendChild(textEl);
+      grid.appendChild(div);
+    });
+  }
+
+  async function generate() {
+    const story = document.getElementById('story-input').value.trim();
+    if (!story) { showError('Please describe your story first.'); return; }
+
+    document.getElementById('error-box').classList.remove('visible');
+    const btn = document.getElementById('gen-btn');
+    const label = document.getElementById('gen-label');
+    btn.disabled = true;
+    btn.classList.add('loading');
+    label.textContent = 'Generating…';
+
+    const progress = document.getElementById('progress-box');
+    progress.classList.add('visible');
+    setStep(0);
+
+    document.getElementById('result-section').classList.remove('visible');
+    currentStoryboardPreview = null;
+    document.getElementById('img-wrap').classList.remove('has-preview');
+
+    const t1 = setTimeout(() => setStep(1), 8000);
+    const t2 = setTimeout(() => setStep(2), 20000);
+
+    try {
+      const res = await fetch('/api/storyboard/generate', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          story,
+          images: refImages.filter(Boolean),
+          resolution: sbResolution,
+        }),
+      });
+      clearTimeout(t1); clearTimeout(t2);
+
+      const data = await res.json();
+
+      if (data.error) {
+        showError(data.error);
+        progress.classList.remove('visible');
+        btn.disabled = false;
+        btn.classList.remove('loading');
+        label.textContent = 'Generate Storyboard';
+        return;
+      }
+
+      setStep(3);
+
+      const dataUri = `data:${data.image_mime};base64,${data.image_b64}`;
+      const imgEl = document.getElementById('storyboard-img');
+      imgEl.src = dataUri;
+
+      const dlBtn = document.getElementById('dl-btn');
+      dlBtn.href = '#';
+      dlBtn.onclick = e => {
+        e.preventDefault();
+        downloadStoryboardAsset(dataUri, 'kamod-storyboard.png');
+      };
+
+      const shotList = data.shot_list || [];
+      currentStoryboardPreview = {
+        output_url: dataUri,
+        prompt: story,
+        status: 'completed',
+        created_at: new Date().toISOString(),
+        shot_list: shotList,
+      };
+      document.getElementById('img-wrap').classList.add('has-preview');
+
+      renderShotList(shotList);
+      document.getElementById('result-section').classList.add('visible');
+      document.getElementById('result-section').scrollIntoView({behavior:'smooth', block:'start'});
+
+    } catch(e) {
+      clearTimeout(t1); clearTimeout(t2);
+      showError('Network error: ' + e.message);
+      progress.classList.remove('visible');
+    }
+
+    btn.disabled = false;
+    btn.classList.remove('loading');
+    label.textContent = 'Generate Storyboard';
+    loadHistory();
+  }
+
+  function formatHistoryTitle(prompt) {
+    const text = String(prompt || '').trim();
+    if (!text) return 'KAMOD Storyboard';
+    if (text.length <= 78) return text;
+    return text.slice(0, 75).trimEnd() + '…';
+  }
+
+  async function loadHistory() {
+    const grid = document.getElementById('history-grid');
+    try {
+      const res = await fetch('/api/history/storyboard', {headers: {}});
+      const data = await res.json();
+      const items = (data.history || []).filter(h => h.status === 'completed' && h.output_url);
+      if (!items.length) {
+        grid.innerHTML = '<div class="history-empty">No storyboards yet.</div>';
+        return;
+      }
+      grid.innerHTML = '';
+      window._sbHistory = [];
+      items.forEach((h, index) => {
+        const card = document.createElement('div');
+        card.className = 'hist-card';
+        card.dataset.idx = String(index);
+        window._sbHistory.push(h);
+        const date = new Date(h.created_at).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+
+        const img = document.createElement('img');
+        img.className = 'hist-thumb';
+        img.setAttribute('src', h.output_url || '');
+        img.setAttribute('alt', 'Storyboard');
+        img.setAttribute('loading', 'lazy');
+        img.addEventListener('error', function() {
+          this.style.display = 'none';
+          placeholder.style.display = 'flex';
+        });
+
+        const placeholder = document.createElement('div');
+        placeholder.className = 'hist-thumb-placeholder';
+        placeholder.style.display = 'none';
+        placeholder.textContent = '✦';
+
+        const info = document.createElement('div');
+        info.className = 'hist-info';
+
+        const promptEl = document.createElement('div');
+        promptEl.className = 'hist-prompt';
+        promptEl.textContent = formatHistoryTitle(h.prompt || '—');
+
+        const metaEl = document.createElement('div');
+        metaEl.className = 'hist-meta';
+        metaEl.textContent = `KAMOD Storyboard · ${date}`;
+
+        info.appendChild(promptEl);
+        info.appendChild(metaEl);
+        card.appendChild(img);
+        card.appendChild(placeholder);
+        card.appendChild(info);
+
+        card.addEventListener('click', () => openSbModal(window._sbHistory[parseInt(card.dataset.idx, 10)]));
+        grid.appendChild(card);
+      });
+    } catch(e) {
+      grid.innerHTML = '<div class="history-empty" style="color:#ff9898">Failed to load history.</div>';
+    }
+  }
+
+  loadHistory();
+
+  let sbImageUri  = null;
+  let selFrames   = new Set();
+  // ── Grid quality picker (1K / 2K / 4K) ─────────────────────────────
+  let sbResolution = '2K';
+  function selectSbRes(res, btn) {
+    sbResolution = res;
+    document.querySelectorAll('.sb-res-btn').forEach(b => {
+      b.classList.remove('sb-res-active');
+      b.style.borderColor = '#2a2a3a';
+      b.style.background  = '#0e0e18';
+      b.style.color       = '#666';
+      b.textContent = b.dataset.res;
+    });
+    btn.classList.add('sb-res-active');
+    btn.style.borderColor = '#a78bfa55';
+    btn.style.background  = '#130f22';
+    btn.style.color       = '#a78bfa';
+    btn.textContent = res + ' ✓';
+    // Update progress step label to reflect chosen quality
+    const lbl = document.getElementById('step-img-label');
+    if (lbl) lbl.textContent = `Generating storyboard grid (16:9 · ${res})…`;
+  }
+
+  let selRes      = '2K';
+
+  function handleSbUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      sbImageUri = e.target.result;
+      const slot = document.getElementById('sb-upload-slot');
+      slot.classList.add('has-image');
+      const old = slot.querySelector('img');
+      if (old) old.remove();
+      const img = document.createElement('img');
+      img.src = sbImageUri;
+      slot.appendChild(img);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function clearSbUpload(e) {
+    e.stopPropagation();
+    sbImageUri = null;
+    const slot = document.getElementById('sb-upload-slot');
+    slot.classList.remove('has-image');
+    const img = slot.querySelector('img');
+    if (img) img.remove();
+    const fi = slot.querySelector('input[type=file]');
+    if (fi) fi.value = '';
+  }
+
+  function toggleFrame(n) {
+    const btn = document.querySelector(`.frame-btn[data-frame="${n}"]`);
+    if (selFrames.has(n)) { selFrames.delete(n); btn.classList.remove('selected'); }
+    else                  { selFrames.add(n);    btn.classList.add('selected'); }
+  }
+
+  function selectRes(r) {
+    selRes = r;
+    document.querySelectorAll('.res-btn').forEach(b => {
+      b.classList.toggle('selected', b.dataset.res === r);
+    });
+  }
+
+  async function extractFrames() {
+    const errBox = document.getElementById('ext-error');
+    errBox.classList.remove('visible');
+
+    if (!sbImageUri)      { errBox.textContent = 'Please upload a storyboard image first.'; errBox.classList.add('visible'); return; }
+    if (!selFrames.size)  { errBox.textContent = 'Select at least one frame to extract.';    errBox.classList.add('visible'); return; }
+
+    const btn   = document.getElementById('extract-btn');
+    const label = document.getElementById('extract-label');
+    btn.disabled = true;
+    btn.classList.add('loading');
+    label.textContent = `Extracting frame${selFrames.size > 1 ? 's' : ''} ${[...selFrames].sort((a,b)=>a-b).join(', ')}…`;
+
+    try {
+      const res = await fetch('/api/storyboard/extract-frames', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          storyboard_image: sbImageUri,
+          frames: [...selFrames],
+          resolution: selRes,
+        }),
+      });
+      const data = await res.json();
+      if (data.error) { errBox.textContent = data.error; errBox.classList.add('visible'); return; }
+
+      renderExtracted(data.results || []);
+    } catch(e) {
+      errBox.textContent = 'Network error: ' + e.message;
+      errBox.classList.add('visible');
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove('loading');
+      label.textContent = 'Extract Frames';
+    }
+  }
+
+  function renderExtracted(results) {
+    const wrap = document.getElementById('extracted-results');
+    const grid = document.getElementById('extracted-grid');
+    grid.innerHTML = '';
+
+    results.forEach(r => {
+      const card = document.createElement('div');
+      card.className = 'extracted-card';
+      if (r.error) {
+        const errEl = document.createElement('div');
+        errEl.style.cssText = 'padding:16px;color:#ff9898;font-size:.78rem;line-height:1.6';
+        errEl.textContent = 'Frame ' + r.frame + ': ' + r.error;
+        card.appendChild(errEl);
+      } else {
+        const src = r.image_url || ('data:' + r.image_mime + ';base64,' + r.image_b64);
+
+        const imgEl = document.createElement('img');
+        imgEl.setAttribute('src', src);
+        imgEl.setAttribute('alt', 'Frame ' + r.frame);
+        imgEl.setAttribute('loading', 'lazy');
+
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'extracted-card-info';
+
+        const labelWrap = document.createElement('div');
+
+        const labelEl = document.createElement('span');
+        labelEl.className = 'extracted-label';
+        labelEl.textContent = 'Frame ' + r.frame;
+
+        const resEl = document.createElement('span');
+        resEl.className = 'extracted-res';
+        resEl.textContent = ' · ' + r.resolution;
+
+        labelWrap.appendChild(labelEl);
+        labelWrap.appendChild(resEl);
+
+        const dlA = document.createElement('a');
+        dlA.setAttribute('href', src);
+        dlA.setAttribute('download', 'frame_' + r.frame + '_' + r.resolution + '.png');
+        dlA.className = 'dl-btn';
+        dlA.style.cssText = 'padding:7px 12px;font-size:.74rem';
+        dlA.textContent = '⬇ Save';
+
+        infoDiv.appendChild(labelWrap);
+        infoDiv.appendChild(dlA);
+        card.appendChild(imgEl);
+        card.appendChild(infoDiv);
+      }
+      grid.appendChild(card);
+    });
+
+    wrap.classList.add('visible');
+    wrap.scrollIntoView({behavior:'smooth', block:'nearest'});
+  }
+
+  function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+  function downloadDataUrl(dataUrl, filename) {
+    const parts = String(dataUrl).split(',');
+    const meta = parts[0] || '';
+    const b64 = parts.slice(1).join(',');
+    const mime = (meta.match(/data:([^;]+)/) || [,'application/octet-stream'])[1];
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const blob = new Blob([bytes], {type:mime});
+    const href = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = href;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(href);
+  }
+
+  function proxiedMediaDownload(url, filename) {
+    return '/api/download-media?url=' + encodeURIComponent(url) + '&filename=' + encodeURIComponent(filename);
+  }
+
+  function downloadStoryboardAsset(url, filename) {
+    if (!url) return;
+    if (String(url).startsWith('data:')) {
+      downloadDataUrl(url, filename);
+      return;
+    }
+    const a = document.createElement('a');
+    a.href = proxiedMediaDownload(url, filename);
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  function openSbModal(item) {
+    if (!item) return;
+    const url = item.output_url || '';
+    const imgWrap = document.getElementById('sbModalImgWrap');
+    imgWrap.innerHTML = url
+      ? `<img src="${escHtml(url)}" alt="Storyboard"/>`
+      : `<div class="modal-no-vid">No image available.</div>`;
+    const actions = document.getElementById('sbModalActions');
+    actions.innerHTML = url
+      ? `<button class="btn-dl" type="button" id="sbModalDownload">↓ Download</button>
+         <a class="btn-ext" href="${escHtml(url)}" target="_blank" rel="noopener">↗ Open in new tab</a>`
+      : '';
+    const modalDownload = document.getElementById('sbModalDownload');
+    if (modalDownload) {
+      modalDownload.addEventListener('click', () => downloadStoryboardAsset(url, 'kamod-storyboard.png'));
+    }
+    document.getElementById('sbModalPrompt').textContent = item.prompt || '—';
+    const copyBtn = document.getElementById('sbModalCopy');
+    copyBtn.textContent = 'Copy'; copyBtn.classList.remove('copied');
+    copyBtn.onclick = () => {
+      navigator.clipboard.writeText(item.prompt || '').then(() => {
+        copyBtn.textContent = 'Copied!';
+        copyBtn.classList.add('copied');
+        setTimeout(() => {
+          copyBtn.textContent = 'Copy';
+          copyBtn.classList.remove('copied');
+        }, 2000);
+      });
+    };
+    const dateStr = item.created_at ? item.created_at.replace('T',' ').substring(0,16)+' UTC' : '—';
+    document.getElementById('sbModalMeta').innerHTML = [
+      {k:'Workflow', v:'KAMOD Storyboard', c:'purple'},
+      {k:'Status', v:item.status||'—', c:{completed:'blue',processing:'green',failed:'red'}[item.status]||''},
+      {k:'Created', v:dateStr},
+    ].map(m =>
+      `<div class="meta-item"><div class="meta-key">${m.k}</div><div class="meta-val${m.c?' '+m.c:''}">${escHtml(String(m.v))}</div></div>`
+    ).join('');
+    document.getElementById('sbModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeSbModal() {
+    document.getElementById('sbModal').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  document.getElementById('sbModalClose').addEventListener('click', closeSbModal);
+  document.getElementById('sbModal').addEventListener('click', e => { if (e.target.id === 'sbModal') closeSbModal(); });
+  document.getElementById('img-wrap').addEventListener('click', e => {
+    if (e.target.closest('a')) return;
+    if (currentStoryboardPreview) openSbModal(currentStoryboardPreview);
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      if (document.getElementById('sbModal').classList.contains('open')) closeSbModal();
+    }
+  });
+</script>
+{% endblock %}

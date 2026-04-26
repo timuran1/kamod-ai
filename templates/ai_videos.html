@@ -1,0 +1,1669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% if legacy %}AI Video Tools Legacy — KAMOD AI{% else %}AI Video Tools — KAMOD AI{% endif %}</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0a0a0f;color:#e0e0e0;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:36px 20px 80px}
+    body.embed{padding:0;min-height:auto;background:transparent}
+    body.embed .wrapper{width:100%;max-width:none;padding:0 8px 24px}
+    body.embed .history-section{margin-top:24px}
+
+    nav{width:100%;max-width:1100px;display:flex;flex-direction:column;align-items:center;gap:12px;margin:0 auto 36px}
+    nav .logo{font-size:1.15rem;font-weight:700;background:linear-gradient(135deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.01em}
+    .nav-grouped{display:flex;align-items:flex-end;gap:0;background:#0d0d16;border:1px solid #1c1c2e;border-radius:13px;padding:5px 8px;overflow-x:auto;max-width:100%;scrollbar-width:none}
+    .nav-grouped::-webkit-scrollbar{display:none}
+    .nav-group{display:flex;flex-direction:column;align-items:center;gap:2px;padding:0 2px}
+    .nav-group-label{font-size:.58rem;font-weight:800;letter-spacing:.1em;color:#252535;text-transform:uppercase;transition:color .2s;padding:0 4px;user-select:none}
+    .nav-group.has-active .nav-group-label{color:#6060a0}
+    .nav-group-items{display:flex;gap:1px}
+    .nav-grouped a{color:#555;text-decoration:none;font-size:.77rem;font-weight:500;padding:6px 11px;border-radius:8px;transition:all .15s;white-space:nowrap;letter-spacing:.01em}
+    .nav-grouped a:hover{color:#bbb;background:rgba(255,255,255,0.05)}
+    .nav-grouped a.active{background:linear-gradient(135deg,#6d5fd6,#3b7dd8);color:#fff;font-weight:600;box-shadow:0 0 14px rgba(109,95,214,.45)}
+    .nav-sep{width:1px;height:28px;background:#1c1c2e;margin:0 5px 3px;flex-shrink:0;align-self:flex-end}
+
+    header{text-align:center;margin-bottom:28px}
+    header h1{font-size:2.2rem;font-weight:700;background:linear-gradient(135deg,#34d399,#60a5fa,#f59e0b,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    header p{color:#888;margin-top:8px;font-size:.95rem}
+
+    .wrapper{width:100%;max-width:1000px}
+
+    /* Provider tabs */
+    .provider-tabs{display:flex;gap:4px;margin-bottom:24px;background:#10101a;padding:5px;border-radius:12px;border:1px solid #1e1e2e;overflow-x:auto;scrollbar-width:none}
+    .provider-tabs::-webkit-scrollbar{display:none}
+    .provider-tab{flex:1;padding:10px 8px;border-radius:8px;border:none;background:none;color:#888;cursor:pointer;font-size:.85rem;font-weight:500;transition:all .2s;text-align:center;white-space:nowrap;min-width:0}
+    .provider-tab[data-provider="kling"].active{background:#0e1a2e;color:#60a5fa;font-weight:600}
+    .provider-tab[data-provider="seedance"].active{background:#0b1e16;color:#34d399;font-weight:600}
+    .provider-tab[data-provider="veo"].active{background:#0e1a2e;color:#60a5fa;font-weight:600}
+    .provider-tab[data-provider="grok"].active{background:#1e1600;color:#f59e0b;font-weight:600}
+    .provider-tab[data-provider="analysis"].active{background:#1e0b14;color:#ec4899;font-weight:600}
+    .provider-tab[data-provider="autocrop"].active{background:#1e150b;color:#fb923c;font-weight:600}
+    .provider-tab[data-provider="upscale"].active{background:#0e1a1e;color:#22d3ee;font-weight:600}
+    .provider-tab:hover:not(.active){color:#ccc}
+    .provider-section{display:none}
+    .provider-section.active{display:block}
+    .embed-shell{background:#13131a;border:1px solid #222233;border-radius:14px;overflow:hidden}
+    .embed-frame{display:block;width:100%;min-height:1900px;border:none;background:#0a0a0f}
+
+    /* Sub-mode tabs */
+    .mode-tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid #1e1e2e;padding-bottom:12px}
+    .mode-tab{padding:7px 14px;border-radius:7px;border:none;background:none;color:#666;cursor:pointer;font-size:.8rem;font-weight:500;transition:all .15s}
+    .mode-tab:hover:not(.active){color:#bbb;background:rgba(255,255,255,0.04)}
+    .mode-tab.active-seedance{background:#0b1e16;color:#34d399;font-weight:600}
+    .mode-tab.active-veo{background:#0e1a2e;color:#60a5fa;font-weight:600}
+    .mode-tab.active-grok{background:#1e1600;color:#f59e0b;font-weight:600}
+    .mode-section{display:none}
+    .mode-section.active{display:block}
+
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+    @media(max-width:640px){.grid-2{grid-template-columns:1fr}}
+
+    .card{background:#13131a;border:1px solid #222233;border-radius:14px;padding:22px;margin-bottom:16px}
+    .card h3{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#555;margin-bottom:14px}
+
+    label{display:block;font-size:.78rem;color:#999;margin-bottom:5px;margin-top:14px}
+    label:first-of-type{margin-top:0}
+    textarea,input[type=text],select{width:100%;background:#0e0e18;border:1px solid #2a2a3a;border-radius:8px;color:#e0e0e0;font-size:.85rem;padding:8px 11px;outline:none;transition:border-color .2s;font-family:inherit}
+    textarea{resize:vertical;min-height:90px}
+
+    /* Accent focus rings */
+    .seedance-focus:focus{border-color:#34d399}
+    .veo-focus:focus{border-color:#60a5fa}
+    .grok-focus:focus{border-color:#f59e0b}
+    .clip-focus:focus{border-color:#ec4899}
+
+    .row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .check-row{display:flex;align-items:center;gap:8px;margin-top:14px}
+    .check-row input[type=checkbox]{width:16px;height:16px;cursor:pointer}
+    .check-row.seedance input{accent-color:#34d399}
+    .check-row.veo input{accent-color:#60a5fa}
+    .check-row.grok input{accent-color:#f59e0b}
+    .check-row label{margin:0;font-size:.8rem;color:#aaa;cursor:pointer}
+
+    /* Mode pills (Grok) */
+    .mode-pills{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+    .mode-pill{padding:5px 14px;border-radius:20px;border:1px solid #2a2a3a;background:#0e0e18;color:#888;cursor:pointer;font-size:.78rem;font-weight:500;transition:all .15s}
+    .mode-pill.active{border-color:#f59e0b;color:#f59e0b;background:#1e1600}
+    .mode-pill:hover:not(.active){color:#ccc}
+
+    /* Upload / dropzone */
+    .src-tabs{display:flex;gap:6px;margin-bottom:8px}
+    .src-tab{padding:4px 12px;border-radius:6px;border:1px solid #2a2a3a;background:#0e0e18;color:#888;cursor:pointer;font-size:.75rem;transition:all .15s}
+    .src-tab.active-seedance{border-color:#34d399;color:#34d399;background:#0b1e16}
+    .src-tab.active-veo{border-color:#60a5fa;color:#60a5fa;background:#0e1a2e}
+    .src-tab.active-grok{border-color:#f59e0b;color:#f59e0b;background:#1e1600}
+    .src-tab.active-clip{border-color:#ec4899;color:#ec4899;background:#1e0b14}
+    .src-tab.active-analysis{border-color:#ec4899;color:#ec4899;background:#1e0b14}
+    .src-tab.active-autocrop{border-color:#fb923c;color:#fb923c;background:#1e150b}
+    .src-tab.active-upscale{border-color:#22d3ee;color:#22d3ee;background:#0e1a1e}
+    .dropzone{border:1px solid #1e1e2e;border-radius:8px;padding:10px 16px;text-align:center;cursor:pointer;position:relative;transition:all .2s;background:#0c0c18}
+    .dropzone:hover,.dropzone.drag-over{border-color:#60a5fa55;background:#0e1a2e}
+    .dropzone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+    .dropzone p{color:#555;font-size:.78rem;margin:0}
+    .dropzone p span{color:#60a5fa}
+    .preview-wrap{display:none;margin-top:8px}
+    .preview-wrap img{width:100%;border-radius:7px;border:1px solid #222233;max-height:160px;object-fit:cover}
+    .preview-wrap video{width:100%;border-radius:7px;border:1px solid #222233;max-height:160px;background:#000}
+    .preview-bar{display:flex;justify-content:space-between;align-items:center;background:#0e1a2e;border:1px solid #1e2a3e;border-radius:6px;padding:5px 10px;margin-bottom:6px;font-size:.78rem;color:#60a5fa}
+    .preview-bar .rm{cursor:pointer;color:#f87171;font-size:.75rem}
+    .preview-bar .rm:hover{text-decoration:underline}
+    .uploading-ind{display:none;color:#60a5fa;font-size:.78rem;margin-top:6px}
+
+    /* Image list rows (Veo ref, Grok i2v) */
+    .img-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+    .img-row input[type=text]{flex:1}
+    .img-row .rm-row{color:#f87171;cursor:pointer;font-size:.75rem;white-space:nowrap;padding:6px 8px;border-radius:6px;border:1px solid #2a1a1a;background:#1a0a0a;transition:all .15s}
+    .img-row .rm-row:hover{background:#2a1010}
+    .add-img-btn{margin-top:4px;padding:6px 14px;border-radius:7px;border:1px dashed #2a2a3a;background:none;color:#666;cursor:pointer;font-size:.78rem;transition:all .15s}
+    .add-img-btn:hover{color:#bbb;border-color:#555}
+
+    /* Submit buttons */
+    .submit-btn{margin-top:18px;width:100%;padding:13px;border:none;border-radius:9px;font-size:.95rem;font-weight:600;cursor:pointer;transition:opacity .2s,transform .1s;color:#fff}
+    .submit-btn:hover{opacity:.9}
+    .submit-btn:active{transform:scale(.98)}
+    .submit-btn:disabled{opacity:.4;cursor:not-allowed}
+    .submit-btn.seedance{background:linear-gradient(135deg,#0f5f3e,#34d399)}
+    .submit-btn.veo{background:linear-gradient(135deg,#1e4080,#60a5fa)}
+    .submit-btn.grok{background:linear-gradient(135deg,#7a4f00,#f59e0b)}
+    .submit-btn.clip{background:linear-gradient(135deg,#7a1040,#ec4899)}
+    .submit-btn.analysis{background:linear-gradient(135deg,#7a1040,#ec4899)}
+    .submit-btn.youtube{background:linear-gradient(135deg,#7a0a10,#ef4444)}
+    .submit-btn.autocrop{background:linear-gradient(135deg,#7a4a10,#fb923c)}
+    .analysis-output{background:#0e0e18;border:1px solid #1e1e2e;border-radius:10px;padding:14px 16px;white-space:pre-wrap;word-break:break-word;font-size:.85rem;line-height:1.6;color:#ccc;max-height:600px;overflow-y:auto;font-family:-apple-system,ui-monospace,SF Mono,Menlo,monospace}
+    .lang-pills,.ucase-pills{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+    .lang-pill,.ucase-pill{padding:5px 14px;border-radius:20px;border:1px solid #2a2a3a;background:#0e0e18;color:#888;cursor:pointer;font-size:.78rem;font-weight:500;transition:all .15s}
+    .lang-pill.active,.ucase-pill.active{border-color:#ec4899;color:#ec4899;background:#1e0b14}
+    .lang-pill:hover:not(.active),.ucase-pill:hover:not(.active){color:#ccc}
+
+    /* Results */
+    .results-title{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#555;margin-bottom:12px}
+    .result-item{background:#0e0e18;border:1px solid #1e1e2e;border-radius:10px;padding:14px;margin-bottom:12px;animation:fadeIn .3s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1}}
+    .result-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+    .result-label{font-size:.8rem;font-weight:600;color:#ccc}
+    .result-sub{font-size:.72rem;color:#666;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px}
+    .badge{font-size:.72rem;padding:2px 9px;border-radius:20px;font-weight:600;white-space:nowrap}
+    .badge.processing{background:#1a2a1a;color:#4ade80}
+    .badge.completed{background:#1a1e2a;color:#60a5fa}
+    .badge.failed{background:#2a1a1a;color:#f87171}
+    video{width:100%;border-radius:8px;margin-top:6px;background:#000}
+    .media-link{font-size:.73rem;color:#60a5fa;margin-top:6px;word-break:break-all}
+    .media-link a{color:inherit}
+    .err-txt{color:#f87171;font-size:.78rem;margin-top:6px}
+    .empty-state{color:#555;font-size:.82rem;padding:10px 0}
+
+    .spinner{display:inline-block;width:8px;height:8px;border:2px solid #4ade8044;border-top-color:#4ade80;border-radius:50%;animation:spin .7s linear infinite;margin-right:4px;vertical-align:middle}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .tip{font-size:.72rem;color:#555;margin-top:5px;line-height:1.5}
+    .info-box{background:#0d1117;border:1px solid #1e2a3a;border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:.8rem;color:#888;line-height:1.6}
+
+    /* History */
+    .history-section{width:100%;margin-top:36px}
+    .history-section h2{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#555;margin-bottom:14px}
+    .history-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+    .hist-card{background:#13131a;border:1px solid #222233;border-radius:12px;overflow:hidden;transition:border-color .2s;cursor:pointer}
+    .hist-card:hover{border-color:#60a5fa;box-shadow:0 0 0 1px #60a5fa33}
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);z-index:1000;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+    .modal-overlay.open{display:flex}
+    .modal-box{background:#13131a;border:1px solid #2a2a3e;border-radius:18px;width:100%;max-width:860px;max-height:calc(100vh - 40px);overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.7);scrollbar-width:thin;scrollbar-color:#2a2a3e transparent}
+    .modal-box::-webkit-scrollbar{width:6px}.modal-box::-webkit-scrollbar-thumb{background:#2a2a3e;border-radius:3px}
+    .modal-head{display:flex;align-items:center;justify-content:space-between;padding:20px 24px 0}
+    .modal-head-title{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#555}
+    .modal-close-btn{background:none;border:none;color:#666;font-size:1.4rem;cursor:pointer;padding:4px 8px;border-radius:8px;transition:all .15s;line-height:1}
+    .modal-close-btn:hover{background:#1e1e2e;color:#ccc}
+    .modal-vid-wrap{margin:16px 24px;background:#0a0a0f;border-radius:12px;display:flex;align-items:center;justify-content:center;min-height:180px;padding:16px}
+    .modal-vid-wrap video{max-width:100%;max-height:58vh;border-radius:8px;display:block}
+    .modal-no-vid{color:#555;font-size:.9rem;text-align:center;padding:40px}
+    .modal-actions{display:flex;gap:10px;padding:0 24px 20px;flex-wrap:wrap}
+    .btn-dl{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#3b7dd8,#60a5fa);color:#fff;border:none;border-radius:9px;padding:9px 18px;font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;transition:opacity .2s}
+    .btn-dl:hover{opacity:.85}
+    .btn-ext{display:inline-flex;align-items:center;gap:6px;background:#1e1e2e;color:#aaa;border:1px solid #2a2a3e;border-radius:9px;padding:9px 18px;font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;transition:all .2s}
+    .btn-ext:hover{color:#fff;border-color:#444}
+    .modal-divider{height:1px;background:#1a1a28;margin:0 24px 20px}
+    .modal-sect{padding:0 24px 20px}
+    .modal-sect-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#555;margin-bottom:8px}
+    .prompt-blk{background:#0e0e18;border:1px solid #1e1e2e;border-radius:10px;padding:14px 16px;position:relative}
+    .prompt-txt{font-size:.87rem;color:#ccc;line-height:1.6;padding-right:68px;white-space:pre-wrap;word-break:break-word}
+    .btn-copy{position:absolute;top:10px;right:10px;background:#1e1e2e;border:1px solid #2a2a3e;color:#888;border-radius:7px;padding:5px 11px;font-size:.75rem;font-weight:600;cursor:pointer;transition:all .15s}
+    .btn-copy:hover{color:#a78bfa;border-color:#a78bfa55}
+    .btn-copy.copied{color:#4ade80;border-color:#4ade8055}
+    .meta-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+    .meta-item{background:#0e0e18;border:1px solid #1a1a28;border-radius:10px;padding:12px 14px}
+    .meta-key{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#555;margin-bottom:5px}
+    .meta-val{font-size:.85rem;color:#ccc;font-weight:500;word-break:break-all}
+    .meta-val.green{color:#4ade80}.meta-val.blue{color:#60a5fa}.meta-val.purple{color:#a78bfa}.meta-val.red{color:#f87171}
+    .hist-thumb-video{width:100%;height:120px;object-fit:cover;display:block;background:#000}
+    .hist-spinner-wrap{width:100%;height:120px;display:flex;align-items:center;justify-content:center;background:#0e0e18}
+    .hist-spinner-lg{width:20px;height:20px;border:3px solid #4ade8044;border-top-color:#4ade80;border-radius:50%;animation:spin .7s linear infinite}
+    .hist-info{padding:8px 10px}
+    .hist-model{font-size:.72rem;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .hist-meta{font-size:.68rem;color:#555;margin-top:2px}
+    .hist-badge{display:inline-block;font-size:.65rem;padding:1px 7px;border-radius:10px;font-weight:600;margin-top:4px}
+    .hist-badge.completed{background:#1a1e2a;color:#60a5fa}
+    .hist-badge.processing{background:#1a2a1a;color:#4ade80}
+    .hist-badge.failed{background:#2a1a1a;color:#f87171}
+    .history-empty{color:#555;font-size:.82rem;padding:16px 0}
+    .legacy-banner{margin:0 auto 18px;max-width:1000px;padding:14px 16px;border-radius:12px;border:1px solid rgba(251,146,60,.22);background:rgba(251,146,60,.10);color:#f7c896;font-size:.85rem;line-height:1.6}
+    .legacy-banner strong{color:#fff}
+    .legacy-banner a{color:#93c5fd;font-weight:700;text-decoration:none}
+    .legacy-banner a:hover{text-decoration:underline}
+  </style>
+</head>
+<body{% if embed %} class="embed"{% endif %}>
+
+{% if not embed %}
+<nav>
+  <span class="logo">KAMOD AI</span>
+  <div class="nav-grouped">
+    <div class="nav-group has-active">
+      <span class="nav-group-label">CREATE</span>
+      <div class="nav-group-items">
+        <a href="/">Seedance 2.0</a>
+        <a href="/ai-videos" class="active">AI Video Tools</a>
+        <a href="/ai-director">Director</a>
+        <a href="/images">AI Images</a>
+        <a href="/storyboard">Storyboard</a>
+        <a href="/ugc-studio">UGC Studio</a>
+      </div>
+    </div>
+    <div class="nav-sep"></div>
+    <div class="nav-group">
+      <span class="nav-group-label">ENHANCE</span>
+      <div class="nav-group-items">
+        <a href="/audio">Audio</a>
+        <a href="/avatars">Avatars</a>
+      </div>
+    </div>
+    <div class="nav-sep"></div>
+    <div class="nav-group">
+      <span class="nav-group-label">DELIVER</span>
+      <div class="nav-group-items">
+        <a href="/analytics">Analytics</a>
+        <a href="/dashboard">Dashboard</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <h1>{% if legacy %}AI Video Tools Legacy{% else %}AI Video Tools{% endif %}</h1>
+  <p>{% if legacy %}Fallback testing page for the previous mixed workspace. Use the new AI Video Tools page for the production experience.{% else %}Kling v3 · Seedance 2.0 · Veo 3.1 · Grok Imagine · Content Analysis · AutoCrop · Upscale{% endif %}</p>
+</header>
+{% endif %}
+
+<div class="wrapper">
+  {% if legacy and not embed %}
+  <div class="legacy-banner">
+    <strong>Legacy fallback only.</strong> This page stays available for safety testing while the main experience now lives on
+    <a href="/ai-videos">AI Video Tools v2</a>.
+  </div>
+  {% endif %}
+
+  <!-- ═══════════════════════════ PROVIDER TABS ═════════════════════════════ -->
+  <div class="provider-tabs">
+    <button class="provider-tab" data-provider="kling">Kling v3</button>
+    <button class="provider-tab active" data-provider="seedance">Seedance 2.0</button>
+    <button class="provider-tab" data-provider="veo">Veo 3.1</button>
+    <button class="provider-tab" data-provider="grok">Grok Imagine</button>
+    <button class="provider-tab" data-provider="analysis">AI Content Analysis</button>
+    <button class="provider-tab" data-provider="autocrop">Auto Crop</button>
+    <button class="provider-tab" data-provider="upscale">Upscale</button>
+  </div>
+
+  <!-- ═══════════════════════════ KLING V3 ═════════════════════════════════ -->
+  <div class="provider-section" id="section-kling">
+    <div class="embed-shell">
+      <iframe
+        id="kling-embed-frame"
+        class="embed-frame"
+        src="/kling?embed=1"
+        title="Kling v3"
+        loading="lazy"></iframe>
+    </div>
+  </div><!-- /section-kling -->
+
+  <!-- ═══════════════════════════ SEEDANCE 1.5 ═════════════════════════════ -->
+  <div class="provider-section active" id="section-seedance">
+
+    <div class="mode-tabs" id="seedance-mode-tabs">
+      <button class="mode-tab active-seedance" data-mode="s-t2v">Text to Video (Fast)</button>
+      <button class="mode-tab" data-mode="s-i2v">Image to Video (Standard)</button>
+      <button class="mode-tab" data-mode="s-i2v-fast">Image to Video (Fast)</button>
+    </div>
+
+    <!-- Seedance T2V -->
+    <div class="mode-section active" id="mode-s-t2v">
+      <div class="grid-2">
+        <div>
+          <div class="card">
+            <h3>Seedance 2.0 Pro · Text to Video</h3>
+            <label>Prompt <span style="color:#f87171">*</span></label>
+            <textarea id="s-t2v-prompt" class="seedance-focus" placeholder="A serene Japanese garden at dawn, koi fish gliding through still water, cherry blossoms drifting in the breeze, soft golden light…"></textarea>
+            <div class="row-2">
+              <div>
+                <label>Aspect Ratio</label>
+                <select id="s-t2v-aspect" class="seedance-focus">
+                  <option value="16:9">16:9 Landscape</option>
+                  <option value="9:16">9:16 Portrait</option>
+                  <option value="1:1">1:1 Square</option>
+                </select>
+              </div>
+              <div>
+                <label>Duration</label>
+                <select id="s-t2v-duration" class="seedance-focus">
+                  <option value="5" selected>5 seconds</option>
+                  <option value="8">8 seconds</option>
+                  <option value="10">10 seconds</option>
+                </select>
+              </div>
+            </div>
+            <div class="check-row seedance">
+              <input type="checkbox" id="s-t2v-audio" checked/>
+              <label for="s-t2v-audio">Generate Audio</label>
+            </div>
+            <div class="check-row seedance">
+              <input type="checkbox" id="s-t2v-cam"/>
+              <label for="s-t2v-cam">Camera Fixed</label>
+            </div>
+            <button class="submit-btn seedance" id="btn-s-t2v">Generate Video</button>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="results-title">Results</div>
+            <div id="res-s-t2v"><div class="empty-state">Generate a video to see results here.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Seedance I2V Standard -->
+    <div class="mode-section" id="mode-s-i2v">
+      <div class="grid-2">
+        <div>
+          <div class="card">
+            <h3>Seedance 2.0 Pro · Image to Video</h3>
+            <label>Start Image <span style="color:#f87171">*</span></label>
+            <div class="src-tabs" id="s-i2v-src-tabs">
+              <div class="src-tab active-seedance" data-src="upload">Upload</div>
+              <div class="src-tab" data-src="url">URL</div>
+            </div>
+            <div id="s-i2v-upload-wrap">
+              <div class="dropzone" id="s-i2v-dropzone">
+                <input type="file" id="s-i2v-file" accept="image/*"/>
+                <p><span>Choose image</span></p>
+              </div>
+              <div class="uploading-ind" id="s-i2v-uploading">Uploading…</div>
+              <div class="preview-wrap" id="s-i2v-preview">
+                <div class="preview-bar"><span id="s-i2v-fname">image.jpg</span><span class="rm" id="s-i2v-rm">✕ Remove</span></div>
+                <img id="s-i2v-thumb" src="" alt="Preview"/>
+              </div>
+            </div>
+            <div id="s-i2v-url-wrap" style="display:none">
+              <input type="text" id="s-i2v-image-url" class="seedance-focus" placeholder="https://example.com/image.jpg"/>
+            </div>
+            <label>Prompt <span style="color:#f87171">*</span></label>
+            <textarea id="s-i2v-prompt" class="seedance-focus" placeholder="The subject slowly turns, warm light fills the scene, gentle motion…"></textarea>
+            <div class="row-2" style="margin-top:14px">
+              <div>
+                <label>Duration</label>
+                <select id="s-i2v-duration" class="seedance-focus">
+                  <option value="5" selected>5 seconds</option>
+                  <option value="8">8 seconds</option>
+                  <option value="10">10 seconds</option>
+                </select>
+              </div>
+            </div>
+            <div class="check-row seedance">
+              <input type="checkbox" id="s-i2v-audio" checked/>
+              <label for="s-i2v-audio">Generate Audio</label>
+            </div>
+            <div class="check-row seedance">
+              <input type="checkbox" id="s-i2v-cam"/>
+              <label for="s-i2v-cam">Camera Fixed</label>
+            </div>
+            <button class="submit-btn seedance" id="btn-s-i2v">Generate Video</button>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="results-title">Results</div>
+            <div id="res-s-i2v"><div class="empty-state">Generate a video to see results here.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Seedance I2V Fast -->
+    <div class="mode-section" id="mode-s-i2v-fast">
+      <div class="grid-2">
+        <div>
+          <div class="card">
+            <h3>Seedance 2.0 Pro · I2V Fast</h3>
+            <label>Start Image <span style="color:#f87171">*</span></label>
+            <div class="src-tabs" id="s-i2vf-src-tabs">
+              <div class="src-tab active-seedance" data-src="upload">Upload</div>
+              <div class="src-tab" data-src="url">URL</div>
+            </div>
+            <div id="s-i2vf-upload-wrap">
+              <div class="dropzone" id="s-i2vf-dropzone">
+                <input type="file" id="s-i2vf-file" accept="image/*"/>
+                <p><span>Choose image</span></p>
+              </div>
+              <div class="uploading-ind" id="s-i2vf-uploading">Uploading…</div>
+              <div class="preview-wrap" id="s-i2vf-preview">
+                <div class="preview-bar"><span id="s-i2vf-fname">image.jpg</span><span class="rm" id="s-i2vf-rm">✕ Remove</span></div>
+                <img id="s-i2vf-thumb" src="" alt="Preview"/>
+              </div>
+            </div>
+            <div id="s-i2vf-url-wrap" style="display:none">
+              <input type="text" id="s-i2vf-image-url" class="seedance-focus" placeholder="https://example.com/image.jpg"/>
+            </div>
+            <label>Prompt <span style="color:#f87171">*</span></label>
+            <textarea id="s-i2vf-prompt" class="seedance-focus" placeholder="The subject slowly turns, warm light fills the scene, gentle motion…"></textarea>
+            <div class="row-2" style="margin-top:14px">
+              <div>
+                <label>Duration</label>
+                <select id="s-i2vf-duration" class="seedance-focus">
+                  <option value="5" selected>5 seconds</option>
+                  <option value="8">8 seconds</option>
+                  <option value="10">10 seconds</option>
+                </select>
+              </div>
+            </div>
+            <div class="check-row seedance">
+              <input type="checkbox" id="s-i2vf-audio" checked/>
+              <label for="s-i2vf-audio">Generate Audio</label>
+            </div>
+            <div class="check-row seedance">
+              <input type="checkbox" id="s-i2vf-cam"/>
+              <label for="s-i2vf-cam">Camera Fixed</label>
+            </div>
+            <button class="submit-btn seedance" id="btn-s-i2vf">Generate Video (Fast)</button>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="results-title">Results</div>
+            <div id="res-s-i2vf"><div class="empty-state">Generate a video to see results here.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /section-seedance -->
+
+  <!-- ═══════════════════════════ VEO 3.1 ══════════════════════════════════ -->
+  <div class="provider-section" id="section-veo">
+
+    <div class="mode-tabs" id="veo-mode-tabs">
+      <button class="mode-tab active-veo" data-mode="v-t2v">Text to Video</button>
+      <button class="mode-tab" data-mode="v-i2v">Image to Video</button>
+      <button class="mode-tab" data-mode="v-ref">Reference</button>
+    </div>
+
+    <!-- Veo T2V -->
+    <div class="mode-section active" id="mode-v-t2v">
+      <div class="grid-2">
+        <div>
+          <div class="card">
+            <h3>Veo 3.1 · Text to Video</h3>
+            <label>Prompt <span style="color:#f87171">*</span></label>
+            <textarea id="v-t2v-prompt" class="veo-focus" placeholder="A futuristic cityscape at night, neon reflections on rain-slicked streets, flying vehicles tracing light trails through the fog…"></textarea>
+            <div class="row-2">
+              <div>
+                <label>Quality</label>
+                <select id="v-t2v-quality" class="veo-focus">
+                  <option value="lite">Lite — cheaper</option>
+                  <option value="standard" selected>Standard</option>
+                  <option value="fast">Fast</option>
+                </select>
+              </div>
+              <div>
+                <label>Aspect Ratio</label>
+                <select id="v-t2v-aspect" class="veo-focus">
+                  <option value="16:9">16:9 Landscape</option>
+                  <option value="9:16">9:16 Portrait</option>
+                  <option value="1:1">1:1 Square</option>
+                </select>
+              </div>
+            </div>
+            <div class="row-2" style="margin-top:14px">
+              <div>
+                <label>Resolution</label>
+                <select id="v-t2v-resolution" class="veo-focus">
+                  <option value="720p" selected>720p</option>
+                  <option value="1080p">1080p</option>
+                </select>
+              </div>
+              <div>
+                <label>Duration</label>
+                <select id="v-t2v-duration" class="veo-focus">
+                  <option value="5" selected>5 seconds</option>
+                  <option value="8">8 seconds</option>
+                </select>
+              </div>
+            </div>
+            <button class="submit-btn veo" id="btn-v-t2v">Generate Video</button>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="results-title">Results</div>
+            <div id="res-v-t2v"><div class="empty-state">Generate a video to see results here.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Veo I2V -->
+    <div class="mode-section" id="mode-v-i2v">
+      <div class="grid-2">
+        <div>
+          <div class="card">
+            <h3>Veo 3.1 · Image to Video</h3>
+            <label>Start Image <span style="color:#f87171">*</span></label>
+            <div class="src-tabs" id="v-i2v-src-tabs">
+              <div class="src-tab active-veo" data-src="upload">Upload</div>
+              <div class="src-tab" data-src="url">URL</div>
+            </div>
+            <div id="v-i2v-upload-wrap">
+              <div class="dropzone" id="v-i2v-dropzone">
+                <input type="file" id="v-i2v-file" accept="image/*"/>
+                <p><span>Choose image</span></p>
+              </div>
+              <div class="uploading-ind" id="v-i2v-uploading">Uploading…</div>
+              <div class="preview-wrap" id="v-i2v-preview">
+                <div class="preview-bar"><span id="v-i2v-fname">image.jpg</span><span class="rm" id="v-i2v-rm">✕ Remove</span></div>
+                <img id="v-i2v-thumb" src="" alt="Preview"/>
+              </div>
+            </div>
+            <div id="v-i2v-url-wrap" style="display:none">
+              <input type="text" id="v-i2v-image-url" class="veo-focus" placeholder="https://example.com/image.jpg"/>
+            </div>
+            <label>Prompt <span style="color:#555">(optional)</span></label>
+            <textarea id="v-i2v-prompt" class="veo-focus" placeholder="Camera slowly pulls back to reveal the full landscape…" style="min-height:70px"></textarea>
+            <div class="row-2" style="margin-top:14px">
+              <div>
+                <label>Quality</label>
+                <select id="v-i2v-quality" class="veo-focus">
+                  <option value="lite">Lite — cheaper</option>
+                  <option value="standard" selected>Standard</option>
+                </select>
+              </div>
+              <div>
+                <label>Resolution</label>
+                <select id="v-i2v-resolution" class="veo-focus">
+                  <option value="720p" selected>720p</option>
+                  <option value="1080p">1080p</option>
+                </select>
+              </div>
+            </div>
+            <div class="row-2" style="margin-top:14px">
+              <div>
+                <label>Duration</label>
+                <select id="v-i2v-duration" class="veo-focus">
+                  <option value="5" selected>5 seconds</option>
+                  <option value="8">8 seconds</option>
+                </select>
+              </div>
+            </div>
+            <button class="submit-btn veo" id="btn-v-i2v">Generate Video</button>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="results-title">Results</div>
+            <div id="res-v-i2v"><div class="empty-state">Generate a video to see results here.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Veo Reference -->
+    <div class="mode-section" id="mode-v-ref">
+      <div class="grid-2">
+        <div>
+          <div class="card">
+            <h3>Veo 3.1 · Reference to Video</h3>
+            <div class="info-box">Provide 1–3 reference images. Veo generates a video consistent with all references.</div>
+            <label>Reference Images <span style="color:#f87171">*</span></label>
+            <div id="v-ref-images-list"></div>
+            <button class="add-img-btn" id="v-ref-add-btn">+ Add Reference Image</button>
+            <label style="margin-top:16px">Prompt <span style="color:#f87171">*</span></label>
+            <textarea id="v-ref-prompt" class="veo-focus" placeholder="The character walks forward through the ancient forest, matching the style of the reference images…"></textarea>
+            <div class="row-2" style="margin-top:14px">
+              <div>
+                <label>Resolution</label>
+                <select id="v-ref-resolution" class="veo-focus">
+                  <option value="720p" selected>720p</option>
+                  <option value="1080p">1080p</option>
+                </select>
+              </div>
+              <div>
+                <label>Duration</label>
+                <select id="v-ref-duration" class="veo-focus">
+                  <option value="5" selected>5 seconds</option>
+                  <option value="8">8 seconds</option>
+                </select>
+              </div>
+            </div>
+            <div class="check-row veo">
+              <input type="checkbox" id="v-ref-audio" checked/>
+              <label for="v-ref-audio">Generate Audio</label>
+            </div>
+            <button class="submit-btn veo" id="btn-v-ref">Generate Reference Video</button>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="results-title">Results</div>
+            <div id="res-v-ref"><div class="empty-state">Generate a video to see results here.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /section-veo -->
+
+  <!-- ═══════════════════════════ GROK IMAGINE ══════════════════════════════ -->
+  <div class="provider-section" id="section-grok">
+
+    <div class="mode-tabs" id="grok-mode-tabs">
+      <button class="mode-tab active-grok" data-mode="g-t2v">Text to Video</button>
+      <button class="mode-tab" data-mode="g-i2v">Image to Video</button>
+    </div>
+
+    <!-- Grok T2V -->
+    <div class="mode-section active" id="mode-g-t2v">
+      <div class="grid-2">
+        <div>
+          <div class="card">
+            <h3>Grok Imagine · Text to Video</h3>
+            <label>Prompt <span style="color:#f87171">*</span></label>
+            <textarea id="g-t2v-prompt" class="grok-focus" placeholder="A phoenix rising from golden flames against a midnight sky, feathers trailing sparks of light…"></textarea>
+            <label>Mode</label>
+            <div class="mode-pills" id="g-t2v-mode-pills">
+              <div class="mode-pill active" data-mode="normal">Normal</div>
+              <div class="mode-pill" data-mode="fun">Fun</div>
+              <div class="mode-pill" data-mode="spicy">Spicy 🌶️</div>
+            </div>
+            <div class="row-2" style="margin-top:14px">
+              <div>
+                <label>Aspect Ratio</label>
+                <select id="g-t2v-aspect" class="grok-focus">
+                  <option value="16:9">16:9 Landscape</option>
+                  <option value="9:16">9:16 Portrait</option>
+                  <option value="1:1">1:1 Square</option>
+                </select>
+              </div>
+              <div>
+                <label>Duration</label>
+                <select id="g-t2v-duration" class="grok-focus">
+                  <option value="5" selected>5 seconds</option>
+                  <option value="8">8 seconds</option>
+                </select>
+              </div>
+            </div>
+            <button class="submit-btn grok" id="btn-g-t2v">Generate Video</button>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="results-title">Results</div>
+            <div id="res-g-t2v"><div class="empty-state">Generate a video to see results here.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grok I2V -->
+    <div class="mode-section" id="mode-g-i2v">
+      <div class="grid-2">
+        <div>
+          <div class="card">
+            <h3>Grok Imagine · Image to Video</h3>
+            <div class="info-box">Provide 1–3 images. Grok animates the scene using your images as reference.</div>
+            <label>Images <span style="color:#f87171">*</span></label>
+            <div id="g-i2v-images-list"></div>
+            <button class="add-img-btn" id="g-i2v-add-btn">+ Add Image</button>
+            <label style="margin-top:16px">Prompt <span style="color:#555">(optional)</span></label>
+            <textarea id="g-i2v-prompt" class="grok-focus" placeholder="The character comes alive, turning toward the viewer with a dramatic glow…" style="min-height:70px"></textarea>
+            <label>Mode</label>
+            <div class="mode-pills" id="g-i2v-mode-pills">
+              <div class="mode-pill active" data-mode="normal">Normal</div>
+              <div class="mode-pill" data-mode="fun">Fun</div>
+              <div class="mode-pill" data-mode="spicy">Spicy 🌶️</div>
+            </div>
+            <div class="row-2" style="margin-top:14px">
+              <div>
+                <label>Duration</label>
+                <select id="g-i2v-duration" class="grok-focus">
+                  <option value="5" selected>5 seconds</option>
+                  <option value="8">8 seconds</option>
+                </select>
+              </div>
+            </div>
+            <button class="submit-btn grok" id="btn-g-i2v">Generate Video</button>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="results-title">Results</div>
+            <div id="res-g-i2v"><div class="empty-state">Generate a video to see results here.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /section-grok -->
+
+  <!-- ═══════════════════════════ AI CONTENT ANALYSIS ═══════════════════════ -->
+  <div class="provider-section" id="section-analysis">
+    <div class="grid-2">
+      <div>
+        <div class="card">
+          <h3>AI Content Analysis</h3>
+          <div class="info-box" style="border-color:#3a0e28;background:#1e0b14;color:#f0abfc">Upload a video (10s–5 min). Choose a language and use case. Analysis is generated strictly in your chosen language.</div>
+
+          <label>Source Video <span style="color:#f87171">*</span></label>
+          <div class="src-tabs" id="analysis-src-tabs">
+            <div class="src-tab active-analysis" data-src="upload">Upload</div>
+            <div class="src-tab" data-src="url">URL</div>
+          </div>
+          <div id="analysis-upload-wrap">
+            <div class="dropzone" id="analysis-dropzone">
+              <input type="file" id="analysis-file" accept="video/*"/>
+              <p><span>Choose video</span></p>
+            </div>
+            <div class="uploading-ind" id="analysis-uploading">Uploading…</div>
+            <div class="preview-wrap" id="analysis-preview">
+              <div class="preview-bar"><span id="analysis-fname">video.mp4</span><span class="rm" id="analysis-rm">✕ Remove</span></div>
+              <video id="analysis-player" controls muted></video>
+            </div>
+          </div>
+          <div id="analysis-url-wrap" style="display:none">
+            <input type="text" id="analysis-video-url" placeholder="https://example.com/video.mp4"/>
+          </div>
+
+          <label style="margin-top:16px">Output Language <span style="color:#f87171">*</span></label>
+          <div class="lang-pills" id="analysis-lang-pills">
+            <div class="lang-pill active" data-lang="en">English</div>
+            <div class="lang-pill" data-lang="ru">Russian</div>
+            <div class="lang-pill" data-lang="uz">Uzbek</div>
+          </div>
+
+          <label style="margin-top:16px">Use Case</label>
+          <div class="ucase-pills" id="analysis-ucase-pills">
+            <div class="ucase-pill" data-uc="transcribe">Transcribe original language</div>
+            <div class="ucase-pill active" data-uc="cinematic">Cinematic Prompts</div>
+            <div class="ucase-pill" data-uc="seo">SEO &amp; Social</div>
+            <div class="ucase-pill" data-uc="shortform">ShortForm</div>
+            <div class="ucase-pill" data-uc="education">Education</div>
+            <div class="ucase-pill" data-uc="podcast">Podcast</div>
+            <div class="ucase-pill" data-uc="marketing">Marketing</div>
+            <div class="ucase-pill" data-uc="meeting">Meeting Notes</div>
+          </div>
+
+          <button class="submit-btn analysis" id="btn-analysis">Analyze Video</button>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="results-title">Analysis Output</div>
+          <div id="res-analysis"><div class="empty-state">Submit a video to analyze.</div></div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /section-analysis -->
+
+  <!-- ═══════════════════════════ AUTO CROP ═════════════════════════════════ -->
+  <div class="provider-section" id="section-autocrop">
+    <div class="grid-2">
+      <div>
+        <div class="card">
+          <h3>Auto Crop · Subject-Tracked Reframe</h3>
+          <div class="info-box" style="border-color:#3a2a0e;background:#1e150b;color:#fdba74">Upload a video and select a target aspect ratio. AutoCrop tracks the subject and reframes the video intelligently.</div>
+
+          <label>Source Video <span style="color:#f87171">*</span></label>
+          <div class="src-tabs" id="autocrop-src-tabs">
+            <div class="src-tab active-autocrop" data-src="upload">Upload</div>
+            <div class="src-tab" data-src="url">URL</div>
+          </div>
+          <div id="autocrop-upload-wrap">
+            <div class="dropzone" id="autocrop-dropzone">
+              <input type="file" id="autocrop-file" accept="video/*"/>
+              <p><span>Choose video</span></p>
+            </div>
+            <div class="uploading-ind" id="autocrop-uploading">Uploading…</div>
+            <div class="preview-wrap" id="autocrop-preview">
+              <div class="preview-bar"><span id="autocrop-fname">video.mp4</span><span class="rm" id="autocrop-rm">✕ Remove</span></div>
+              <video id="autocrop-player" controls muted></video>
+            </div>
+          </div>
+          <div id="autocrop-url-wrap" style="display:none">
+            <input type="text" id="autocrop-video-url" placeholder="https://example.com/video.mp4"/>
+          </div>
+
+          <div style="margin-top:16px">
+            <label>Target Aspect Ratio</label>
+            <select id="autocrop-aspect">
+              <option value="9:16" selected>9:16 (Reels / TikTok / Shorts)</option>
+              <option value="1:1">1:1 (Square)</option>
+              <option value="4:5">4:5 (Portrait feed)</option>
+              <option value="16:9">16:9 (Widescreen)</option>
+            </select>
+          </div>
+
+          <button class="submit-btn autocrop" id="btn-autocrop">Auto Crop Video</button>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="results-title">Results</div>
+          <div id="res-autocrop"><div class="empty-state">Submit a video to auto-crop.</div></div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /section-autocrop -->
+
+  <!-- ═══════════════════════════ UPSCALE ══════════════════════════════════ -->
+  <div class="provider-section" id="section-upscale">
+    <div class="grid-2">
+      <div>
+        <div class="card">
+          <h3>Topaz Video Upscale</h3>
+          <div class="info-box" style="border-color:#0e3a42;background:#091c20;color:#67e8f9">Upload a video to upscale it with Topaz AI for enhanced resolution and detail.</div>
+
+          <label>Source Video <span style="color:#f87171">*</span></label>
+          <div class="src-tabs" id="upscale-src-tabs">
+            <div class="src-tab active-upscale" data-src="upload">Upload</div>
+            <div class="src-tab" data-src="url">URL</div>
+          </div>
+          <div id="upscale-upload-wrap">
+            <div class="dropzone" id="upscale-dropzone">
+              <input type="file" id="upscale-file" accept="video/*"/>
+              <p><span>Choose video</span></p>
+            </div>
+            <div class="uploading-ind" id="upscale-uploading">Uploading…</div>
+            <div class="preview-wrap" id="upscale-preview">
+              <div class="preview-bar"><span id="upscale-fname">video.mp4</span><span class="rm" id="upscale-rm">✕ Remove</span></div>
+              <video id="upscale-player" controls muted></video>
+            </div>
+          </div>
+          <div id="upscale-url-wrap" style="display:none">
+            <input type="text" id="upscale-video-url" placeholder="https://example.com/video.mp4"/>
+          </div>
+
+          <div style="margin-top:16px">
+            <label>Scale Factor</label>
+            <select id="upscale-scale">
+              <option value="2">2× Upscale</option>
+              <option value="4">4× Upscale</option>
+            </select>
+          </div>
+
+          <button class="submit-btn" style="background:linear-gradient(135deg,#0891b2,#22d3ee)" id="btn-upscale">Upscale Video</button>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="results-title">Results</div>
+          <div id="res-upscale"><div class="empty-state">Submit a video to upscale it.</div></div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /section-upscale -->
+
+  <!-- Generation History -->
+  <div class="history-section">
+    <h2>Generation History</h2>
+    <div class="history-grid" id="aiv-history-grid">
+      <div class="history-empty">No history yet.</div>
+    </div>
+  </div>
+
+</div><!-- /wrapper -->
+
+<!-- Video preview modal -->
+<div class="modal-overlay" id="aivModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <span class="modal-head-title">Video Preview</span>
+      <button class="modal-close-btn" id="aivModalClose">✕</button>
+    </div>
+    <div class="modal-vid-wrap" id="aivModalVidWrap">
+      <div class="modal-no-vid">No video available</div>
+    </div>
+    <div class="modal-actions" id="aivModalActions"></div>
+    <div class="modal-divider"></div>
+    <div class="modal-sect">
+      <div class="modal-sect-label">Prompt</div>
+      <div class="prompt-blk">
+        <div class="prompt-txt" id="aivModalPrompt">—</div>
+        <button class="btn-copy" id="aivModalCopy">Copy</button>
+      </div>
+    </div>
+    <div class="modal-divider"></div>
+    <div class="modal-sect">
+      <div class="modal-sect-label">Details</div>
+      <div class="meta-grid" id="aivModalMeta"></div>
+    </div>
+    <div style="height:8px"></div>
+  </div>
+</div>
+
+<script>
+// ─── Provider tab switching ────────────────────────────────
+const providerTabs = Array.from(document.querySelectorAll('.provider-tab'));
+const providerSections = Array.from(document.querySelectorAll('.provider-section'));
+const providerIds = new Set(providerTabs.map((tab) => tab.dataset.provider));
+
+function selectProvider(provider, { updateHash = false } = {}) {
+  if (!providerIds.has(provider)) return;
+  providerTabs.forEach((tab) => tab.classList.toggle('active', tab.dataset.provider === provider));
+  providerSections.forEach((section) => section.classList.toggle('active', section.id === 'section-' + provider));
+  if (updateHash && window.location.hash !== '#' + provider) {
+    history.replaceState(null, '', '#' + provider);
+  }
+}
+
+providerTabs.forEach(tab => {
+  tab.addEventListener('click', () => selectProvider(tab.dataset.provider, { updateHash: true }));
+});
+
+const initialProvider = (window.location.hash || '').replace(/^#/, '').trim();
+if (initialProvider) selectProvider(initialProvider);
+
+window.addEventListener('hashchange', () => {
+  const nextProvider = (window.location.hash || '').replace(/^#/, '').trim();
+  if (nextProvider) selectProvider(nextProvider);
+});
+
+window.addEventListener('message', (event) => {
+  if (!event.data || event.data.type !== 'kling-embed-height') return;
+  const frame = document.getElementById('kling-embed-frame');
+  if (!frame) return;
+  const height = parseInt(event.data.height, 10);
+  if (!Number.isFinite(height)) return;
+  frame.style.height = Math.max(height + 24, 1200) + 'px';
+});
+
+// ─── Sub-mode tab switching (generic) ─────────────────────
+function setupModeTabs(tabsContainerId, activeClass) {
+  const container = document.getElementById(tabsContainerId);
+  if (!container) return;
+  container.querySelectorAll('.mode-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      container.querySelectorAll('.mode-tab').forEach(t => {
+        t.className = 'mode-tab';
+      });
+      tab.classList.add(activeClass);
+      // hide all mode-sections in parent provider-section
+      const providerSection = container.closest('.provider-section');
+      providerSection.querySelectorAll('.mode-section').forEach(s => s.classList.remove('active'));
+      document.getElementById('mode-' + tab.dataset.mode).classList.add('active');
+    });
+  });
+}
+setupModeTabs('seedance-mode-tabs', 'active-seedance');
+setupModeTabs('veo-mode-tabs', 'active-veo');
+setupModeTabs('grok-mode-tabs', 'active-grok');
+
+// ─── Generic uploader ──────────────────────────────────────
+function makeUploader({ srcTabsId, uploadWrapId, urlWrapId, dropzoneId, fileInputId, uploadingId, previewId, fnameId, rmId, thumbId, playerEl, activeCls, onUploaded }) {
+  let uploadedUrl = null;
+  let srcMode = 'upload';
+  let uploadedDuration = null;
+  activeCls = activeCls || 'active-veo';
+
+  const srcTabEls = document.querySelectorAll('#' + srcTabsId + ' .src-tab');
+  const upWrap    = document.getElementById(uploadWrapId);
+  const urlWrap   = document.getElementById(urlWrapId);
+  const dropzone  = document.getElementById(dropzoneId);
+  const fileInput = document.getElementById(fileInputId);
+  const uploading = document.getElementById(uploadingId);
+  const preview   = document.getElementById(previewId);
+  const fnameEl   = document.getElementById(fnameId);
+  const rmEl      = document.getElementById(rmId);
+  const thumbEl   = thumbId  ? document.getElementById(thumbId)  : null;
+  const playerElm = playerEl ? document.getElementById(playerEl) : null;
+
+  srcTabEls.forEach(tab => {
+    tab.addEventListener('click', () => {
+      srcTabEls.forEach(t => t.className = 'src-tab');
+      tab.classList.add(activeCls);
+      srcMode = tab.dataset.src;
+      if (upWrap)  upWrap.style.display  = srcMode === 'upload' ? 'block' : 'none';
+      if (urlWrap) urlWrap.style.display = srcMode === 'url'    ? 'block' : 'none';
+      if (srcMode === 'url') { uploadedUrl = null; onUploaded && onUploaded(null); }
+    });
+  });
+
+  dropzone?.addEventListener('dragover',  e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+  dropzone?.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+  dropzone?.addEventListener('drop',      e => { e.preventDefault(); dropzone.classList.remove('drag-over'); const f = e.dataTransfer.files[0]; if (f) doUpload(f); });
+  fileInput?.addEventListener('change',   e => { if (e.target.files[0]) doUpload(e.target.files[0]); });
+
+  rmEl?.addEventListener('click', () => {
+    uploadedUrl = null;
+    uploadedDuration = null;
+    onUploaded && onUploaded(null);
+    preview.style.display  = 'none';
+    fileInput.value        = '';
+    dropzone.style.display = 'block';
+    if (thumbEl)  thumbEl.src = '';
+    if (playerElm) playerElm.src = '';
+  });
+
+  async function doUpload(file) {
+    uploading.style.display = 'block';
+    dropzone.style.display  = 'none';
+    const fd = new FormData();
+    fd.append('file', file);
+    try {
+      const res  = await fetch('/upload', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      uploadedUrl = data.url;
+      onUploaded && onUploaded(uploadedUrl);
+      if (fnameEl)   fnameEl.textContent = file.name;
+      if (thumbEl)   thumbEl.src  = uploadedUrl;
+      if (playerElm) {
+        playerElm.src = uploadedUrl;
+        playerElm.onloadedmetadata = () => {
+          if (Number.isFinite(playerElm.duration) && playerElm.duration > 0) {
+            uploadedDuration = playerElm.duration;
+          }
+        };
+      }
+      preview.style.display = 'block';
+    } catch (e) {
+      alert('Upload failed: ' + e.message);
+      dropzone.style.display = 'block';
+    } finally {
+      uploading.style.display = 'none';
+    }
+  }
+
+  return {
+    getUrl: () => {
+      if (srcMode === 'upload') return uploadedUrl;
+      const urlInput = urlWrap?.querySelector('input');
+      return urlInput ? urlInput.value.trim() : null;
+    },
+    getDuration: () => uploadedDuration,
+  };
+}
+
+// ─── Uploaders ─────────────────────────────────────────────
+const sI2vUp   = makeUploader({ srcTabsId:'s-i2v-src-tabs',   uploadWrapId:'s-i2v-upload-wrap',  urlWrapId:'s-i2v-url-wrap',  dropzoneId:'s-i2v-dropzone',  fileInputId:'s-i2v-file',  uploadingId:'s-i2v-uploading',  previewId:'s-i2v-preview',  fnameId:'s-i2v-fname',  rmId:'s-i2v-rm',  thumbId:'s-i2v-thumb',  activeCls:'active-seedance' });
+const sI2vfUp  = makeUploader({ srcTabsId:'s-i2vf-src-tabs',  uploadWrapId:'s-i2vf-upload-wrap', urlWrapId:'s-i2vf-url-wrap', dropzoneId:'s-i2vf-dropzone', fileInputId:'s-i2vf-file', uploadingId:'s-i2vf-uploading', previewId:'s-i2vf-preview', fnameId:'s-i2vf-fname', rmId:'s-i2vf-rm', thumbId:'s-i2vf-thumb', activeCls:'active-seedance' });
+const vI2vUp   = makeUploader({ srcTabsId:'v-i2v-src-tabs',   uploadWrapId:'v-i2v-upload-wrap',  urlWrapId:'v-i2v-url-wrap',  dropzoneId:'v-i2v-dropzone',  fileInputId:'v-i2v-file',  uploadingId:'v-i2v-uploading',  previewId:'v-i2v-preview',  fnameId:'v-i2v-fname',  rmId:'v-i2v-rm',  thumbId:'v-i2v-thumb',  activeCls:'active-veo' });
+const analysisUp = makeUploader({ srcTabsId:'analysis-src-tabs', uploadWrapId:'analysis-upload-wrap', urlWrapId:'analysis-url-wrap', dropzoneId:'analysis-dropzone', fileInputId:'analysis-file', uploadingId:'analysis-uploading', previewId:'analysis-preview', fnameId:'analysis-fname', rmId:'analysis-rm', playerEl:'analysis-player', activeCls:'active-analysis' });
+const autocropUp = makeUploader({ srcTabsId:'autocrop-src-tabs', uploadWrapId:'autocrop-upload-wrap', urlWrapId:'autocrop-url-wrap', dropzoneId:'autocrop-dropzone', fileInputId:'autocrop-file', uploadingId:'autocrop-uploading', previewId:'autocrop-preview', fnameId:'autocrop-fname', rmId:'autocrop-rm', playerEl:'autocrop-player', activeCls:'active-autocrop' });
+
+// ─── Dynamic image list helper (Veo Ref + Grok I2V) ───────
+function makeImageList(listId, addBtnId, maxImages, uploadActiveCls) {
+  const list   = document.getElementById(listId);
+  const addBtn = document.getElementById(addBtnId);
+  let rowCount = 0;
+
+  function addRow(required) {
+    if (rowCount >= maxImages) return;
+    rowCount++;
+    const id   = listId + '-row-' + rowCount;
+    const num  = rowCount;
+    const row  = document.createElement('div');
+    row.id     = id;
+    row.className = 'img-row';
+    row.dataset.uploadedUrl = '';
+    row.innerHTML = `
+      <input type="text" placeholder="Image ${num} URL (or upload below)" class="${uploadActiveCls === 'active-veo' ? 'veo-focus' : 'grok-focus'}" style="flex:1"/>
+      ${required ? '' : `<button class="rm-row" onclick="removeImgRow('${listId}','${id}')">✕</button>`}
+    `;
+    // add mini upload button
+    const uploadWrap = document.createElement('div');
+    uploadWrap.style.cssText = 'margin-top:6px;margin-bottom:10px';
+    uploadWrap.innerHTML = `
+      <div style="position:relative;display:inline-block;margin-right:8px">
+        <input type="file" accept="image/*" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;" onchange="handleImgRowUpload(this,'${id}')"/>
+        <button style="padding:4px 12px;border-radius:6px;border:1px solid #2a2a3a;background:#0e0e18;color:#888;font-size:.75rem;cursor:pointer;">Upload</button>
+      </div>
+      <span class="img-row-uploading-${id}" style="display:none;font-size:.75rem;color:#60a5fa">Uploading…</span>
+      <div class="img-row-preview-${id}" style="display:none;margin-top:6px"><img style="width:80px;height:60px;object-fit:cover;border-radius:6px;border:1px solid #222233" src=""/></div>
+    `;
+    list.appendChild(row);
+    list.appendChild(uploadWrap);
+    row._uploadWrap = uploadWrap;
+    if (rowCount >= maxImages) addBtn.style.display = 'none';
+  }
+
+  window['removeImgRow'] = window['removeImgRow'] || function() {};
+  // override per-list
+  const origRemove = window['removeImgRow'];
+
+  function removeRow(rowId) {
+    const el = document.getElementById(rowId);
+    if (el && el._uploadWrap) el._uploadWrap.remove();
+    el?.remove();
+    rowCount--;
+    addBtn.style.display = rowCount >= maxImages ? 'none' : 'inline-block';
+  }
+
+  addBtn.addEventListener('click', () => addRow(false));
+
+  function getUrls() {
+    const urls = [];
+    list.querySelectorAll('.img-row').forEach(row => {
+      const manual = row.dataset.uploadedUrl;
+      const textInput = row.querySelector('input[type=text]');
+      const url = manual || (textInput ? textInput.value.trim() : '');
+      if (url) urls.push(url);
+    });
+    return urls;
+  }
+
+  // init with 1 required row
+  addRow(true);
+
+  return { addRow, removeRow, getUrls };
+}
+
+// Handle file uploads for dynamic image rows
+async function handleImgRowUpload(input, rowId) {
+  const row     = document.getElementById(rowId);
+  if (!row) return;
+  const file    = input.files[0];
+  if (!file) return;
+  const parent  = input.closest('div[style]');
+  const spinner = parent.querySelector(`[class^="img-row-uploading"]`);
+  const preview = parent.querySelector(`[class^="img-row-preview"]`);
+  if (spinner) spinner.style.display = 'inline';
+  const fd = new FormData();
+  fd.append('file', file);
+  try {
+    const res  = await fetch('/upload', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    row.dataset.uploadedUrl = data.url;
+    const textInput = row.querySelector('input[type=text]');
+    if (textInput) textInput.value = data.url;
+    if (preview) { preview.style.display = 'block'; const img = preview.querySelector('img'); if (img) img.src = data.url; }
+  } catch (e) {
+    alert('Upload failed: ' + e.message);
+  } finally {
+    if (spinner) spinner.style.display = 'none';
+  }
+}
+
+// removeImgRow global handler
+function removeImgRow(listId, rowId) {
+  const list = document.getElementById(listId);
+  const el   = document.getElementById(rowId);
+  if (!el) return;
+  if (el._uploadWrap) el._uploadWrap.remove();
+  el.remove();
+  const addBtn = document.getElementById(listId.replace('-images-list', '-add-btn'));
+  if (addBtn) addBtn.style.display = 'inline-block';
+}
+
+// Init image lists
+const vRefList  = makeImageList('v-ref-images-list',  'v-ref-add-btn',  3, 'active-veo');
+const gI2vList  = makeImageList('g-i2v-images-list',  'g-i2v-add-btn',  3, 'active-grok');
+
+// ─── Mode pill pickers ──────────────────────────────────────
+let gT2vMode = 'normal';
+let gI2vMode = 'normal';
+
+function setupModePills(pillsId, onSelect) {
+  document.querySelectorAll('#' + pillsId + ' .mode-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('#' + pillsId + ' .mode-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      onSelect(pill.dataset.mode);
+    });
+  });
+}
+setupModePills('g-t2v-mode-pills', m => { gT2vMode = m; });
+setupModePills('g-i2v-mode-pills', m => { gI2vMode = m; });
+
+// ─── Result card + polling ──────────────────────────────────
+function addResultCard(containerId, requestId, label, desc) {
+  const container = document.getElementById(containerId);
+  container.querySelector('.empty-state')?.remove();
+  const el = document.createElement('div');
+  el.className = 'result-item';
+  el.id = 'res-' + requestId;
+  el.innerHTML = `
+    <div class="result-header">
+      <div>
+        <div class="result-label">${esc(label)}</div>
+        ${desc ? `<div class="result-sub">"${esc(desc)}"</div>` : ''}
+      </div>
+      <span class="badge processing"><span class="spinner"></span> Processing</span>
+    </div>
+    <div class="res-body"></div>`;
+  container.prepend(el);
+}
+
+function pollVideo(containerId, requestId) {
+  const interval = setInterval(async () => {
+    try {
+      const res  = await fetch('/api/ai-videos/status/' + requestId, { headers: {} });
+      const data = await res.json();
+      const el   = document.getElementById('res-' + requestId);
+      if (!el) { clearInterval(interval); return; }
+      const badge = el.querySelector('.badge');
+      const body  = el.querySelector('.res-body');
+
+      if (data.status === 'completed') {
+        clearInterval(interval);
+        badge.className  = 'badge completed';
+        badge.textContent = '✓ Completed';
+        const url = data.url;
+        if (url) {
+          body.innerHTML = `<video controls autoplay loop src="${url}"></video>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+              <a class="btn-dl" href="${url}" download target="_blank">↓ Download</a>
+              <a class="btn-ext" href="${url}" target="_blank" rel="noopener">↗ Open in new tab</a>
+            </div>`;
+        } else if (data.clips && data.clips.length) {
+          // AI Clipping multiple clips
+          body.innerHTML = data.clips.map((c,i) =>
+            `<div style="margin-bottom:10px"><div style="font-size:.75rem;color:#888;margin-bottom:4px">Clip ${i+1}</div>
+             <video controls autoplay loop src="${esc(c)}"></video>
+             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+               <a class="btn-dl" href="${esc(c)}" download target="_blank">↓ Download</a>
+               <a class="btn-ext" href="${esc(c)}" target="_blank" rel="noopener">↗ Open in new tab</a>
+             </div></div>`
+          ).join('');
+        } else {
+          body.innerHTML = '<div class="err-txt">Completed but no video URL found.</div>';
+        }
+      } else if (data.status === 'failed') {
+        clearInterval(interval);
+        badge.className  = 'badge failed';
+        badge.textContent = '✗ Failed';
+        body.innerHTML = `<div class="err-txt">${esc(data.error || 'Generation failed.')}</div>`;
+      }
+    } catch (e) { console.error('Poll error:', e); }
+  }, 5000);
+}
+
+function setBtn(btn, disabled, text) { btn.disabled = disabled; btn.textContent = text; }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+async function submitJob(url, payload, resContainerId, label, desc, btn, defaultBtnText) {
+  setBtn(btn, true, 'Generating…');
+  try {
+    const res  = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.error) { alert('Error: ' + data.error); return; }
+    addResultCard(resContainerId, data.request_id, label, desc);
+    pollVideo(resContainerId, data.request_id);
+  } catch (e) {
+    alert('Request failed: ' + e.message);
+  } finally {
+    setBtn(btn, false, defaultBtnText);
+  }
+}
+
+// ─── Seedance T2V ──────────────────────────────────────────
+document.getElementById('btn-s-t2v').addEventListener('click', async function() {
+  const prompt = document.getElementById('s-t2v-prompt').value.trim();
+  if (!prompt) { alert('Please enter a prompt.'); return; }
+  await submitJob('/api/ai-videos/seedance/t2v', {
+    prompt,
+    aspect_ratio:   document.getElementById('s-t2v-aspect').value,
+    duration:       parseInt(document.getElementById('s-t2v-duration').value),
+    generate_audio: document.getElementById('s-t2v-audio').checked,
+    camera_fixed:   document.getElementById('s-t2v-cam').checked,
+  }, 'res-s-t2v', 'Seedance 2.0 T2V', prompt, this, 'Generate Video');
+});
+
+// ─── Seedance I2V Standard ──────────────────────────────────
+document.getElementById('btn-s-i2v').addEventListener('click', async function() {
+  const imageUrl = sI2vUp.getUrl();
+  const prompt   = document.getElementById('s-i2v-prompt').value.trim();
+  if (!imageUrl) { alert('Please provide a start image.'); return; }
+  if (!prompt)   { alert('Please enter a prompt.'); return; }
+  await submitJob('/api/ai-videos/seedance/i2v', {
+    prompt,
+    image_url:      imageUrl,
+    model:          'seedance-v1.5-pro-i2v',
+    duration:       parseInt(document.getElementById('s-i2v-duration').value),
+    generate_audio: document.getElementById('s-i2v-audio').checked,
+    camera_fixed:   document.getElementById('s-i2v-cam').checked,
+  }, 'res-s-i2v', 'Seedance 2.0 I2V', prompt, this, 'Generate Video');
+});
+
+// ─── Seedance I2V Fast ─────────────────────────────────────
+document.getElementById('btn-s-i2vf').addEventListener('click', async function() {
+  const imageUrl = sI2vfUp.getUrl();
+  const prompt   = document.getElementById('s-i2vf-prompt').value.trim();
+  if (!imageUrl) { alert('Please provide a start image.'); return; }
+  if (!prompt)   { alert('Please enter a prompt.'); return; }
+  await submitJob('/api/ai-videos/seedance/i2v', {
+    prompt,
+    image_url:      imageUrl,
+    model:          'seedance-v1.5-pro-i2v-fast',
+    duration:       parseInt(document.getElementById('s-i2vf-duration').value),
+    generate_audio: document.getElementById('s-i2vf-audio').checked,
+    camera_fixed:   document.getElementById('s-i2vf-cam').checked,
+  }, 'res-s-i2vf', 'Seedance 2.0 I2V Fast', prompt, this, 'Generate Video (Fast)');
+});
+
+// ─── Veo T2V ───────────────────────────────────────────────
+document.getElementById('btn-v-t2v').addEventListener('click', async function() {
+  const prompt = document.getElementById('v-t2v-prompt').value.trim();
+  if (!prompt) { alert('Please enter a prompt.'); return; }
+  await submitJob('/api/ai-videos/veo/t2v', {
+    prompt,
+    aspect_ratio: document.getElementById('v-t2v-aspect').value,
+    duration:     parseInt(document.getElementById('v-t2v-duration').value),
+    resolution:   document.getElementById('v-t2v-resolution').value,
+    quality:      document.getElementById('v-t2v-quality').value,
+  }, 'res-v-t2v', 'Veo 3.1 T2V', prompt, this, 'Generate Video');
+});
+
+// ─── Veo I2V ───────────────────────────────────────────────
+document.getElementById('btn-v-i2v').addEventListener('click', async function() {
+  const imageUrl = vI2vUp.getUrl();
+  if (!imageUrl) { alert('Please provide a start image.'); return; }
+  const prompt = document.getElementById('v-i2v-prompt').value.trim();
+  await submitJob('/api/ai-videos/veo/i2v', {
+    image_url:   imageUrl,
+    prompt,
+    aspect_ratio: document.getElementById('v-t2v-aspect').value,
+    duration:    parseInt(document.getElementById('v-i2v-duration').value),
+    resolution:  document.getElementById('v-i2v-resolution').value,
+    quality:     document.getElementById('v-i2v-quality').value,
+  }, 'res-v-i2v', 'Veo 3.1 I2V', prompt || 'Image to Video', this, 'Generate Video');
+});
+
+// ─── Veo Reference ────────────────────────────────────────
+document.getElementById('btn-v-ref').addEventListener('click', async function() {
+  const prompt     = document.getElementById('v-ref-prompt').value.trim();
+  const imagesList = vRefList.getUrls();
+  if (!prompt)           { alert('Please enter a prompt.'); return; }
+  if (!imagesList.length){ alert('Please add at least one reference image.'); return; }
+  await submitJob('/api/ai-videos/veo/reference', {
+    prompt,
+    images_list:    imagesList,
+    duration:       parseInt(document.getElementById('v-ref-duration').value),
+    resolution:     document.getElementById('v-ref-resolution').value,
+    generate_audio: document.getElementById('v-ref-audio').checked,
+  }, 'res-v-ref', 'Veo 3.1 Reference', prompt, this, 'Generate Reference Video');
+});
+
+// ─── Grok T2V ─────────────────────────────────────────────
+document.getElementById('btn-g-t2v').addEventListener('click', async function() {
+  const prompt = document.getElementById('g-t2v-prompt').value.trim();
+  if (!prompt) { alert('Please enter a prompt.'); return; }
+  await submitJob('/api/ai-videos/grok/t2v', {
+    prompt,
+    mode:         gT2vMode,
+    aspect_ratio: document.getElementById('g-t2v-aspect').value,
+    duration:     parseInt(document.getElementById('g-t2v-duration').value),
+  }, 'res-g-t2v', 'Grok T2V · ' + gT2vMode, prompt, this, 'Generate Video');
+});
+
+// ─── Grok I2V ─────────────────────────────────────────────
+document.getElementById('btn-g-i2v').addEventListener('click', async function() {
+  const imagesList = gI2vList.getUrls();
+  if (!imagesList.length) { alert('Please add at least one image.'); return; }
+  const prompt = document.getElementById('g-i2v-prompt').value.trim();
+  await submitJob('/api/ai-videos/grok/i2v', {
+    images_list: imagesList,
+    prompt,
+    mode:        gI2vMode,
+    duration:    parseInt(document.getElementById('g-i2v-duration').value),
+  }, 'res-g-i2v', 'Grok I2V · ' + gI2vMode, prompt || 'Image to Video', this, 'Generate Video');
+});
+
+// ─── AI Content Analysis ──────────────────────────────────
+let analysisLang  = 'en';
+let analysisUcase = 'cinematic';
+document.querySelectorAll('#analysis-lang-pills .lang-pill').forEach(p => {
+  p.addEventListener('click', () => {
+    document.querySelectorAll('#analysis-lang-pills .lang-pill').forEach(x => x.classList.remove('active'));
+    p.classList.add('active');
+    analysisLang = p.dataset.lang;
+  });
+});
+document.querySelectorAll('#analysis-ucase-pills .ucase-pill').forEach(p => {
+  p.addEventListener('click', () => {
+    document.querySelectorAll('#analysis-ucase-pills .ucase-pill').forEach(x => x.classList.remove('active'));
+    p.classList.add('active');
+    analysisUcase = p.dataset.uc;
+  });
+});
+
+document.getElementById('btn-analysis').addEventListener('click', async function() {
+  const videoUrl = analysisUp.getUrl() || document.getElementById('analysis-video-url')?.value?.trim();
+  if (!videoUrl)     { alert('Please provide a video.'); return; }
+  if (!analysisLang) { alert('Please select output language.'); return; }
+  const container = document.getElementById('res-analysis');
+  container.innerHTML = `<div class="result-item"><div class="result-header"><div class="result-label">Analyzing…</div><span class="badge processing"><span class="spinner"></span> Running analysis</span></div></div>`;
+  setBtn(this, true, 'Analyzing…');
+  try {
+    const res  = await fetch('/api/ai-videos/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        video_url: videoUrl,
+        language:  analysisLang,
+        use_case:  analysisUcase,
+      })
+    });
+    const data = await res.json();
+    if (data.error) {
+      container.innerHTML = `<div class="result-item"><div class="err-txt">${esc(data.error)}</div></div>`;
+      return;
+    }
+    const output = data.output || '(empty)';
+    container.innerHTML = `
+      <div class="result-item">
+        <div class="result-header">
+          <div>
+            <div class="result-label">Analysis · ${esc(data.use_case||'')}</div>
+            <div class="result-sub">Language: ${esc(data.language||'')}</div>
+          </div>
+          <span class="badge completed">✓ Completed</span>
+        </div>
+        <div class="analysis-output" id="analysis-output-text">${esc(output)}</div>
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn-ext" id="analysis-copy">Copy</button>
+          <a class="btn-dl" id="analysis-download" download="analysis.txt">↓ Download .txt</a>
+        </div>
+      </div>`;
+    document.getElementById('analysis-copy').onclick = () => {
+      navigator.clipboard.writeText(output).then(() => {
+        document.getElementById('analysis-copy').textContent = 'Copied!';
+        setTimeout(() => { document.getElementById('analysis-copy').textContent = 'Copy'; }, 1800);
+      });
+    };
+    const blob = new Blob([output], { type: 'text/plain' });
+    document.getElementById('analysis-download').href = URL.createObjectURL(blob);
+  } catch (e) {
+    container.innerHTML = `<div class="result-item"><div class="err-txt">Request failed: ${esc(e.message)}</div></div>`;
+  } finally {
+    setBtn(this, false, 'Analyze Video');
+  }
+});
+
+// ─── Auto Crop ────────────────────────────────────────────
+document.getElementById('btn-autocrop').addEventListener('click', async function() {
+  const videoUrl = autocropUp.getUrl() || document.getElementById('autocrop-video-url')?.value?.trim();
+  if (!videoUrl) { alert('Please provide a video.'); return; }
+  let durationSeconds = autocropUp.getDuration();
+  if (!(Number.isFinite(durationSeconds) && durationSeconds > 0)) durationSeconds = 8;
+  const safeEndTime = Math.max(1, Math.ceil(durationSeconds));
+  setBtn(this, true, 'Cropping…');
+  try {
+    const res  = await fetch('/api/ai-videos/autocrop', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        video_url:    videoUrl,
+        aspect_ratio: document.getElementById('autocrop-aspect').value,
+        start_time:   0,
+        end_time:     safeEndTime,
+      })
+    });
+    const data = await res.json();
+    if (data.error) { alert('Error: ' + data.error); return; }
+    addResultCard('res-autocrop', data.request_id, 'Auto Crop', videoUrl.split('/').pop() || 'video');
+    pollVideo('res-autocrop', data.request_id);
+  } catch (e) {
+    alert('Request failed: ' + e.message);
+  } finally {
+    setBtn(this, false, 'Auto Crop Video');
+  }
+});
+
+// ─── Upscale ──────────────────────────────────────────────
+const upscaleUp = makeUploader({ srcTabsId:'upscale-src-tabs', uploadWrapId:'upscale-upload-wrap', urlWrapId:'upscale-url-wrap', dropzoneId:'upscale-dropzone', fileInputId:'upscale-file', uploadingId:'upscale-uploading', previewId:'upscale-preview', fnameId:'upscale-fname', rmId:'upscale-rm', playerEl:'upscale-player', activeCls:'active-upscale' });
+
+document.getElementById('btn-upscale').addEventListener('click', async function() {
+  const videoUrl = upscaleUp.getUrl() || document.getElementById('upscale-video-url')?.value?.trim();
+  if (!videoUrl) { alert('Please provide a video.'); return; }
+  setBtn(this, true, 'Upscaling…');
+  try {
+    const res  = await fetch('/api/ai-videos/upscale', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        video_url: videoUrl,
+        scale:     document.getElementById('upscale-scale').value,
+      })
+    });
+    const data = await res.json();
+    if (data.error) { alert('Error: ' + data.error); return; }
+    addResultCard('res-upscale', data.request_id, 'Topaz Upscale', videoUrl.split('/').pop() || 'video');
+    pollVideo('res-upscale', data.request_id);
+  } catch (e) {
+    alert('Request failed: ' + e.message);
+  } finally {
+    setBtn(this, false, 'Upscale Video');
+  }
+});
+
+// ─── Generation History ────────────────────────────────────
+let aivHistoryInterval = null;
+
+function renderAivHistory(items) {
+  const grid = document.getElementById('aiv-history-grid');
+  if (!items || !items.length) {
+    grid.innerHTML = '<div class="history-empty">No history yet.</div>';
+    return;
+  }
+  window._aivHistory = items;
+  const hasProcessing = items.some(i => i.status === 'processing');
+  grid.innerHTML = items.map((item, i) => {
+    let thumb = '';
+    if (item.status === 'completed' && item.output_url) {
+      thumb = `<video class="hist-thumb-video" src="${esc(item.output_url)}" autoplay muted loop playsinline></video>`;
+    } else if (item.status === 'completed' && item.output_text) {
+      thumb = `<div class="hist-spinner-wrap" style="background:#140b16"><span style="color:#f0abfc;font-size:.72rem;padding:0 10px;text-align:center">Analysis Ready</span></div>`;
+    } else if (item.status === 'processing') {
+      thumb = `<div class="hist-spinner-wrap"><div class="hist-spinner-lg"></div></div>`;
+    } else {
+      thumb = `<div class="hist-spinner-wrap" style="background:#1a0a0a"><span style="color:#f87171;font-size:.7rem">Failed</span></div>`;
+    }
+    const modelLabel = item.specs && String(item.specs).startsWith('analysis-')
+      ? 'AI Content Analysis'
+      : item.model;
+    return `<div class="hist-card" data-idx="${i}" title="Click to preview">
+      ${thumb}
+      <div class="hist-info">
+        <div class="hist-model" title="${esc(modelLabel)}">${esc(modelLabel)}</div>
+        <span class="hist-badge ${esc(item.status)}">${esc(item.status)}</span>
+      </div>
+    </div>`;
+  }).join('');
+  document.querySelectorAll('#aiv-history-grid .hist-card[data-idx]').forEach(card => {
+    card.addEventListener('click', () => {
+      const item = window._aivHistory[parseInt(card.dataset.idx, 10)];
+      if (item) openAivModal(item);
+    });
+  });
+
+  if (hasProcessing) {
+    if (!aivHistoryInterval) aivHistoryInterval = setInterval(loadAivHistory, 8000);
+  } else {
+    if (aivHistoryInterval) { clearInterval(aivHistoryInterval); aivHistoryInterval = null; }
+  }
+}
+
+async function loadAivHistory() {
+  try {
+    const res  = await fetch('/api/history/ai-videos', { headers: {} });
+    const data = await res.json();
+    renderAivHistory(data.history || []);
+  } catch (e) { console.error('History load error:', e); }
+}
+
+// ─── Video Preview Modal ────────────────────────────────────
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function openAivModal(item) {
+  const url = item.output_url || item.video_url || '';
+  const vidWrap = document.getElementById('aivModalVidWrap');
+  if (url) {
+    vidWrap.innerHTML = `<video src="${escHtml(url)}" controls playsinline preload="metadata"></video>`;
+  } else if (item.output_text) {
+    vidWrap.innerHTML = `<div class="analysis-output" style="width:100%;max-height:58vh">${escHtml(item.output_text)}</div>`;
+  } else {
+    vidWrap.innerHTML = `<div class="modal-no-vid">No video available.</div>`;
+  }
+  const actions = document.getElementById('aivModalActions');
+  if (url) {
+    actions.innerHTML = `<a class="btn-dl" href="${escHtml(url)}" download target="_blank">↓ Download</a>
+       <a class="btn-ext" href="${escHtml(url)}" target="_blank" rel="noopener">↗ Open in new tab</a>`;
+  } else if (item.output_text) {
+    actions.innerHTML = `<a class="btn-dl" id="aivTextDownload" download="analysis.txt">↓ Download .txt</a>`;
+    const blob = new Blob([item.output_text], { type: 'text/plain' });
+    document.getElementById('aivTextDownload').href = URL.createObjectURL(blob);
+  } else {
+    actions.innerHTML = '';
+  }
+  document.getElementById('aivModalPrompt').textContent = item.output_text || item.prompt || '—';
+  const copyBtn = document.getElementById('aivModalCopy');
+  copyBtn.textContent = 'Copy'; copyBtn.classList.remove('copied');
+  copyBtn.onclick = () => {
+    navigator.clipboard.writeText(item.output_text || item.prompt || '').then(() => {
+      copyBtn.textContent = 'Copied!'; copyBtn.classList.add('copied');
+      setTimeout(() => { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('copied'); }, 2000);
+    });
+  };
+  const statusCls = {completed:'blue',processing:'green',failed:'red'}[item.status]||'';
+  const dateStr = item.created_at ? item.created_at.replace('T',' ').substring(0,16)+' UTC' : '—';
+  const modelLabel = item.specs && String(item.specs).startsWith('analysis-')
+    ? 'AI Content Analysis'
+    : item.model;
+  const metaItems = [
+    {k:'Status', v:item.status||'—', c:statusCls},
+    {k:'Model', v:modelLabel||'—', c:'purple'},
+    {k:'Duration', v:item.duration?item.duration+'s':'—'},
+    {k:'Aspect Ratio', v:item.aspect_ratio||'—'},
+    {k:'Quality', v:item.quality||'—'},
+    {k:'Created', v:dateStr},
+    {k:'Job ID', v:item.request_id||'—'},
+  ];
+  document.getElementById('aivModalMeta').innerHTML = metaItems.map(m =>
+    `<div class="meta-item"><div class="meta-key">${m.k}</div><div class="meta-val${m.c?' '+m.c:''}">${escHtml(String(m.v))}</div></div>`
+  ).join('');
+  document.getElementById('aivModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeAivModal() {
+  document.getElementById('aivModal').classList.remove('open');
+  document.body.style.overflow = '';
+  const vid = document.querySelector('#aivModal video');
+  if (vid) { vid.pause(); vid.src = ''; }
+}
+
+document.getElementById('aivModalClose').addEventListener('click', closeAivModal);
+document.getElementById('aivModal').addEventListener('click', e => { if (e.target.id === 'aivModal') closeAivModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAivModal(); });
+
+function reportAiVideosEmbedHeight() {
+  if (window.parent === window) return;
+  const height = Math.max(
+    document.documentElement.scrollHeight,
+    document.body.scrollHeight,
+    document.documentElement.offsetHeight,
+    document.body.offsetHeight
+  );
+  window.parent.postMessage({ type: 'ai-videos-embed-height', height }, '*');
+}
+
+if (window.parent !== window) {
+  window.addEventListener('load', reportAiVideosEmbedHeight);
+  window.addEventListener('resize', reportAiVideosEmbedHeight);
+  setTimeout(reportAiVideosEmbedHeight, 300);
+  setTimeout(reportAiVideosEmbedHeight, 1200);
+  new MutationObserver(() => reportAiVideosEmbedHeight()).observe(document.body, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+  });
+}
+
+loadAivHistory();
+</script>
+
+{% if not embed %}
+{% include 'legal_footer.html' %}
+{% endif %}
+</body>
+</html>

@@ -1,0 +1,36 @@
+{% extends "base_shell_v2.html" %}
+{% set active_page = "avatars" %}
+
+{% block title %}Avatar Studio — KAMOD AI{% endblock %}
+
+{% block head_extra %}
+<style>
+  .avatar-embed{min-height:3000px}
+  @media(max-width:900px){.avatar-embed{min-height:3800px}}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="shell-topbar">
+  <div>
+    <h1 class="shell-page-title">Avatar Studio</h1>
+    <p class="shell-page-sub">
+      Create talking avatars and motion-controlled character clips while keeping the proven KAMOD generation flow intact.
+    </p>
+  </div>
+  <div class="shell-status"><span class="shell-status-dot"></span>Avatar studio</div>
+</section>
+
+<section class="shell-stage">
+  <div class="shell-stage-head">
+    <div>
+      <h2 class="shell-stage-title">Avatar and motion workflow</h2>
+      <p class="shell-stage-meta">Talking avatar and motion-control tools are presented in the v2 shell without changing any backend logic.</p>
+    </div>
+    <span class="shell-pill">Enhance</span>
+  </div>
+  <div class="shell-content">
+    <iframe class="shell-embed avatar-embed" src="/avatars-legacy?embed=1" title="Avatar Studio"></iframe>
+  </div>
+</section>
+{% endblock %}

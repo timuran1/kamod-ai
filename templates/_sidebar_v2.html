@@ -1,0 +1,48 @@
+<aside class="kamod-shell-sidebar">
+  <div class="shell-brand">
+    <div class="shell-brand-mark">K</div>
+    <div>
+      <div class="shell-brand-name">KAMOD AI</div>
+      <div class="shell-brand-sub">Creative Studio</div>
+    </div>
+  </div>
+
+  <div class="shell-nav-section">
+    <div class="shell-nav-label">Create</div>
+    <nav class="shell-nav-list">
+      <a class="shell-nav-link {% if active_page == 'film-studio' %}active{% endif %}" href="/">AI Film Studio</a>
+      {# AI Video Tools temporarily hidden — re-enable when needed #}
+      {# <a class="shell-nav-link {% if active_page in ['ai-videos', 'ai-videos-v2'] %}active{% endif %}" href="/ai-videos">AI Video Tools</a> #}
+      <a class="shell-nav-link {% if active_page in ['ai-videos', 'ai-videos-v2'] and active_panel == 'multiscene-native' %}active{% endif %}" href="/ai-videos#multiscene-native" data-panel-link="multiscene-native">Multi Scene</a>
+      <a class="shell-nav-link {% if active_page == 'ai-director' %}active{% endif %}" href="/ai-director">Co-Director</a>
+      <a class="shell-nav-link {% if active_page == 'images' %}active{% endif %}" href="/images">AI Images</a>
+      <a class="shell-nav-link {% if active_page == 'storyboard' %}active{% endif %}" href="/storyboard">Storyboard</a>
+      <a class="shell-nav-link {% if active_page == 'ugc-studio' %}active{% endif %}" href="/ugc-studio">UGC Studio</a>
+    </nav>
+  </div>
+
+  <div class="shell-nav-section">
+    <div class="shell-nav-label">Enhance</div>
+    <nav class="shell-nav-list">
+      <a class="shell-nav-link {% if active_page in ['ai-videos', 'ai-videos-v2'] and active_panel == 'analysis-native' %}active{% endif %}" href="/ai-videos#analysis-native" data-panel-link="analysis-native">AI Content Analysis</a>
+      <a class="shell-nav-link {% if active_page in ['ai-videos', 'ai-videos-v2'] and active_panel == 'autocrop-native' %}active{% endif %}" href="/ai-videos#autocrop-native" data-panel-link="autocrop-native">Auto Crop</a>
+      <a class="shell-nav-link {% if active_page in ['ai-videos', 'ai-videos-v2'] and active_panel == 'upscale-native' %}active{% endif %}" href="/ai-videos#upscale-native" data-panel-link="upscale-native">Upscale</a>
+      <a class="shell-nav-link {% if active_page == 'audio' %}active{% endif %}" href="/audio">Audio</a>
+      {# Avatars temporarily hidden — re-enable when needed #}
+      {# <a class="shell-nav-link {% if active_page == 'avatars' %}active{% endif %}" href="/avatars">Avatars</a> #}
+    </nav>
+  </div>
+
+  <div class="shell-nav-section">
+    <div class="shell-nav-label">Deliver</div>
+    <nav class="shell-nav-list">
+      <a class="shell-nav-link" href="/analytics">Analytics</a>
+      <a class="shell-nav-link" href="/dashboard">Dashboard</a>
+    </nav>
+  </div>
+
+  <div class="shell-sidebar-note">
+    KAMOD workspace
+    <span>Create, refine, and deliver media from one focused studio.</span>
+  </div>
+</aside>

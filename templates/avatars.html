@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Avatars — KAMOD AI</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0a0a0f;color:#e0e0e0;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:36px 20px 80px}
+
+    nav{width:100%;max-width:1100px;display:flex;flex-direction:column;align-items:center;gap:12px;margin:0 auto 36px}
+    nav .logo{font-size:1.15rem;font-weight:700;background:linear-gradient(135deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.01em}
+    .nav-grouped{display:flex;align-items:flex-end;gap:0;background:#0d0d16;border:1px solid #1c1c2e;border-radius:13px;padding:5px 8px;overflow-x:auto;max-width:100%;scrollbar-width:none}
+    .nav-grouped::-webkit-scrollbar{display:none}
+    .nav-group{display:flex;flex-direction:column;align-items:center;gap:2px;padding:0 2px}
+    .nav-group-label{font-size:.58rem;font-weight:800;letter-spacing:.1em;color:#252535;text-transform:uppercase;transition:color .2s;padding:0 4px;user-select:none}
+    .nav-group.has-active .nav-group-label{color:#6060a0}
+    .nav-group-items{display:flex;gap:1px}
+    .nav-grouped a{color:#555;text-decoration:none;font-size:.77rem;font-weight:500;padding:6px 11px;border-radius:8px;transition:all .15s;white-space:nowrap;letter-spacing:.01em}
+    .nav-grouped a:hover{color:#bbb;background:rgba(255,255,255,0.05)}
+    .nav-grouped a.active{background:linear-gradient(135deg,#6d5fd6,#3b7dd8);color:#fff;font-weight:600;box-shadow:0 0 14px rgba(109,95,214,.45)}
+    .nav-sep{width:1px;height:28px;background:#1c1c2e;margin:0 5px 3px;flex-shrink:0;align-self:flex-end}
+
+    header{text-align:center;margin-bottom:28px}
+    header h1{font-size:2.1rem;font-weight:700;background:linear-gradient(135deg,#f59e0b,#ef4444,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    header p{color:#888;margin-top:8px;font-size:.93rem}
+
+    .wrapper{width:100%;max-width:960px}
+
+    /* Section tabs */
+    .section-tabs{display:flex;gap:4px;margin-bottom:24px;background:#10101a;padding:5px;border-radius:12px;border:1px solid #1e1e2e}
+    .section-tab{flex:1;padding:10px 8px;border-radius:8px;border:none;background:none;color:#888;cursor:pointer;font-size:.85rem;font-weight:500;transition:all .2s;text-align:center}
+    .section-tab.active{background:#1e1e35;color:#f59e0b;font-weight:600}
+    .section-tab:hover:not(.active){color:#ccc}
+    .section{display:none}
+    .section.active{display:block}
+
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+
+    /* Model selector cards */
+    .model-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+    .model-card{padding:13px 10px;border-radius:10px;border:1px solid #222233;background:#0e0e18;cursor:pointer;transition:all .15s;text-align:center}
+    .model-card:hover{border-color:#f59e0b55;background:#1a1400}
+    .model-card.selected{border-color:#f59e0b;background:#1a1400}
+    .model-card .mc-name{font-size:.78rem;font-weight:600;color:#ccc;margin-bottom:3px}
+    .model-card .mc-badge{font-size:.68rem;padding:2px 7px;border-radius:20px;background:#1e1e2e;color:#888;display:inline-block}
+    .model-card.selected .mc-name{color:#f59e0b}
+    .model-card.selected .mc-badge{background:#2a1a00;color:#f59e0b}
+
+    .card{background:#13131a;border:1px solid #222233;border-radius:14px;padding:22px;margin-bottom:16px}
+    .card h3{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#555;margin-bottom:14px}
+    .info-box{background:#1a1400;border:1px solid #3d2e00;border-radius:8px;padding:10px 13px;font-size:.78rem;color:#d4a;margin-bottom:14px;line-height:1.6}
+    .info-box b{color:#f59e0b}
+
+    label{display:block;font-size:.78rem;color:#999;margin-bottom:5px;margin-top:14px}
+    label:first-of-type{margin-top:0}
+    textarea,input[type=text],select{width:100%;background:#0e0e18;border:1px solid #2a2a3a;border-radius:8px;color:#e0e0e0;font-size:.85rem;padding:8px 11px;outline:none;transition:border-color .2s;font-family:inherit}
+    textarea{resize:vertical;min-height:80px}
+    textarea:focus,input:focus,select:focus{border-color:#f59e0b}
+
+    /* Upload / dropzone */
+    .src-tabs{display:flex;gap:6px;margin-bottom:8px}
+    .src-tab{padding:4px 12px;border-radius:6px;border:1px solid #2a2a3a;background:#0e0e18;color:#888;cursor:pointer;font-size:.75rem;transition:all .15s}
+    .src-tab.active{border-color:#f59e0b;color:#f59e0b;background:#1a1400}
+    .dropzone{border:1px solid #1e1e2e;border-radius:8px;padding:10px 16px;text-align:center;cursor:pointer;position:relative;transition:all .2s;background:#0c0c18}
+    .dropzone:hover,.dropzone.drag-over{border-color:#f59e0b55;background:#1a1400}
+    .dropzone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+    .dropzone p{color:#555;font-size:.78rem;margin:0}
+    .dropzone p span{color:#f59e0b}
+    .preview-wrap{display:none;margin-top:8px}
+    .preview-wrap img,.preview-wrap video,.preview-wrap audio{width:100%;border-radius:7px;border:1px solid #222233;max-height:180px;object-fit:cover}
+    .preview-wrap audio{max-height:none}
+    .preview-bar{display:flex;justify-content:space-between;align-items:center;background:#1a1400;border:1px solid #3d2e00;border-radius:6px;padding:5px 10px;margin-bottom:6px;font-size:.78rem;color:#f59e0b}
+    .preview-bar .rm{cursor:pointer;color:#f87171;font-size:.75rem}
+    .preview-bar .rm:hover{text-decoration:underline}
+    .uploading-ind{display:none;color:#f59e0b;font-size:.78rem;margin-top:6px}
+
+    .submit-btn{margin-top:18px;width:100%;padding:13px;border:none;border-radius:9px;font-size:.92rem;font-weight:600;cursor:pointer;transition:opacity .2s,transform .1s;background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff}
+    .submit-btn:hover{opacity:.9}
+    .submit-btn:active{transform:scale(.98)}
+    .submit-btn:disabled{opacity:.4;cursor:not-allowed}
+    .submit-btn.motion{background:linear-gradient(135deg,#6d5fd6,#3b7dd8)}
+
+    /* Results */
+    .results-title{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#555;margin-bottom:12px}
+    .result-item{background:#0e0e18;border:1px solid #1e1e2e;border-radius:10px;padding:14px;margin-bottom:12px;animation:fadeIn .3s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1}}
+    .result-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+    .result-label{font-size:.8rem;font-weight:600;color:#ccc}
+    .result-sub{font-size:.72rem;color:#666;margin-top:2px}
+    .badge{font-size:.72rem;padding:2px 9px;border-radius:20px;font-weight:600;white-space:nowrap}
+    .badge.processing{background:#1a2a1a;color:#4ade80}
+    .badge.completed {background:#1a1e2a;color:#60a5fa}
+    .badge.failed    {background:#2a1a1a;color:#f87171}
+    video{width:100%;border-radius:8px;margin-top:6px;background:#000}
+    .media-link{font-size:.73rem;color:#60a5fa;margin-top:6px;word-break:break-all}
+    .media-link a{color:inherit}
+    .err-txt{color:#f87171;font-size:.78rem;margin-top:6px}
+    .empty-state{color:#555;font-size:.82rem;padding:10px 0}
+
+    .spinner{display:inline-block;width:8px;height:8px;border:2px solid #4ade8044;border-top-color:#4ade80;border-radius:50%;animation:spin .7s linear infinite;margin-right:4px;vertical-align:middle}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .tip{font-size:.72rem;color:#555;margin-top:5px;line-height:1.5}
+    {% if embed %}
+    body{background:transparent;padding:0;align-items:stretch}
+    .wrapper{max-width:none;padding:0}
+    .section-tabs{
+      padding:6px;
+      border-radius:18px;
+      background:#0a0d16;
+      border:1px solid #20263b;
+    }
+    .section-tab{
+      border-radius:13px;
+      min-height:46px;
+      font-weight:700;
+    }
+    .section-tab.active{
+      background:linear-gradient(135deg,rgba(245,158,11,.22),rgba(239,68,68,.12));
+      color:#ffe5ba;
+    }
+    .card{
+      border-radius:22px;
+      border-color:#242c44;
+      background:linear-gradient(180deg,rgba(17,22,37,.98),rgba(11,15,26,.98));
+    }
+    .model-card{
+      border-radius:16px;
+      background:#0d1220;
+      border-color:#222a40;
+    }
+    .dropzone{
+      border-style:dashed;
+      border-color:#2c3656;
+      border-radius:14px;
+      background:#0b1020;
+    }
+    textarea,input[type=text],select{
+      background:#090c16;
+      border-color:#252d44;
+      border-radius:12px;
+    }
+    .result-item{
+      border-color:#222a40;
+      background:#0d1220;
+      border-radius:16px;
+    }
+    @media(max-width:980px){
+      .grid-2,.model-grid{grid-template-columns:1fr}
+    }
+    {% endif %}
+  </style>
+</head>
+<body>
+
+{% if not embed %}
+<nav>
+  <span class="logo">KAMOD AI</span>
+  <div class="nav-grouped">
+    <div class="nav-group">
+      <span class="nav-group-label">CREATE</span>
+      <div class="nav-group-items">
+        <a href="/">Seedance 2.0</a>
+        <a href="/ai-videos">AI Video Tools</a>
+        <a href="/ai-director">Director</a>
+        <a href="/images">AI Images</a>
+        <a href="/storyboard">Storyboard</a>
+        <a href="/ugc-studio">UGC Studio</a>
+      </div>
+    </div>
+    <div class="nav-sep"></div>
+    <div class="nav-group has-active">
+      <span class="nav-group-label">ENHANCE</span>
+      <div class="nav-group-items">
+        <a href="/audio">Audio</a>
+        <a href="/avatars" class="active">Avatars</a>
+      </div>
+    </div>
+    <div class="nav-sep"></div>
+    <div class="nav-group">
+      <span class="nav-group-label">DELIVER</span>
+      <div class="nav-group-items">
+        <a href="/analytics">Analytics</a>
+        <a href="/dashboard">Dashboard</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <h1>AI Avatars</h1>
+  <p>Talking avatars from image + audio, and precise motion-controlled video</p>
+</header>
+{% endif %}
+
+<div class="wrapper">
+
+  <div class="section-tabs">
+    <button class="section-tab active" data-section="avatars">Talking Avatars</button>
+    <button class="section-tab" data-section="motion">Motion Control</button>
+  </div>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- TALKING AVATARS                                  -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="section active" id="section-avatars">
+
+    <!-- Model picker -->
+    <div class="model-grid" id="avatar-model-grid">
+      <div class="model-card selected" data-model="kling-v2-avatar-pro">
+        <div class="mc-name">Kling v2 Avatar Pro</div>
+        <div class="mc-badge">High Fidelity</div>
+      </div>
+      <div class="model-card" data-model="kling-v2-avatar-standard">
+        <div class="mc-name">Kling v2 Avatar Standard</div>
+        <div class="mc-badge">Fast & Natural</div>
+      </div>
+      <div class="model-card" data-model="wan2.2-speech-to-video">
+        <div class="mc-name">WAN 2.2 Speech-to-Video</div>
+        <div class="mc-badge">Expressive</div>
+      </div>
+    </div>
+
+    <!-- Selected model description -->
+    <div class="info-box" id="avatar-model-desc">
+      <b>Kling v2 Avatar Pro</b> — Takes a reference image and audio dialogue clip, then generates a realistic talking-avatar video. Preserves identity, lip syncs accurately, adds natural head movement, eye motion, expressions, and cinematic lighting.
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <div class="card">
+          <h3>Inputs</h3>
+
+          <!-- Reference image -->
+          <label>Reference Image <span style="color:#f87171">*</span></label>
+          <div class="src-tabs" id="img-src-tabs">
+            <div class="src-tab active" data-src="upload">Upload</div>
+            <div class="src-tab" data-src="url">URL</div>
+          </div>
+          <div id="img-upload-wrap">
+            <div class="dropzone" id="img-dropzone">
+              <input type="file" id="img-file" accept="image/*"/>
+              <p><span>Choose image</span></p>
+            </div>
+            <div class="uploading-ind" id="img-uploading">Uploading…</div>
+            <div class="preview-wrap" id="img-preview">
+              <div class="preview-bar"><span id="img-fname">image.jpg</span><span class="rm" id="img-rm">✕ Remove</span></div>
+              <img id="img-thumb" src="" alt="Preview"/>
+            </div>
+          </div>
+          <div id="img-url-wrap" style="display:none">
+            <input type="text" id="avatar-img-url" placeholder="https://example.com/portrait.jpg"/>
+          </div>
+
+          <!-- Audio dialogue -->
+          <label style="margin-top:18px">Audio Dialogue <span style="color:#f87171">*</span></label>
+          <div class="src-tabs" id="audio-src-tabs">
+            <div class="src-tab active" data-src="upload">Upload</div>
+            <div class="src-tab" data-src="url">URL</div>
+          </div>
+          <div id="audio-upload-wrap">
+            <div class="dropzone" id="audio-dropzone">
+              <input type="file" id="audio-file" accept="audio/*"/>
+              <p><span>Choose audio</span></p>
+            </div>
+            <div class="uploading-ind" id="audio-uploading">Uploading…</div>
+            <div class="preview-wrap" id="audio-preview">
+              <div class="preview-bar"><span id="audio-fname">audio.mp3</span><span class="rm" id="audio-rm">✕ Remove</span></div>
+              <audio id="audio-player" controls></audio>
+            </div>
+          </div>
+          <div id="audio-url-wrap" style="display:none">
+            <input type="text" id="avatar-audio-url" placeholder="https://example.com/dialogue.mp3"/>
+          </div>
+
+          <div class="tip">💡 Tips: Use a front-facing portrait. Keep audio under 60s. Avoid heavy background music in the dialogue clip.</div>
+          <button class="submit-btn" id="btn-avatar">Generate Talking Avatar</button>
+        </div>
+      </div>
+
+      <!-- Avatar Results -->
+      <div>
+        <div class="card">
+          <div class="results-title">Results</div>
+          <div id="avatar-results"><div class="empty-state">Generate a talking avatar to see results here.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- MOTION CONTROL                                   -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="section" id="section-motion">
+
+    <div class="model-grid" id="motion-model-grid" style="grid-template-columns:1fr 1fr;max-width:500px">
+      <div class="model-card selected" data-model="kling-v3.0-pro-motion-control">
+        <div class="mc-name">Kling v3.0 Pro</div>
+        <div class="mc-badge">$0.16/sec</div>
+      </div>
+      <div class="model-card" data-model="kling-v3.0-std-motion-control">
+        <div class="mc-name">Kling v3.0 Standard</div>
+        <div class="mc-badge">Motion Control</div>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <b>Kling v3.0 Motion Control</b> — Precisely define camera movement (pan, tilt, orbit, dolly, zoom) and subject/object dynamics. Provide a reference image + a reference motion video, and the model generates a new video following those motion patterns.
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <div class="card">
+          <h3>Inputs</h3>
+
+          <!-- Reference image -->
+          <label>Reference Image <span style="color:#f87171">*</span> <span class="tip" style="display:inline">(max 300px, max 10MB)</span></label>
+          <div class="src-tabs" id="mc-img-src-tabs">
+            <div class="src-tab active" data-src="upload">Upload</div>
+            <div class="src-tab" data-src="url">URL</div>
+          </div>
+          <div id="mc-img-upload-wrap">
+            <div class="dropzone" id="mc-img-dropzone">
+              <input type="file" id="mc-img-file" accept="image/*"/>
+              <p><span>Choose image</span></p>
+            </div>
+            <div class="uploading-ind" id="mc-img-uploading">Uploading…</div>
+            <div class="preview-wrap" id="mc-img-preview">
+              <div class="preview-bar"><span id="mc-img-fname">image.jpg</span><span class="rm" id="mc-img-rm">✕ Remove</span></div>
+              <img id="mc-img-thumb" src="" alt="Preview"/>
+            </div>
+          </div>
+          <div id="mc-img-url-wrap" style="display:none">
+            <input type="text" id="mc-image-url" placeholder="https://example.com/frame.jpg"/>
+          </div>
+
+          <!-- Reference motion video -->
+          <label style="margin-top:18px">Motion Reference Video <span style="color:#f87171">*</span> <span class="tip" style="display:inline">(max 300px, max 10MB)</span></label>
+          <div class="src-tabs" id="mc-vid-src-tabs">
+            <div class="src-tab active" data-src="upload">Upload</div>
+            <div class="src-tab" data-src="url">URL</div>
+          </div>
+          <div id="mc-vid-upload-wrap">
+            <div class="dropzone" id="mc-vid-dropzone">
+              <input type="file" id="mc-vid-file" accept="video/*"/>
+              <p><span>Choose video</span></p>
+            </div>
+            <div class="uploading-ind" id="mc-vid-uploading">Uploading…</div>
+            <div class="preview-wrap" id="mc-vid-preview">
+              <div class="preview-bar"><span id="mc-vid-fname">video.mp4</span><span class="rm" id="mc-vid-rm">✕ Remove</span></div>
+              <video id="mc-vid-player" controls muted></video>
+            </div>
+          </div>
+          <div id="mc-vid-url-wrap" style="display:none">
+            <input type="text" id="mc-video-url" placeholder="https://example.com/motion-reference.mp4"/>
+          </div>
+
+          <!-- Prompt -->
+          <label style="margin-top:18px">Motion Prompt <span style="color:#555">(optional)</span></label>
+          <textarea id="mc-prompt" placeholder="Slow dolly forward, gentle pan left, subject walks toward camera with dramatic lighting…"></textarea>
+          <div class="tip">💡 Describe camera movement: pan, tilt, orbit, dolly, zoom. Or describe subject behaviour.</div>
+
+          <label style="margin-top:18px">Character Orientation</label>
+          <select id="mc-orientation">
+            <option value="image">Image (max 10s — orientation from reference image)</option>
+            <option value="video">Video (max 30s — orientation follows reference video)</option>
+          </select>
+
+          <div style="display:flex;align-items:center;gap:8px;margin-top:14px">
+            <input type="checkbox" id="mc-sound" style="width:16px;height:16px;accent-color:#f59e0b;cursor:pointer" checked/>
+            <label for="mc-sound" style="margin:0;font-size:.8rem;color:#aaa;cursor:pointer">Keep Original Sound</label>
+          </div>
+
+          <button class="submit-btn motion" id="btn-motion">Generate Motion Video</button>
+        </div>
+      </div>
+
+      <!-- Motion Results -->
+      <div>
+        <div class="card">
+          <div class="results-title">Results</div>
+          <div id="motion-results"><div class="empty-state">Submit a motion control job to see results.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /wrapper -->
+
+<script>
+// ─── Section tabs ───────────────────────────────────────
+document.querySelectorAll('.section-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.section-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('section-' + tab.dataset.section).classList.add('active');
+  });
+});
+
+// ─── Avatar model picker ────────────────────────────────
+const AVATAR_DESCS = {
+  'kling-v2-avatar-pro':
+    '<b>Kling v2 Avatar Pro</b> — Takes a reference image and audio dialogue clip, then generates a realistic talking-avatar video. Preserves identity, lip syncs accurately, adds natural head movement, eye motion, expressions, and cinematic lighting.',
+  'kling-v2-avatar-standard':
+    '<b>Kling v2 Avatar Standard</b> — Generates a talking-avatar video from a reference image and audio dialogue. Accurate lip-sync, natural facial expressions, subtle head motion, blinking, and emotional cues based on voice tone. Faster than Pro.',
+  'wan2.2-speech-to-video':
+    '<b>WAN 2.2 Speech-to-Video</b> — Transforms a static image into a talking video by synchronizing lip movements and facial expressions with audio input. Generates a natural, expressive video where the subject speaks your lines.',
+};
+
+let selectedAvatarModel = 'kling-v2-avatar-pro';
+document.querySelectorAll('#avatar-model-grid .model-card').forEach(card => {
+  card.addEventListener('click', () => {
+    document.querySelectorAll('#avatar-model-grid .model-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    selectedAvatarModel = card.dataset.model;
+    document.getElementById('avatar-model-desc').innerHTML = AVATAR_DESCS[selectedAvatarModel] || '';
+  });
+});
+
+let selectedMotionModel = 'kling-v3.0-pro-motion-control';
+document.querySelectorAll('#motion-model-grid .model-card').forEach(card => {
+  card.addEventListener('click', () => {
+    document.querySelectorAll('#motion-model-grid .model-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    selectedMotionModel = card.dataset.model;
+  });
+});
+
+// ─── Generic upload helper ──────────────────────────────
+function makeUploader({ srcTabsId, uploadWrapId, urlWrapId, dropzoneId, fileInputId, uploadingId, previewId, fnameId, rmId, thumbId, mediaType, onUploaded }) {
+  let uploadedUrl = null;
+  let srcMode = 'upload';
+
+  const srcTabs  = document.querySelectorAll(`#${srcTabsId} .src-tab`);
+  const upWrap   = document.getElementById(uploadWrapId);
+  const urlWrap  = document.getElementById(urlWrapId);
+  const dropzone = document.getElementById(dropzoneId);
+  const fileInput= document.getElementById(fileInputId);
+  const uploading= document.getElementById(uploadingId);
+  const preview  = document.getElementById(previewId);
+  const fnameEl  = document.getElementById(fnameId);
+  const rmEl     = document.getElementById(rmId);
+  const thumbEl  = thumbId ? document.getElementById(thumbId) : null;
+
+  srcTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      srcTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      srcMode = tab.dataset.src;
+      if (upWrap)  upWrap.style.display  = srcMode === 'upload' ? 'block' : 'none';
+      if (urlWrap) urlWrap.style.display = srcMode === 'url'    ? 'block' : 'none';
+      if (srcMode === 'url') { uploadedUrl = null; onUploaded(null); }
+    });
+  });
+
+  dropzone?.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+  dropzone?.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+  dropzone?.addEventListener('drop', e => { e.preventDefault(); dropzone.classList.remove('drag-over'); const f = e.dataTransfer.files[0]; if (f) doUpload(f); });
+  fileInput?.addEventListener('change', e => { if (e.target.files[0]) doUpload(e.target.files[0]); });
+
+  rmEl?.addEventListener('click', () => {
+    uploadedUrl = null;
+    onUploaded(null);
+    preview.style.display = 'none';
+    fileInput.value = '';
+    dropzone.style.display = 'block';
+    if (thumbEl) thumbEl.src = '';
+  });
+
+  async function doUpload(file) {
+    uploading.style.display = 'block';
+    dropzone.style.display  = 'none';
+    const fd = new FormData();
+    fd.append('file', file);
+    try {
+      const res  = await fetch('/upload', { method:'POST', body: fd });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      uploadedUrl = data.url;
+      onUploaded(uploadedUrl);
+      if (fnameEl) fnameEl.textContent = file.name;
+      if (thumbEl) thumbEl.src = uploadedUrl;
+      preview.style.display = 'block';
+    } catch (e) {
+      alert('Upload failed: ' + e.message);
+      dropzone.style.display = 'block';
+    } finally {
+      uploading.style.display = 'none';
+    }
+  }
+
+  return {
+    getUrl: () => {
+      if (srcMode === 'upload') return uploadedUrl;
+      const urlInput = urlWrap?.querySelector('input');
+      return urlInput ? urlInput.value.trim() : null;
+    }
+  };
+}
+
+// Avatar uploaders
+let avatarImgUploaded  = null;
+let avatarAudioUploaded = null;
+const avatarImgUploader = makeUploader({
+  srcTabsId:'img-src-tabs', uploadWrapId:'img-upload-wrap', urlWrapId:'img-url-wrap',
+  dropzoneId:'img-dropzone', fileInputId:'img-file', uploadingId:'img-uploading',
+  previewId:'img-preview', fnameId:'img-fname', rmId:'img-rm', thumbId:'img-thumb',
+  onUploaded: url => { avatarImgUploaded = url; }
+});
+const avatarAudioUploader = makeUploader({
+  srcTabsId:'audio-src-tabs', uploadWrapId:'audio-upload-wrap', urlWrapId:'audio-url-wrap',
+  dropzoneId:'audio-dropzone', fileInputId:'audio-file', uploadingId:'audio-uploading',
+  previewId:'audio-preview', fnameId:'audio-fname', rmId:'audio-rm',
+  onUploaded: url => {
+    avatarAudioUploaded = url;
+    document.getElementById('audio-player').src = url || '';
+  }
+});
+
+// Motion Control uploaders
+let mcImgUploaded = null;
+let mcVidUploaded = null;
+const mcImgUploader = makeUploader({
+  srcTabsId:'mc-img-src-tabs', uploadWrapId:'mc-img-upload-wrap', urlWrapId:'mc-img-url-wrap',
+  dropzoneId:'mc-img-dropzone', fileInputId:'mc-img-file', uploadingId:'mc-img-uploading',
+  previewId:'mc-img-preview', fnameId:'mc-img-fname', rmId:'mc-img-rm', thumbId:'mc-img-thumb',
+  onUploaded: url => { mcImgUploaded = url; }
+});
+const mcVidUploader = makeUploader({
+  srcTabsId:'mc-vid-src-tabs', uploadWrapId:'mc-vid-upload-wrap', urlWrapId:'mc-vid-url-wrap',
+  dropzoneId:'mc-vid-dropzone', fileInputId:'mc-vid-file', uploadingId:'mc-vid-uploading',
+  previewId:'mc-vid-preview', fnameId:'mc-vid-fname', rmId:'mc-vid-rm',
+  onUploaded: url => {
+    mcVidUploaded = url;
+    document.getElementById('mc-vid-player').src = url || '';
+  }
+});
+
+// ─── Submit: Talking Avatar ─────────────────────────────
+document.getElementById('btn-avatar').addEventListener('click', async function() {
+  const imgUrl   = avatarImgUploader.getUrl();
+  const audioUrl = avatarAudioUploader.getUrl();
+  if (!imgUrl)   { alert('Please provide a reference image.'); return; }
+  if (!audioUrl) { alert('Please provide an audio dialogue.'); return; }
+
+  setBtn(this, true, 'Generating…');
+  try {
+    const res  = await fetch('/api/avatars/generate', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ model: selectedAvatarModel, image_url: imgUrl, audio_url: audioUrl })
+    });
+    const data = await res.json();
+    if (data.error) { alert('Error: ' + data.error); return; }
+    const label = document.querySelector(`#avatar-model-grid .model-card.selected .mc-name`)?.textContent || 'Avatar';
+    addResultCard('avatar-results', data.request_id, label, '', 'video');
+    pollResult('avatar', data.request_id);
+  } catch (e) {
+    alert('Request failed: ' + e.message);
+  } finally {
+    setBtn(this, false, 'Generate Talking Avatar');
+  }
+});
+
+// ─── Submit: Motion Control ─────────────────────────────
+document.getElementById('btn-motion').addEventListener('click', async function() {
+  const imgUrl = mcImgUploader.getUrl();
+  const vidUrl = mcVidUploader.getUrl();
+  const prompt = document.getElementById('mc-prompt').value.trim();
+  if (!imgUrl) { alert('Please provide a reference image.'); return; }
+  if (!vidUrl) { alert('Please provide a motion reference video.'); return; }
+
+  setBtn(this, true, 'Processing…');
+  try {
+    const res  = await fetch('/api/avatars/motion-control', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model: selectedMotionModel,
+        image_url: imgUrl,
+        video_url: vidUrl,
+        prompt,
+        character_orientation: document.getElementById('mc-orientation').value,
+        keep_original_sound:   document.getElementById('mc-sound').checked,
+      })
+    });
+    const data = await res.json();
+    if (data.error) { alert('Error: ' + data.error); return; }
+    const label = document.querySelector(`#motion-model-grid .model-card.selected .mc-name`)?.textContent || 'Motion';
+    addResultCard('motion-results', data.request_id, label, prompt, 'video');
+    pollResult('motion', data.request_id);
+  } catch (e) {
+    alert('Request failed: ' + e.message);
+  } finally {
+    setBtn(this, false, 'Generate Motion Video');
+  }
+});
+
+// ─── Result card + polling ──────────────────────────────
+function addResultCard(containerId, requestId, label, desc, mediaType) {
+  const container = document.getElementById(containerId);
+  container.querySelector('.empty-state')?.remove();
+  const el = document.createElement('div');
+  el.className = 'result-item';
+  el.id = 'res-' + requestId;
+  el.innerHTML = `
+    <div class="result-header">
+      <div>
+        <div class="result-label">${esc(label)}</div>
+        ${desc ? `<div class="result-sub">"${esc(desc)}"</div>` : ''}
+      </div>
+      <span class="badge processing"><span class="spinner"></span> Processing</span>
+    </div>
+    <div class="res-body"></div>`;
+  container.prepend(el);
+}
+
+function pollResult(type, requestId) {
+  const interval = setInterval(async () => {
+    try {
+      const res  = await fetch('/api/avatars/status/' + requestId, { headers: {} });
+      const data = await res.json();
+      const el   = document.getElementById('res-' + requestId);
+      if (!el) { clearInterval(interval); return; }
+      const badge = el.querySelector('.badge');
+      const body  = el.querySelector('.res-body');
+
+      if (data.status === 'completed') {
+        clearInterval(interval);
+        badge.className = 'badge completed';
+        badge.textContent = '✓ Completed';
+        const url = data.url;
+        body.innerHTML = url
+          ? `<video controls autoplay loop src="${url}"></video>
+             <div class="media-link"><a href="${url}" target="_blank">${url}</a></div>`
+          : `<div class="err-txt">Completed but no video URL found in response.</div>`;
+      } else if (data.status === 'failed') {
+        clearInterval(interval);
+        badge.className = 'badge failed';
+        badge.textContent = '✗ Failed';
+        body.innerHTML = `<div class="err-txt">${esc(data.error || 'Generation failed.')}</div>`;
+      }
+    } catch (e) { console.error('Poll error:', e); }
+  }, 5000);
+}
+
+function setBtn(btn, disabled, text) { btn.disabled = disabled; btn.textContent = text; }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+</script>
+
+{% include 'legal_footer.html' %}
+</body>
+</html>

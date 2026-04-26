@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UGC Studio — KAMOD AI</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0a0a0f;color:#e0e0e0;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:36px 20px 100px}
+
+    nav{width:100%;max-width:1100px;display:flex;flex-direction:column;align-items:center;gap:12px;margin:0 auto 36px}
+    nav .logo{font-size:1.15rem;font-weight:700;background:linear-gradient(135deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-.01em}
+    .nav-grouped{display:flex;align-items:flex-end;gap:0;background:#0d0d16;border:1px solid #1c1c2e;border-radius:13px;padding:5px 8px;overflow-x:auto;max-width:100%;scrollbar-width:none}
+    .nav-grouped::-webkit-scrollbar{display:none}
+    .nav-group{display:flex;flex-direction:column;align-items:center;gap:2px;padding:0 2px}
+    .nav-group-label{font-size:.58rem;font-weight:800;letter-spacing:.1em;color:#252535;text-transform:uppercase;transition:color .2s;padding:0 4px;user-select:none}
+    .nav-group.has-active .nav-group-label{color:#6060a0}
+    .nav-group-items{display:flex;gap:1px}
+    .nav-grouped a{color:#555;text-decoration:none;font-size:.77rem;font-weight:500;padding:6px 11px;border-radius:8px;transition:all .15s;white-space:nowrap;letter-spacing:.01em}
+    .nav-grouped a:hover{color:#bbb;background:rgba(255,255,255,.05)}
+    .nav-grouped a.active{background:linear-gradient(135deg,#6d5fd6,#3b7dd8);color:#fff;font-weight:600;box-shadow:0 0 14px rgba(109,95,214,.45)}
+    .nav-sep{width:1px;height:28px;background:#1c1c2e;margin:0 5px 3px;flex-shrink:0;align-self:flex-end}
+
+    header{text-align:center;margin-bottom:32px}
+    header h1{font-size:2.1rem;font-weight:700;background:linear-gradient(135deg,#f472b6,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    header .sub{color:#888;margin-top:8px;font-size:.9rem;max-width:520px;line-height:1.55}
+    header .powered{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:4px 12px;border-radius:20px;background:linear-gradient(135deg,rgba(244,114,182,.1),rgba(167,139,250,.1));border:1px solid rgba(244,114,182,.25);font-size:.72rem;font-weight:600;color:#f472b6;letter-spacing:.04em}
+
+    .wrapper{width:100%;max-width:900px}
+
+    /* Mode selector */
+    .mode-tabs{display:flex;gap:8px;margin-bottom:20px}
+    .mode-tab{flex:1;padding:14px 10px;border:2px solid #1e1e30;border-radius:12px;background:#0d0d18;cursor:pointer;text-align:center;transition:all .2s;user-select:none}
+    .mode-tab:hover{border-color:#a78bfa44;background:#10101e}
+    .mode-tab.active{border-color:#a78bfa;background:rgba(167,139,250,.08);box-shadow:0 0 20px rgba(167,139,250,.12)}
+    .mode-tab .mt-icon{font-size:1.5rem;margin-bottom:5px}
+    .mode-tab .mt-label{font-size:.78rem;font-weight:700;color:#ccc;letter-spacing:.02em}
+    .mode-tab .mt-sub{font-size:.65rem;color:#555;margin-top:2px}
+    .mode-tab.active .mt-label{color:#a78bfa}
+    .mode-tab.active .mt-sub{color:#7757cc}
+
+    /* Cards */
+    .card{background:#13131a;border:1px solid #222233;border-radius:14px;padding:22px;margin-bottom:14px}
+    .card-title{font-size:.73rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#444;margin-bottom:14px}
+    .card-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    @media(max-width:540px){.card-row{grid-template-columns:1fr}}
+
+    /* Labels & Inputs */
+    .field-label{font-size:.73rem;color:#777;margin-bottom:5px;display:block}
+    .field-label span{color:#f87171;margin-left:2px}
+    input[type=text],input[type=number],textarea,select{width:100%;background:#0e0e18;border:1px solid #2a2a3a;border-radius:8px;color:#e0e0e0;font-size:.84rem;padding:9px 12px;outline:none;transition:border-color .2s;font-family:inherit}
+    input[type=text]:focus,input[type=number]:focus,textarea:focus,select:focus{border-color:#a78bfa}
+    textarea{resize:vertical;min-height:76px;line-height:1.5}
+    select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23555'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;cursor:pointer}
+    .field-hint{font-size:.67rem;color:#444;margin-top:4px;line-height:1.4}
+
+    /* Upload zone */
+    .upload-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+    @media(max-width:480px){.upload-grid{grid-template-columns:1fr}}
+    .upload-zone{border:1px solid #1e1e2e;border-radius:10px;background:#0e0e18;cursor:pointer;transition:border-color .2s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:110px;position:relative;overflow:hidden}
+    .upload-zone:hover{border-color:#a78bfa66}
+    .upload-zone.has-img{border-style:solid;border-color:#a78bfa55}
+    .upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+    .upload-zone img.preview{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;border-radius:8px;pointer-events:none}
+    .upload-zone .uz-icon{font-size:1.5rem;pointer-events:none;z-index:1}
+    .upload-zone .uz-label{font-size:.71rem;color:#666;pointer-events:none;z-index:1;text-align:center;padding:0 10px}
+    .upload-zone .uz-rm{position:absolute;top:6px;right:6px;z-index:10;background:rgba(0,0,0,.8);border:none;color:#f87171;border-radius:50%;width:20px;height:20px;font-size:.65rem;cursor:pointer;display:none;align-items:center;justify-content:center;padding:0;line-height:1}
+    .upload-zone.has-img .uz-rm{display:flex}
+    .upload-zone.lifestyle-optional{border-color:#1e1e2e}
+
+    /* Pill selectors */
+    .pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+    .pill{padding:5px 13px;border-radius:20px;border:1px solid #2a2a3a;background:#0e0e18;color:#666;font-size:.73rem;font-weight:500;cursor:pointer;transition:all .15s;user-select:none}
+    .pill:hover{border-color:#a78bfa55;color:#bbb}
+    .pill.selected{border-color:#a78bfa;background:rgba(167,139,250,.12);color:#a78bfa;font-weight:600}
+
+    /* Segmented buttons */
+    .seg-group{display:flex;gap:1px;background:#0a0a12;border:1px solid #2a2a3a;border-radius:8px;overflow:hidden;width:fit-content}
+    .seg-btn{padding:7px 16px;font-size:.75rem;font-weight:500;cursor:pointer;color:#555;background:transparent;border:none;transition:all .15s;user-select:none}
+    .seg-btn:hover{color:#bbb;background:rgba(255,255,255,.04)}
+    .seg-btn.selected{background:rgba(167,139,250,.15);color:#a78bfa;font-weight:600}
+    .seg-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+
+    /* Mode-specific panels */
+    .mode-panel{display:none}
+    .mode-panel.visible{display:block}
+
+    /* Features inputs (product review) */
+    .features-grid{display:flex;flex-direction:column;gap:6px}
+    .feature-input{display:flex;align-items:center;gap:8px}
+    .feature-num{font-size:.75rem;font-weight:700;color:#555;min-width:16px}
+
+    /* Generate button */
+    .gen-btn{width:100%;padding:15px;border:none;border-radius:11px;background:linear-gradient(135deg,#9333ea,#3b82f6);color:#fff;font-size:.97rem;font-weight:600;cursor:pointer;transition:all .2s;letter-spacing:.02em;margin-top:4px;display:flex;align-items:center;justify-content:center;gap:9px}
+    .gen-btn:hover:not(:disabled){background:linear-gradient(135deg,#a855f7,#4f90f9);transform:translateY(-1px);box-shadow:0 4px 22px rgba(147,51,234,.4)}
+    .gen-btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+    .btn-spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
+    .gen-btn.loading .btn-spin{display:inline-block}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* Progress */
+    .progress-box{background:#0e0e18;border:1px solid #1e1e2e;border-radius:10px;padding:14px 16px;margin-top:14px;display:none}
+    .progress-box.visible{display:block}
+    .progress-steps{display:flex;flex-direction:column;gap:8px}
+    .progress-step{display:flex;align-items:center;gap:9px;font-size:.78rem;color:#444;transition:color .3s}
+    .progress-step.active{color:#a78bfa}
+    .progress-step.done{color:#4ade80}
+    .step-dot{width:7px;height:7px;border-radius:50%;background:#2a2a3a;flex-shrink:0;transition:background .3s}
+    .progress-step.active .step-dot{background:#a78bfa;animation:pulse 1.4s ease-in-out infinite}
+    .progress-step.done .step-dot{background:#4ade80}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+    /* Error */
+    .error-box{background:#1a0a0a;border:1px solid #3a1515;border-radius:8px;padding:11px 14px;color:#f87171;font-size:.79rem;margin-top:12px;display:none;line-height:1.55}
+    .error-box.visible{display:block}
+
+    /* Results */
+    .result-section{display:none;margin-top:24px}
+    .result-section.visible{display:block}
+    .result-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+    .lang-badge{font-size:.65rem;font-weight:700;padding:3px 10px;border-radius:12px;background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.25);color:#60a5fa;letter-spacing:.05em;text-transform:uppercase}
+    .concept-card{background:#13131a;border:1px solid #222233;border-radius:12px;padding:16px 18px;margin-bottom:18px}
+    .concept-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#444;margin-bottom:8px}
+    .concept-text{font-size:.84rem;color:#bbb;line-height:1.6}
+
+    /* Variation cards */
+    .variations-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+    @media(max-width:760px){.variations-grid{grid-template-columns:1fr}}
+    .var-card{background:#13131a;border:2px solid #1e1e2e;border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px;transition:border-color .2s}
+    .var-card:hover{border-color:#a78bfa33}
+    .var-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+    .var-tag{font-size:.62rem;font-weight:700;padding:2px 8px;border-radius:8px;white-space:nowrap}
+    .var-tag.a{background:rgba(167,139,250,.15);color:#a78bfa;border:1px solid rgba(167,139,250,.3)}
+    .var-tag.b{background:rgba(96,165,250,.15);color:#60a5fa;border:1px solid rgba(96,165,250,.3)}
+    .var-tag.c{background:rgba(52,211,153,.15);color:#34d399;border:1px solid rgba(52,211,153,.3)}
+    .var-title{font-size:.82rem;font-weight:600;color:#ddd;line-height:1.35}
+    .var-angle{font-size:.74rem;color:#666;line-height:1.45}
+    .var-meta{display:flex;flex-wrap:wrap;gap:5px}
+    .var-chip{font-size:.63rem;padding:2px 8px;border-radius:6px;background:#0e0e18;border:1px solid #2a2a3a;color:#555}
+    .var-spoken{font-size:.74rem;font-style:italic;color:#888;background:#0e0e18;border-left:2px solid #a78bfa44;padding:7px 10px;border-radius:0 7px 7px 0;line-height:1.5}
+    .var-prompt-wrap{position:relative}
+    .var-prompt{font-size:.72rem;color:#999;line-height:1.6;background:#0a0a12;border:1px solid #1e1e2e;border-radius:8px;padding:10px 12px;max-height:120px;overflow-y:auto}
+    .copy-btn{position:absolute;top:6px;right:6px;background:#1e1e30;border:1px solid #2a2a3a;color:#666;font-size:.62rem;padding:3px 8px;border-radius:5px;cursor:pointer;transition:all .15s}
+    .copy-btn:hover{color:#a78bfa;border-color:#a78bfa55}
+    .copy-btn.copied{color:#4ade80;border-color:#4ade8055}
+
+    /* Per-variation video generation */
+    .gen-video-btn{width:100%;padding:10px;border:none;border-radius:9px;background:linear-gradient(135deg,#7c3aed,#1d4ed8);color:#fff;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:7px;margin-top:2px}
+    .gen-video-btn:hover:not(:disabled){background:linear-gradient(135deg,#8b47f5,#2563eb);box-shadow:0 3px 14px rgba(124,58,237,.35)}
+    .gen-video-btn:disabled{opacity:.45;cursor:not-allowed}
+    .gen-video-btn.loading .vbtn-spin{display:inline-block}
+    .vbtn-spin{width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
+    .var-video-wrap{display:none;margin-top:6px;border-radius:9px;overflow:hidden;border:1px solid #2a2a3a}
+    .var-video-wrap video{width:100%;display:block;max-height:280px;background:#000}
+    .var-video-err{font-size:.72rem;color:#f87171;margin-top:6px;display:none}
+
+    /* Editable prompt */
+    .var-prompt-edit{width:100%;background:#0a0a12;border:1px solid #1e1e2e;border-radius:8px;color:#ccc;font-size:.72rem;line-height:1.6;padding:10px 12px;resize:none;min-height:140px;overflow:hidden;outline:none;font-family:inherit;transition:border-color .2s}
+    .var-prompt-edit:focus{border-color:#a78bfa55}
+    .var-prompt-edit.structured{min-height:200px}
+    .prompt-actions{display:flex;align-items:center;gap:6px;margin-top:5px}
+    .reset-prompt-btn{background:none;border:1px solid #2a2a3a;color:#555;font-size:.62rem;padding:3px 8px;border-radius:5px;cursor:pointer;transition:all .15s;white-space:nowrap}
+    .reset-prompt-btn:hover{color:#f87171;border-color:#f8717144}
+    .ref-warn{font-size:.64rem;color:#f59e0b;background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);border-radius:6px;padding:5px 9px;margin-top:5px;line-height:1.45}
+
+    /* Advanced section */
+    .adv-card{padding:16px 22px}
+    .adv-toggle{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+    .adv-title{font-size:.73rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#444}
+    .adv-chevron{color:#444;font-size:.7rem;transition:transform .2s;margin-left:6px}
+    .adv-chevron.open{transform:rotate(90deg)}
+    .adv-body{margin-top:14px;display:none}
+    .adv-body.open{display:block}
+
+    /* Aspect ratio hint */
+    .ratio-hint{font-size:.64rem;color:#3a3a50;margin-top:7px;line-height:1.5;font-style:italic}
+
+    /* Copy button inside .prompt-actions must not float absolute */
+    .prompt-actions .copy-btn{position:static;margin-left:auto}
+    {% if embed %}
+    body{background:transparent;padding:0;align-items:stretch}
+    .wrapper{max-width:none;padding:0}
+    .mode-tabs{
+      padding:6px;
+      border-radius:18px;
+      background:#0a0d16;
+      border:1px solid #20263b;
+    }
+    .mode-tab{
+      border:0;
+      border-radius:13px;
+      background:transparent;
+      min-height:70px;
+    }
+    .mode-tab.active{
+      background:linear-gradient(135deg,rgba(244,114,182,.24),rgba(142,167,255,.14));
+      border-color:transparent;
+    }
+    .card,.adv-card{
+      border-radius:22px;
+      border-color:#242c44;
+      background:linear-gradient(180deg,rgba(17,22,37,.98),rgba(11,15,26,.98));
+    }
+    .upload-zone{
+      border-style:dashed;
+      border-color:#2c3656;
+      border-radius:16px;
+      background:#0b1020;
+    }
+    input[type=text],input[type=number],textarea,select{
+      background:#090c16;
+      border-color:#252d44;
+      border-radius:12px;
+    }
+    .result-card,.var-card,.variant-card{
+      border-color:#222a40;
+      background:#0d1220;
+      border-radius:18px;
+    }
+    @media(max-width:900px){
+      .card-row,.upload-grid{grid-template-columns:1fr}
+    }
+    {% endif %}
+  </style>
+</head>
+<body>
+
+{% if not embed %}
+<nav>
+  <span class="logo">KAMOD AI</span>
+  <div class="nav-grouped">
+    <div class="nav-group has-active">
+      <span class="nav-group-label">CREATE</span>
+      <div class="nav-group-items">
+        <a href="/">Seedance 2.0</a>
+        <a href="/ai-videos">AI Video Tools</a>
+        <a href="/ai-director">Director</a>
+        <a href="/images">AI Images</a>
+        <a href="/storyboard">Storyboard</a>
+        <a href="/ugc-studio" class="active">UGC Studio</a>
+      </div>
+    </div>
+    <div class="nav-sep"></div>
+    <div class="nav-group">
+      <span class="nav-group-label">ENHANCE</span>
+      <div class="nav-group-items">
+        <a href="/audio">Audio</a>
+        <a href="/avatars">Avatars</a>
+      </div>
+    </div>
+    <div class="nav-sep"></div>
+    <div class="nav-group">
+      <span class="nav-group-label">DELIVER</span>
+      <div class="nav-group-items">
+        <a href="/analytics">Analytics</a>
+        <a href="/dashboard">Dashboard</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <h1>UGC Studio</h1>
+  <p class="sub">Choose your content type, upload your product, type your idea in any language — get 3 ready-to-generate Seedance prompts.</p>
+  <span class="powered">✦ Powered by BytePlus &amp; Kamod UGC Studio</span>
+</header>
+{% endif %}
+
+<div class="wrapper">
+
+  <!-- Mode tabs -->
+  <div class="mode-tabs">
+    <div class="mode-tab active" data-mode="product_review">
+      <div class="mt-label">Product Review</div>
+      <div class="mt-sub">Honest · Creator-style</div>
+    </div>
+    <div class="mode-tab" data-mode="lifestyle_ad">
+      <div class="mt-label">Lifestyle Ad</div>
+      <div class="mt-sub">Aspirational · Emotional</div>
+    </div>
+    <div class="mode-tab" data-mode="unboxing_asmr">
+      <div class="mt-label">Unboxing / ASMR</div>
+      <div class="mt-sub">Satisfying · Sensory</div>
+    </div>
+  </div>
+
+  <!-- Upload card -->
+  <div class="card">
+    <div class="card-title">Assets</div>
+    <div class="upload-grid">
+      <div>
+        <label class="field-label">Product Image <span>*</span></label>
+        <div class="upload-zone" id="product-upload">
+          <input type="file" accept="image/*" id="product-file"/>
+          <img class="preview" id="product-preview" style="display:none"/>
+          <div class="uz-label">Click or drop product photo</div>
+          <button class="uz-rm" id="product-rm" type="button">✕</button>
+        </div>
+      </div>
+      <div>
+        <label class="field-label">Influencer / Character <span style="color:#555;font-weight:400">(optional)</span></label>
+        <div class="upload-zone" id="influencer-upload">
+          <input type="file" accept="image/*" id="influencer-file"/>
+          <img class="preview" id="influencer-preview" style="display:none"/>
+          <div class="uz-label">Creator or character photo</div>
+          <button class="uz-rm" id="influencer-rm" type="button">✕</button>
+        </div>
+      </div>
+      <div id="mood-upload-wrap">
+        <label class="field-label" id="mood-upload-label">Mood / Atmosphere Image <span style="color:#555">(optional)</span></label>
+        <div class="upload-zone lifestyle-optional" id="mood-upload">
+          <input type="file" accept="image/*" id="mood-file"/>
+          <img class="preview" id="mood-preview" style="display:none"/>
+          <div class="uz-label" id="mood-uz-label">Lifestyle mood reference</div>
+          <button class="uz-rm" id="mood-rm" type="button">✕</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Product info -->
+  <div class="card">
+    <div class="card-title">Product Info</div>
+    <div class="card-row">
+      <div>
+        <label class="field-label" for="product-name">Product Name</label>
+        <input type="text" id="product-name" placeholder="e.g. Glow Serum, AirPods Pro, Nike Air Max…"/>
+      </div>
+      <div>
+        <label class="field-label" for="product-category">Product Category</label>
+        <select id="product-category">
+          <option value="">Select category…</option>
+          <option value="Beauty">Beauty</option>
+          <option value="Tech">Tech</option>
+          <option value="Fashion">Fashion</option>
+          <option value="Food">Food</option>
+          <option value="Wellness">Wellness</option>
+          <option value="Home">Home</option>
+          <option value="Fitness">Fitness</option>
+          <option value="Travel">Travel</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-top:12px">
+      <label class="field-label" for="product-desc">Short Product Description</label>
+      <textarea id="product-desc" rows="2" placeholder="What does this product do? What makes it special?"></textarea>
+    </div>
+  </div>
+
+  <!-- Idea -->
+  <div class="card">
+    <div class="card-title">Your Idea</div>
+    <label class="field-label" for="user-idea">Describe your concept <span style="color:#555;font-weight:400;text-transform:none;letter-spacing:0">— type in Uzbek, Russian, or English</span></label>
+    <textarea id="user-idea" rows="3" placeholder="Fikringizni yozing… / Напишите вашу идею… / Describe your idea…"></textarea>
+    <p class="field-hint">The AI will detect your language, understand your idea, and generate Seedance prompts in English.</p>
+    <div style="margin-top:14px">
+      <label class="field-label" for="spoken-hook">Spoken Hook / Opening Line <span style="color:#555;font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+      <input type="text" id="spoken-hook" placeholder="e.g. Ushbu mahsulot hayotimni o'zgartirdi… / Это изменило мою жизнь…"/>
+      <p class="field-hint">The line your creator says on camera. You can write it in any language — AI will translate it.</p>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="card">
+    <div class="card-title">Mood & Style</div>
+    <label class="field-label">Mood / Vibe</label>
+    <div class="pills" id="mood-pills">
+      <div class="pill selected" data-val="Authentic">Authentic</div>
+      <div class="pill" data-val="Excited">Excited</div>
+      <div class="pill" data-val="Premium">Premium</div>
+      <div class="pill" data-val="Calm">Calm</div>
+      <div class="pill" data-val="Aspirational">Aspirational</div>
+      <div class="pill" data-val="Energetic">Energetic</div>
+      <div class="pill" data-val="Cozy">Cozy</div>
+      <div class="pill" data-val="Luxury">Luxury</div>
+      <div class="pill" data-val="Minimal">Minimal</div>
+      <div class="pill" data-val="Dramatic">Dramatic</div>
+    </div>
+    <div style="margin-top:16px">
+      <label class="field-label">Speaking Style</label>
+      <div class="pills" id="speaking-pills">
+        <div class="pill selected" data-val="Talking to camera">Talking to camera</div>
+        <div class="pill" data-val="Voiceover style">Voiceover style</div>
+        <div class="pill" data-val="Minimal talking">Minimal talking</div>
+        <div class="pill" data-val="No talking">No talking</div>
+      </div>
+    </div>
+    <div style="margin-top:16px">
+      <label class="field-label" for="target-audience">Target Audience <span style="color:#555;font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+      <input type="text" id="target-audience" placeholder="e.g. Women 25–35, fitness enthusiasts, tech early adopters…"/>
+    </div>
+  </div>
+
+  <!-- Duration & Aspect Ratio -->
+  <div class="card">
+    <div class="card-title">Format</div>
+    <div class="seg-row">
+      <div>
+        <label class="field-label" style="margin-bottom:8px">Duration</label>
+        <div class="seg-group" id="duration-seg">
+          <div class="seg-btn" data-val="5">5 sec</div>
+          <div class="seg-btn" data-val="10">10 sec</div>
+          <div class="seg-btn selected" data-val="15">15 sec</div>
+        </div>
+      </div>
+      <div>
+        <label class="field-label" style="margin-bottom:8px">Aspect Ratio</label>
+        <div class="seg-group" id="ratio-seg">
+          <div class="seg-btn selected" data-val="9:16">9:16</div>
+          <div class="seg-btn" data-val="16:9">16:9</div>
+          <div class="seg-btn" data-val="1:1">1:1</div>
+        </div>
+        <p class="ratio-hint">Reference image aspect ratio can influence final output framing. For best 9:16 results, use portrait-oriented reference images.</p>
+      </div>
+    </div>
+
+    <!-- Resolution picker -->
+    <div style="margin-top:16px">
+      <label class="field-label" style="margin-bottom:8px">Output Quality</label>
+      <div class="seg-group" id="resolution-seg">
+        <div class="seg-btn selected" data-val="">Auto</div>
+        <div class="seg-btn" data-val="480p">480p</div>
+        <div class="seg-btn" data-val="720p">720p</div>
+        <div class="seg-btn" data-val="1080p">1080p</div>
+      </div>
+      <p class="ratio-hint">Higher resolutions may increase render time. Leave on Auto to let Seedance choose.</p>
+    </div>
+  </div>
+
+  <!-- Mode-specific: Product Review -->
+  <div class="card mode-panel visible" id="panel-product_review">
+    <div class="card-title">Review Setup</div>
+    <label class="field-label">Review Angle</label>
+    <div class="pills" id="review-angle-pills">
+      <div class="pill selected" data-val="Honest first impression">Honest first impression</div>
+      <div class="pill" data-val="Problem / solution">Problem / solution</div>
+      <div class="pill" data-val="Comparison feel">Comparison feel</div>
+      <div class="pill" data-val="Viral-style hook">Viral-style hook</div>
+      <div class="pill" data-val="Personal recommendation">Personal recommendation</div>
+    </div>
+    <div style="margin-top:16px">
+      <label class="field-label">3 Key Features / Benefits <span style="color:#555;font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+      <div class="features-grid">
+        <div class="feature-input"><span class="feature-num">1.</span><input type="text" class="feat-input" placeholder="e.g. 72-hour hydration"/></div>
+        <div class="feature-input"><span class="feature-num">2.</span><input type="text" class="feat-input" placeholder="e.g. No parabens or sulfates"/></div>
+        <div class="feature-input"><span class="feature-num">3.</span><input type="text" class="feat-input" placeholder="e.g. Dermatologist tested"/></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mode-specific: Lifestyle Ad -->
+  <div class="card mode-panel" id="panel-lifestyle_ad">
+    <div class="card-title">Lifestyle Setup</div>
+    <label class="field-label">Lifestyle Angle</label>
+    <div class="pills" id="lifestyle-angle-pills">
+      <div class="pill selected" data-val="Confidence">Confidence</div>
+      <div class="pill" data-val="Joy">Joy</div>
+      <div class="pill" data-val="Freedom">Freedom</div>
+      <div class="pill" data-val="Peace">Peace</div>
+      <div class="pill" data-val="Transformation">Transformation</div>
+      <div class="pill" data-val="Daily routine">Daily routine</div>
+    </div>
+    <div style="margin-top:14px">
+      <label class="field-label">Emotional Angle</label>
+      <div class="pills" id="emotional-angle-pills">
+        <div class="pill selected" data-val="Aspirational">Aspirational</div>
+        <div class="pill" data-val="Relatable">Relatable</div>
+        <div class="pill" data-val="Empowering">Empowering</div>
+        <div class="pill" data-val="Sensory">Sensory</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mode-specific: Unboxing/ASMR -->
+  <div class="card mode-panel" id="panel-unboxing_asmr">
+    <div class="card-title">Unboxing Setup</div>
+    <label class="field-label">Reveal Style</label>
+    <div class="pills" id="reveal-style-pills">
+      <div class="pill selected" data-val="Classic">Classic</div>
+      <div class="pill" data-val="ASMR">ASMR</div>
+      <div class="pill" data-val="Dramatic reveal">Dramatic reveal</div>
+      <div class="pill" data-val="Greenscreen ad">Greenscreen ad</div>
+    </div>
+    <div style="margin-top:14px">
+      <label class="field-label">Tactile / Product Details <span style="color:#555;font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+      <textarea id="product-details" rows="2" placeholder="e.g. Matte black finish, magnetic closure, velvet interior, satisfying click…"></textarea>
+    </div>
+  </div>
+
+  <!-- Advanced -->
+  <div class="card adv-card">
+    <div class="adv-toggle" id="adv-toggle">
+      <span class="adv-title">Advanced</span>
+      <span class="adv-chevron" id="adv-chevron">▸</span>
+    </div>
+    <div class="adv-body" id="adv-body">
+      <label class="field-label" style="margin-bottom:8px">Prompt Style</label>
+      <div class="seg-group" id="prompt-style-seg">
+        <div class="seg-btn selected" data-val="standard">Standard</div>
+        <div class="seg-btn" data-val="structured">Structured / Timestamp</div>
+      </div>
+      <p class="field-hint" style="margin-top:8px">Structured mode generates timestamped prompts (e.g. <code style="color:#a78bfa;background:#0e0e18;padding:1px 5px;border-radius:4px">[00:00-00:03] Opening…</code>) for precise pacing. Best for Product Review, Unboxing, and Lifestyle.</p>
+    </div>
+  </div>
+
+  <!-- Generate -->
+  <button class="gen-btn" id="gen-btn">
+    <span class="btn-spin"></span>
+    <span id="gen-btn-text">✦ Generate UGC Prompts</span>
+  </button>
+
+  <!-- Progress -->
+  <div class="progress-box" id="progress-box">
+    <div class="progress-steps">
+      <div class="progress-step active" id="step-0"><div class="step-dot"></div>Analyzing product &amp; inputs…</div>
+      <div class="progress-step" id="step-1"><div class="step-dot"></div>Detecting language &amp; translating concept…</div>
+      <div class="progress-step" id="step-2"><div class="step-dot"></div>Generating 3 prompt variations…</div>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div class="error-box" id="error-box"></div>
+
+  <!-- Results -->
+  <div class="result-section" id="result-section">
+    <div class="result-header">
+      <div style="font-size:.78rem;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.07em">Generated Prompts</div>
+      <div class="lang-badge" id="lang-badge">English</div>
+    </div>
+
+    <div class="concept-card">
+      <div class="concept-label">Concept Summary</div>
+      <div class="concept-text" id="concept-text"></div>
+    </div>
+
+    <div class="variations-grid" id="variations-grid"></div>
+  </div>
+
+</div><!-- /wrapper -->
+
+<script>
+// ─── State ────────────────────────────────────────────────────────────────
+let currentMode           = 'product_review';
+let productImgUri         = null;
+let influencerImgUri      = null;
+let moodImgUri            = null;
+let lastSelectedAspectRatio = '9:16'; // set at generate time; used by all generateVideo() calls
+let lastRenderRefs = { product: null, influencer: null };
+
+function getPreviewDataUri(previewId) {
+  const preview = document.getElementById(previewId);
+  if (!preview || preview.style.display === 'none') return null;
+  return preview.src && preview.src.startsWith('data:') ? preview.src : null;
+}
+
+function getCurrentUgcRefs() {
+  return {
+    product: productImgUri || getPreviewDataUri('product-preview'),
+    influencer: influencerImgUri || getPreviewDataUri('influencer-preview'),
+  };
+}
+
+function buildUgcImageReferenceLine(refs = lastRenderRefs) {
+  const hasProduct = !!(refs && refs.product);
+  const hasInfluencer = !!(refs && refs.influencer);
+  if (hasProduct && hasInfluencer) {
+    return 'Using @image1 as the product reference and @image2 as the influencer/character reference.';
+  }
+  if (hasProduct) {
+    return 'Using @image1 as the product reference.';
+  }
+  if (hasInfluencer) {
+    return 'Using @image1 as the influencer/character reference.';
+  }
+  return '';
+}
+
+// ─── Mode tabs ───────────────────────────────────────────────────────────
+document.querySelectorAll('.mode-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    currentMode = tab.dataset.mode;
+    document.querySelectorAll('.mode-panel').forEach(p => p.classList.remove('visible'));
+    document.getElementById('panel-' + currentMode).classList.add('visible');
+    updateMoodSlotVisibility();
+  });
+});
+
+function updateMoodSlotVisibility() {
+  const wrap = document.getElementById('mood-upload-wrap');
+  if (currentMode === 'lifestyle_ad') {
+    wrap.style.display = '';
+    document.getElementById('mood-uz-label').textContent = 'Lifestyle mood reference (optional)';
+  } else if (currentMode === 'product_review') {
+    wrap.style.display = 'none';
+  } else {
+    wrap.style.display = 'none';
+  }
+}
+updateMoodSlotVisibility();
+
+// ─── Single-select pills ─────────────────────────────────────────────────
+function setupSinglePills(containerId) {
+  document.getElementById(containerId).querySelectorAll('.pill').forEach(p => {
+    p.addEventListener('click', () => {
+      document.getElementById(containerId).querySelectorAll('.pill').forEach(x => x.classList.remove('selected'));
+      p.classList.add('selected');
+    });
+  });
+}
+['mood-pills','speaking-pills','review-angle-pills','lifestyle-angle-pills',
+ 'emotional-angle-pills','reveal-style-pills'].forEach(setupSinglePills);
+
+// ─── Segmented buttons ───────────────────────────────────────────────────
+function setupSeg(containerId) {
+  document.getElementById(containerId).querySelectorAll('.seg-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      document.getElementById(containerId).querySelectorAll('.seg-btn').forEach(x => x.classList.remove('selected'));
+      b.classList.add('selected');
+    });
+  });
+}
+['duration-seg','ratio-seg','resolution-seg','prompt-style-seg'].forEach(setupSeg);
+
+// ─── Advanced toggle ──────────────────────────────────────────────────────
+document.getElementById('adv-toggle').addEventListener('click', () => {
+  const body    = document.getElementById('adv-body');
+  const chevron = document.getElementById('adv-chevron');
+  const open = body.classList.toggle('open');
+  chevron.classList.toggle('open', open);
+});
+
+function getSelected(containerId) {
+  const el = document.getElementById(containerId).querySelector('.selected');
+  return el ? el.dataset.val : null;
+}
+
+// ─── Image upload helpers ────────────────────────────────────────────────
+function setupUpload(fileId, zoneId, previewId, rmId, onSet, onClear) {
+  const file    = document.getElementById(fileId);
+  const zone    = document.getElementById(zoneId);
+  const preview = document.getElementById(previewId);
+  const rm      = document.getElementById(rmId);
+
+  function readFile(f) {
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const uri = e.target.result;
+      preview.src = uri;
+      preview.style.display = 'block';
+      zone.classList.add('has-img');
+      const icon = zone.querySelector('.uz-icon');
+      const label = zone.querySelector('.uz-label');
+      if (icon) icon.style.display = 'none';
+      if (label) label.style.display = 'none';
+      onSet(uri);
+    };
+    reader.readAsDataURL(f);
+  }
+
+  file.addEventListener('change', () => {
+    readFile(file.files[0]);
+  });
+
+  ['dragenter','dragover'].forEach(evt => {
+    zone.addEventListener(evt, e => {
+      e.preventDefault();
+      zone.classList.add('dragging');
+    });
+  });
+
+  ['dragleave','drop'].forEach(evt => {
+    zone.addEventListener(evt, e => {
+      e.preventDefault();
+      zone.classList.remove('dragging');
+    });
+  });
+
+  zone.addEventListener('drop', e => {
+    const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    readFile(f);
+  });
+
+  rm.addEventListener('click', e => {
+    e.stopPropagation();
+    file.value = '';
+    preview.src = '';
+    preview.style.display = 'none';
+    zone.classList.remove('has-img');
+    const icon = zone.querySelector('.uz-icon');
+    const label = zone.querySelector('.uz-label');
+    if (icon) icon.style.display = '';
+    if (label) label.style.display = '';
+    onClear();
+  });
+}
+
+setupUpload('product-file','product-upload','product-preview','product-rm',
+  uri => { productImgUri = uri; }, () => { productImgUri = null; });
+setupUpload('influencer-file','influencer-upload','influencer-preview','influencer-rm',
+  uri => { influencerImgUri = uri; }, () => { influencerImgUri = null; });
+setupUpload('mood-file','mood-upload','mood-preview','mood-rm',
+  uri => { moodImgUri = uri; }, () => { moodImgUri = null; });
+
+// ─── Generate prompts ─────────────────────────────────────────────────────
+const genBtn     = document.getElementById('gen-btn');
+const genBtnText = document.getElementById('gen-btn-text');
+const progressEl = document.getElementById('progress-box');
+const errorEl    = document.getElementById('error-box');
+const resultEl   = document.getElementById('result-section');
+
+function showError(msg) {
+  errorEl.textContent = msg;
+  errorEl.classList.add('visible');
+}
+function hideError() { errorEl.classList.remove('visible'); }
+
+function setStep(idx) {
+  document.querySelectorAll('.progress-step').forEach((s, i) => {
+    s.classList.remove('active','done');
+    if (i < idx) s.classList.add('done');
+    else if (i === idx) s.classList.add('active');
+  });
+}
+
+genBtn.addEventListener('click', async () => {
+  hideError();
+  resultEl.classList.remove('visible');
+
+  const productName = document.getElementById('product-name').value.trim();
+  const productDesc = document.getElementById('product-desc').value.trim();
+  const userIdea    = document.getElementById('user-idea').value.trim();
+  const spokenHook  = document.getElementById('spoken-hook').value.trim();
+  const targetAud   = document.getElementById('target-audience').value.trim();
+
+  if (!userIdea && !productName) {
+    showError('Please enter a product name or describe your idea.');
+    return;
+  }
+
+  const mood          = getSelected('mood-pills');
+  const speakingStyle = getSelected('speaking-pills');
+  const duration      = parseInt(getSelected('duration-seg'), 10);
+  const aspectRatio   = getSelected('ratio-seg');
+  const category      = document.getElementById('product-category').value;
+
+  const payload = {
+    mode:                currentMode,
+    product_name:        productName,
+    product_description: productDesc,
+    user_idea:           userIdea,
+    spoken_hook:         spokenHook,
+    target_audience:     targetAud,
+    mood,
+    speaking_style:      speakingStyle,
+    duration,
+    aspect_ratio:        aspectRatio,
+    product_category:    category,
+    image:               productImgUri,
+    influencer_image:    influencerImgUri,
+  };
+
+  // Mode-specific fields
+  if (currentMode === 'product_review') {
+    payload.review_angle = getSelected('review-angle-pills');
+    payload.features     = [...document.querySelectorAll('.feat-input')].map(i => i.value.trim());
+  } else if (currentMode === 'lifestyle_ad') {
+    payload.lifestyle_angle  = getSelected('lifestyle-angle-pills');
+    payload.emotional_angle  = getSelected('emotional-angle-pills');
+    payload.mood_image       = moodImgUri;
+  } else if (currentMode === 'unboxing_asmr') {
+    payload.reveal_style    = getSelected('reveal-style-pills');
+    payload.product_details = document.getElementById('product-details').value.trim();
+  }
+
+  // Lock in the user's explicit UI selection — used by generateVideo() for all variations
+  lastSelectedAspectRatio = aspectRatio || '9:16';
+  lastRenderRefs = getCurrentUgcRefs();
+  const promptStyle = getSelected('prompt-style-seg') || 'standard';
+  payload.prompt_style = promptStyle;
+  console.log('[ugc] generate clicked — aspect_ratio locked:', lastSelectedAspectRatio, 'duration:', duration, 'prompt_style:', promptStyle);
+
+  genBtn.disabled = true;
+  genBtn.classList.add('loading');
+  genBtnText.textContent = 'Generating…';
+  progressEl.classList.add('visible');
+  setStep(0);
+
+  const stepTimer = setTimeout(() => setStep(1), 2200);
+  const stepTimer2 = setTimeout(() => setStep(2), 4800);
+
+  try {
+    const res  = await fetch('/api/ugc/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    clearTimeout(stepTimer);
+    clearTimeout(stepTimer2);
+
+    if (!res.ok || data.error) {
+      throw new Error(data.error || 'Unknown error');
+    }
+
+    renderResults(data, promptStyle);
+  } catch (err) {
+    showError('Generation failed: ' + err.message);
+  } finally {
+    genBtn.disabled = false;
+    genBtn.classList.remove('loading');
+    genBtnText.textContent = '✦ Generate UGC Prompts';
+    progressEl.classList.remove('visible');
+    document.querySelectorAll('.progress-step').forEach(s => s.classList.remove('active','done'));
+  }
+});
+
+// ─── Render results ───────────────────────────────────────────────────────
+const tagClass = ['a','b','c'];
+const tagLabels = ['Variation A','Variation B','Variation C'];
+
+function renderResults(data, promptStyle) {
+  const langBadge   = document.getElementById('lang-badge');
+  const conceptText = document.getElementById('concept-text');
+  const grid        = document.getElementById('variations-grid');
+
+  const lang = (data.input_language || 'english').charAt(0).toUpperCase() + (data.input_language || 'english').slice(1);
+  langBadge.textContent = 'Detected: ' + lang;
+
+  // Show character badge if influencer image was provided
+  let charBadge = document.getElementById('char-badge');
+  if (influencerImgUri) {
+    if (!charBadge) {
+      charBadge = document.createElement('div');
+      charBadge.id = 'char-badge';
+      charBadge.className = 'lang-badge';
+      charBadge.style.background = 'rgba(52,211,153,.12)';
+      charBadge.style.borderColor = 'rgba(52,211,153,.25)';
+      charBadge.style.color = '#34d399';
+      charBadge.textContent = 'Character: from uploaded image';
+      document.getElementById('result-section').querySelector('.result-header').appendChild(charBadge);
+    }
+    charBadge.style.display = '';
+  } else if (charBadge) {
+    charBadge.style.display = 'none';
+  }
+
+  conceptText.textContent = data.concept_summary || '';
+  grid.innerHTML = '';
+
+  (data.variations || []).slice(0, 3).forEach((v, i) => {
+    const card = document.createElement('div');
+    card.className = 'var-card';
+
+    const header = document.createElement('div');
+    header.className = 'var-header';
+    header.innerHTML = `<div class="var-tag ${tagClass[i]}">${tagLabels[i]}</div>`;
+
+    const titleEl = document.createElement('div');
+    titleEl.className = 'var-title';
+    titleEl.textContent = v.title || '';
+
+    const angleEl = document.createElement('div');
+    angleEl.className = 'var-angle';
+    angleEl.textContent = v.angle_summary || '';
+
+    const meta = document.createElement('div');
+    meta.className = 'var-meta';
+    if (v.camera_movement) meta.innerHTML += `<span class="var-chip">${escHtml(v.camera_movement)}</span>`;
+    if (v.duration)        meta.innerHTML += `<span class="var-chip">${v.duration}s</span>`;
+    if (v.aspect_ratio)    meta.innerHTML += `<span class="var-chip">${escHtml(v.aspect_ratio)}</span>`;
+
+    const rawPrompt = v.seedance_prompt_en || '';
+    const referenceLine = buildUgcImageReferenceLine(lastRenderRefs);
+    const originalPrompt = referenceLine && !/\@image\d+/i.test(rawPrompt)
+      ? `${referenceLine}\n\n${rawPrompt}`
+      : rawPrompt;
+    const hasImageRefs   = /\@image\d+/.test(originalPrompt);
+
+    const promptWrap = document.createElement('div');
+    promptWrap.className = 'var-prompt-wrap';
+
+    const promptEdit = document.createElement('textarea');
+    promptEdit.className = promptStyle === 'structured' ? 'var-prompt-edit structured' : 'var-prompt-edit';
+    promptEdit.value = originalPrompt;
+    promptEdit.rows  = 8;
+
+    // Auto-resize: expand as user types, never show inner scrollbar
+    function autoResize(ta) {
+      ta.style.height = 'auto';
+      ta.style.height = ta.scrollHeight + 'px';
+    }
+    promptEdit.addEventListener('input', () => autoResize(promptEdit));
+    // Run once after the card is in the DOM (deferred so scrollHeight is correct)
+    requestAnimationFrame(() => autoResize(promptEdit));
+
+    // Reference-removal warning
+    const refWarn = document.createElement('div');
+    refWarn.className = 'ref-warn';
+    refWarn.textContent = '⚠ Removing @image references may break visual consistency with your uploaded reference images.';
+    refWarn.style.display = 'none';
+
+    if (hasImageRefs) {
+      promptEdit.addEventListener('input', () => {
+        refWarn.style.display = /\@image\d+/.test(promptEdit.value) ? 'none' : 'block';
+      });
+    }
+
+    // Actions row: Reset + Copy
+    const promptActions = document.createElement('div');
+    promptActions.className = 'prompt-actions';
+
+    const resetBtn = document.createElement('button');
+    resetBtn.className = 'reset-prompt-btn';
+    resetBtn.type = 'button';
+    resetBtn.textContent = 'Reset';
+    resetBtn.addEventListener('click', () => {
+      promptEdit.value = originalPrompt;
+      refWarn.style.display = 'none';
+      autoResize(promptEdit);
+    });
+
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'copy-btn';
+    copyBtn.type = 'button';
+    copyBtn.textContent = 'Copy';
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(promptEdit.value).then(() => {
+        copyBtn.textContent = 'Copied!';
+        copyBtn.classList.add('copied');
+        setTimeout(() => { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('copied'); }, 1800);
+      });
+    });
+
+    promptActions.appendChild(resetBtn);
+    promptActions.appendChild(copyBtn);
+
+    promptWrap.appendChild(promptEdit);
+    promptWrap.appendChild(refWarn);
+    promptWrap.appendChild(promptActions);
+
+    const genVideoBtn = document.createElement('button');
+    genVideoBtn.className = 'gen-video-btn';
+    genVideoBtn.innerHTML = '<span class="vbtn-spin"></span>▶ Generate Video';
+
+    const videoWrap = document.createElement('div');
+    videoWrap.className = 'var-video-wrap';
+    const videoEl = document.createElement('video');
+    videoEl.controls = true;
+    videoEl.playsInline = true;
+    videoWrap.appendChild(videoEl);
+
+    const videoErr = document.createElement('div');
+    videoErr.className = 'var-video-err';
+
+    genVideoBtn.addEventListener('click', () => generateVideo(v, promptEdit, genVideoBtn, videoWrap, videoEl, videoErr));
+
+    card.appendChild(header);
+    card.appendChild(titleEl);
+    card.appendChild(angleEl);
+    card.appendChild(meta);
+    if (v.spoken_line) {
+      const spokenEl = document.createElement('div');
+      spokenEl.className = 'var-spoken';
+      spokenEl.textContent = '"' + v.spoken_line + '"';
+      card.appendChild(spokenEl);
+    }
+    card.appendChild(promptWrap);
+    card.appendChild(genVideoBtn);
+    card.appendChild(videoWrap);
+    card.appendChild(videoErr);
+
+    grid.appendChild(card);
+  });
+
+  resultEl.classList.add('visible');
+  resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ─── Upload a data URI to get a hosted URL ────────────────────────────────
+async function uploadDataUri(dataUri, label) {
+  const res  = await fetch('/api/ugc/upload-datauri', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ data_uri: dataUri, label }),
+  });
+  const data = await res.json();
+  if (!res.ok || data.error) throw new Error(`Upload failed (${label}): ${data.error}`);
+  return data.url;
+}
+
+// ─── Generate video from a variation ─────────────────────────────────────
+// promptEl is the editable <textarea> for this card; variation still provides duration/aspect_ratio meta.
+async function generateVideo(variation, promptEl, btn, videoWrap, videoEl, videoErr) {
+  btn.disabled = true;
+  btn.classList.add('loading');
+  videoWrap.style.display = 'none';
+  videoErr.style.display  = 'none';
+  let stage = 'Preparing render';
+
+  try {
+    // Upload any reference images to get hosted URLs for Seedance I2V
+    const imageUrls = [];
+    const refsForRender = {
+      product: lastRenderRefs.product || getCurrentUgcRefs().product,
+      influencer: lastRenderRefs.influencer || getCurrentUgcRefs().influencer,
+    };
+    if (refsForRender.product) {
+      stage = 'Uploading product reference';
+      const url = await uploadDataUri(refsForRender.product, 'product');
+      imageUrls.push(url);
+      console.log('[ugc] image1 (product) =', url);
+    }
+    if (refsForRender.influencer) {
+      stage = 'Uploading influencer reference';
+      const url = await uploadDataUri(refsForRender.influencer, 'influencer');
+      imageUrls.push(url);
+      console.log('[ugc] image2 (influencer) =', url);
+    }
+
+    const useI2V = imageUrls.length > 0;
+
+    // Read the current (possibly edited) prompt from the textarea
+    const promptText = promptEl.value.trim() || variation.seedance_prompt_en || '';
+
+    // Always use the user's explicitly selected ratio (locked at generate time).
+    // DO NOT trust variation.aspect_ratio from BytePlus — it may differ when images are attached.
+    const aspectRatioToUse = lastSelectedAspectRatio || variation.aspect_ratio || '9:16';
+    console.log('[ugc] generateVideo —',
+      'mode:', useI2V ? 'i2v' : 't2v',
+      '| images:', imageUrls.length,
+      '| aspect_ratio (UI):', lastSelectedAspectRatio,
+      '| aspect_ratio (variation):', variation.aspect_ratio,
+      '| aspect_ratio SENT:', aspectRatioToUse,
+      '| duration:', variation.duration || 5,
+      '| images_list:', imageUrls,
+      '| prompt_edited:', promptText !== (variation.seedance_prompt_en || '')
+    );
+
+    if (!useI2V) {
+      throw new Error('Please upload at least one product or character reference image before rendering video.');
+    }
+
+    const hasExplicitImageRefs = /@image\d+/i.test(promptText);
+    const imageReferenceLine = buildUgcImageReferenceLine(refsForRender);
+    const renderPrompt = hasExplicitImageRefs
+      ? promptText
+      : `${imageReferenceLine}\n\n${promptText}`;
+
+    stage = 'Submitting video render';
+    const selectedResolution = document.querySelector('#resolution-seg .seg-btn.selected')?.dataset.val || '';
+    const renderPayload = {
+      prompt:       renderPrompt,
+      mode:         'image',
+      images_list:  imageUrls,
+      aspect_ratio: aspectRatioToUse,
+      duration:     variation.duration || 5,
+      quality:      'basic',
+      resolution:   selectedResolution || undefined,
+      remove_watermark: false,
+    };
+    const submitRender = async (url) => {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(renderPayload),
+      });
+      let data = {};
+      try { data = await res.json(); } catch (_) { data = { error: res.statusText || 'Submission failed' }; }
+      if (!res.ok || data.error) {
+        const err = new Error(data.error || 'Submission failed');
+        err.status = res.status;
+        err.endpoint = url;
+        throw err;
+      }
+      return { data, endpoint: url };
+    };
+
+    const submitResult = await submitRender('/api/ugc/render-video');
+    const data = submitResult.data;
+
+    const rid = data.request_id;
+    if (!rid) throw new Error('No request ID returned');
+
+    stage = 'Polling video render';
+    await pollVideoStatus(rid, videoWrap, videoEl, '/status/');
+  } catch (err) {
+    videoErr.textContent = '⚠ ' + stage + ' failed: ' + err.message;
+    videoErr.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove('loading');
+  }
+}
+
+async function pollVideoStatus(rid, videoWrap, videoEl, statusPrefix) {
+  const start = Date.now();
+  const timeout = 780_000;
+  while (Date.now() - start < timeout) {
+    await new Promise(r => setTimeout(r, 5000));
+    const res  = await fetch((statusPrefix || '/status/') + rid);
+    const data = await res.json();
+    if (!res.ok || data.error) {
+      throw new Error(data.error || 'Status check failed');
+    }
+    if (data.status === 'completed' && data.url) {
+      videoEl.src = data.url;
+      videoWrap.style.display = 'block';
+      return;
+    }
+    if (data.status === 'failed') {
+      throw new Error(data.error || 'Generation failed');
+    }
+  }
+  throw new Error('Timed out waiting for video');
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+
+{% include 'legal_footer.html' %}
+</body>
+</html>
