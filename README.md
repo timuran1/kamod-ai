@@ -2,7 +2,7 @@
 
 > **Betahacks AI Lab: Seed Agents Challenge — Track 2: AI-Powered Content Automation**
 
-KAMOD AI is an autonomous video production agent that turns a single text prompt into a fully scripted, storyboarded, narrated, and generated video — using only BytePlus Seed models. No external video tools. No Sora. No Runway.
+KAMOD AI is an autonomous video production agent that turns a single text prompt into a fully scripted, storyboarded, narrated, and generated video — using only BytePlus Seed models. 
 
 ---
 
@@ -10,7 +10,7 @@ KAMOD AI is an autonomous video production agent that turns a single text prompt
 
 Type one sentence. KAMOD AI:
 
-1. **Plans the video** — Seed 2.0 writes a scene-by-scene script with cinematography notes
+1. **Plans the video** — Seed 2.0 writes a scene-by-scene script with cinematography notes, based on user uploaded video/photo/references.
 2. **Builds the storyboard** — Seedream 5.0 generates photorealistic keyframes (1K / 2K / 4K)
 3. **Generates the video** — Seedance 2.0 animates each keyframe into cinematic motion video
 4. **Adds the voiceover** — Seed-TTS narrates in 8 professional voices, or clones any real voice via BytePlus MegaTTS
